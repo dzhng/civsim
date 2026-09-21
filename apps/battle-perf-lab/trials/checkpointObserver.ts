@@ -6,7 +6,7 @@
  * no frame identity. Reading the two on a timer correlates them wrongly, because a
  * frame's counts are published *during* preparation while `frameMetrics` is only
  * published at the *end* of it: `packages/battle-renderer/src/battleScene.ts:308`
- * assigns `lastCamera` and `apps/battle-perf-lab/src/live/NativeBattleRenderer.ts`
+ * assigns `lastCamera` and `web/src/battle/renderer.ts`
  * uploads the crowd several `await`s before `web/src/battle/battleLoop.ts:273`
  * advances `frameId`. A poll landing inside a presentation therefore reports the
  * next frame's counts beside this frame's identity.

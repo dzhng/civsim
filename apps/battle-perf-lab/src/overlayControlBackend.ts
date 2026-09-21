@@ -5,20 +5,24 @@ import type { BattlePostGradeUniforms } from "../../../packages/game-renderer/sr
 import type { FrameCameraSnapshot } from "../../../packages/battle-renderer/src/frameCamera";
 import { WORLD_CAMERA_WGSL } from "../../../packages/renderer-core/src/cameraWgsl";
 import { makeVertexBuffer } from "../../../packages/renderer-core/src/gpuBuffers";
-import { createRawLineLayer, createRawTriangleLayer, createRawRingLayer } from "../../../packages/battle-renderer/src/world/overlay";
+import {
+  createRawLineLayer,
+  createRawTriangleLayer,
+  createRawRingLayer,
+} from "./raw/world/overlay";
 import {
   createTypegpuLineLayer,
   createTypegpuTriangleLayer,
   createTypegpuRingLayer,
-} from "../candidates/typegpu/overlay";
+} from "../../../packages/battle-renderer/src/world/overlay";
 import { createVgpuLineLayer, createVgpuTriangleLayer, createVgpuRingLayer } from "./vgpu/overlay";
-import { RawBattleFrame } from "../../../packages/battle-renderer/src/world/frame";
-import { TypegpuBattleFrame } from "../candidates/typegpu/frame";
+import { RawBattleFrame } from "./raw/world/frame";
+import { TypegpuBattleFrame } from "../../../packages/battle-renderer/src/world/frame";
 import { VgpuBattleFrame } from "./vgpu/frame";
-import { createRawEnvironment } from "../../../packages/battle-renderer/src/world/environment";
-import { createTypegpuEnvironment } from "../candidates/typegpu/environment";
+import { createRawEnvironment } from "./raw/world/environment";
+import { createTypegpuEnvironment } from "../../../packages/battle-renderer/src/world/environment";
 import { createVgpuEnvironment } from "./vgpu/environment";
-import { typegpuCameraLayout } from "../candidates/typegpu/camera";
+import { typegpuCameraLayout } from "../../../packages/battle-renderer/src/world/camera";
 import { destroyVgpuTarget } from "./vgpu/targetLifetime";
 const fixtureShader = `${WORLD_CAMERA_WGSL}\nstruct V{@builtin(position)clip:vec4f,@location(0)color:vec3f};@vertex fn vertex(@location(0)p:vec3f,@location(1)c:vec3f)->V{return V(projectWorld(p),c);}@fragment fn fragment(v:V)->@location(0)vec4f{return vec4f(v.color,1);}`;
 /** Only control plumbing: candidate frame, fixture occluder and cues all use that backend. */

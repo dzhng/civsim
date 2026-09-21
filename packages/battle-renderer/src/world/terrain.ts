@@ -1,236 +1,379 @@
-import { WORLD_CAMERA_WGSL } from "../../../renderer-core/src/cameraWgsl";
+import { battleWorldDepth } from "../worldDepth";
+import { beginGpuAdmission } from "../gpuAdmission";
+import { vistaOpacityWgsl } from "../shaders/terrain";
+import { typegpuTextureBytes } from "./textureUpload";
+import { tgpu, d, std, type TgpuRenderPass, type TgpuBindGroup } from "typegpu";
 import type { PhotorealBattleGroundMesh } from "../../../game-renderer/src/battle/groundPass";
 import { frontSideGroundIndices } from "../../../game-renderer/src/battle/groundPass";
 import type { BattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
 import type { TerrainMaterialOptions } from "../shaders/terrainMaterial";
-import { terrainShaders } from "../shaders/terrain";
-import type { RawEnvironment } from "./environment";
-import { battleWorldDepth } from "../worldDepth";
+import { createTerrainSurface, terrainLinear } from "./terrainFunctions";
+import { type TypegpuEnvironment } from "./environment";
 
-interface Draw {
-  pipeline: GPURenderPipeline;
-  buffers: GPUBuffer[];
-  indices: GPUBuffer;
-  indexFormat: GPUIndexFormat;
-  count: number;
+import { Camera, typegpuCameraLayout as cameraLayout } from "./camera";
+const terrainLayout = tgpu
+  .bindGroupLayout({
+    state: { uniform: d.vec4f, visibility: ["fragment"] },
+    earth: { texture: d.texture2d(), visibility: ["fragment"] },
+    linear: { sampler: "filtering", visibility: ["fragment"] },
+  })
+  .$idx(1);
+const geometry = tgpu.vertexLayout(
+  d.disarrayOf(d.unstruct({ position: d.vec3f, normal: d.vec3f, color: d.vec3f, water: d.f32 })),
+);
+const tintVertices = tgpu.vertexLayout(d.disarrayOf(d.f32)),
+  colorVertices = tgpu.vertexLayout(d.disarrayOf(d.vec3f));
+const Varyings = {
+  clip: d.builtin.position,
+  position: d.vec3f,
+  normal: d.vec3f,
+  color: d.vec3f,
+  tint: d.f32,
+  water: d.f32,
+  // Three normalizes this in the vertex stage before interpolated fragment derivatives.
+  viewNormalGeometry: d.vec3f,
+};
+const FragmentIn = {
+  clip: d.builtin.position,
+  position: d.vec3f,
+  normal: d.vec3f,
+  color: d.vec3f,
+  tint: d.f32,
+  water: d.f32,
+  viewNormalGeometry: d.vec3f,
+};
+function bytes(data: ArrayBufferView) {
+  const copy = new Uint8Array(data.byteLength);
+  copy.set(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+  return copy.buffer;
 }
-/** Base playable ground plus opaque horizon blockers. Vista/ocean/lake/grass/
- * scenery are separate scene components. Borrowed camera/environment/targets;
- * this owner allocates only geometry, earth SDF and terrain-state resources. */
-export class RawBattleTerrain {
-  private readonly owned: { destroy(): void }[] = [];
-  private readonly draws: Draw[] = [];
-  private readonly group: GPUBindGroup;
-  private readonly state: GPUBuffer;
-  private readonly emptyGroup: GPUBindGroup;
-  private horizonShadow?: { pipeline: GPURenderPipeline; draw: Draw };
-  private disposed = false;
-  constructor(
-    private readonly device: GPUDevice,
-    cameraLayout: GPUBindGroupLayout,
-    private readonly environment: RawEnvironment,
-    ground: Omit<PhotorealBattleGroundMesh, "earthDistance">,
-    horizon: BattleHorizonLayout | null,
-    options: TerrainMaterialOptions = {},
-    mode: "beauty" | "material" = "beauty",
-    sampleCount: 1 | 4 = 1,
-    invariantPosition = true,
-  ) {
-    try {
-      const buffer = (data: Float32Array | Uint32Array | Uint16Array, usage: number) => {
-        const b = device.createBuffer({
-          size: Math.max(4, Math.ceil(data.byteLength / 4) * 4),
-          usage: usage | GPUBufferUsage.COPY_DST,
-          mappedAtCreation: true,
-        });
-        this.owned.push(b);
-        new Uint8Array(b.getMappedRange()).set(
-          new Uint8Array(data.buffer, data.byteOffset, data.byteLength),
-        );
-        b.unmap();
-        return b;
-      };
-      this.state = buffer(new Float32Array([1, 1, 0, 0]), GPUBufferUsage.UNIFORM);
-      const sdf = options.earthDistance;
-      const distance = device.createTexture({
-        size: [sdf?.width ?? 1, sdf?.height ?? 1],
-        format: "rg8unorm",
-        usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
-      });
-      this.owned.push(distance);
-      device.queue.writeTexture(
-        { texture: distance },
-        sdf?.data ?? new Uint8Array([0, 0]),
-        { bytesPerRow: (sdf?.width ?? 1) * 2 },
-        [sdf?.width ?? 1, sdf?.height ?? 1],
+export interface TerrainAttachments {
+  color: GPUTextureView;
+  depth: GPUTextureView;
+  resolveTarget?: GPUTextureView;
+}
+
+/** Same shared ground/horizon algorithms, with TypeGPU resources and draw commands.
+ * Attachments and canonical camera buffer are borrowed. This is a partial scene. */
+export async function createTypegpuTerrain(
+  device: GPUDevice,
+  cameraBuffer: GPUBuffer,
+  environment: TypegpuEnvironment,
+  ground: Omit<PhotorealBattleGroundMesh, "earthDistance">,
+  horizon: BattleHorizonLayout | null,
+  options: TerrainMaterialOptions = {},
+  mode: "beauty" | "material" | "clay" = "beauty",
+  sampleCount: 1 | 4 = 1,
+) {
+  const root = tgpu.initFromDevice({ device }),
+    owned: { destroy(): void }[] = [];
+  let disposed = false;
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    for (const r of owned) r.destroy();
+    root.destroy();
+  };
+  const admission = beginGpuAdmission(device);
+  const init: Promise<unknown>[] = [];
+  try {
+    const camera = root.createBuffer(Camera, cameraBuffer).$usage("uniform");
+    owned.push(camera);
+    const cameraGroup = root.createBindGroup(cameraLayout, { cam: camera });
+    const state = root.createBuffer(d.vec4f, d.vec4f(1, 1, 0, 0)).$usage("uniform");
+    owned.push(state);
+    const sdf = options.earthDistance,
+      earth = root
+        .createTexture({ size: [sdf?.width ?? 1, sdf?.height ?? 1], format: "rg8unorm" })
+        .$usage("sampled");
+    owned.push(earth);
+    earth.write(typegpuTextureBytes(sdf?.data ?? new Uint8Array([0, 0])));
+    const linear = root.createSampler({ minFilter: "linear", magFilter: "linear" }),
+      group = root.createBindGroup(terrainLayout, { state, earth: earth.createView(), linear });
+    const environmentLayout = environment.layout;
+    const sampleSunShadow = environment.sampleSunShadow;
+    const surface = createTerrainSurface(options);
+    const geometryRoughnessFromView = environment.geometryRoughnessFromView;
+    const shade = environment.shade;
+    const finish =
+      mode !== "material"
+        ? tgpu.fn(
+            [d.vec4f, d.vec3f, d.vec3f, d.vec3f, d.f32, d.vec3f],
+            d.vec4f,
+          )((surface, normal, position, eye, shadow, viewNormal) => {
+            "use gpu";
+            return shade(
+              surface.rgb,
+              d.vec3f(0),
+              surface.a,
+              geometryRoughnessFromView(viewNormal),
+              0,
+              1,
+              normal,
+              position,
+              shadow,
+              eye,
+            );
+          })
+        : tgpu.fn(
+            [d.vec4f, d.vec3f, d.vec3f, d.vec3f, d.f32, d.vec3f],
+            d.vec4f,
+          )(
+            "(surface:vec4f,normal:vec3f,position:vec3f,eye:vec3f,shadow:f32,viewNormal:vec3f)->vec4f{return surface;}",
+          );
+    const vistaOpacity = tgpu.fn([d.vec3f, d.vec3f], d.f32)(vistaOpacityWgsl);
+    const farFog = options.vistaBand === "farFog" && mode === "beauty";
+    const receiveShadow = !options.vistaBand;
+    const clay = mode === "clay";
+    const groundShade = tgpu.fragmentFn({ in: FragmentIn, out: d.vec4f })((v) => {
+      "use gpu";
+      const s = clay
+        ? d.vec4f(0.56, 0.56, 0.54, 1)
+        : surface(
+            v.position,
+            v.normal,
+            v.color,
+            v.tint,
+            v.water,
+            cameraLayout.$.cam.time,
+            cameraLayout.$.cam.focus,
+            terrainLayout.$.state.x,
+            terrainLayout.$.earth,
+            terrainLayout.$.linear,
+          );
+      const face = std.normalize(std.cross(std.dpdx(v.position), std.dpdy(v.position)));
+      const normal = clay
+        ? std.select(face, std.mul(face, -1), std.dot(face, v.normal) < 0)
+        : v.normal;
+      const lit = finish(
+        s,
+        normal,
+        v.position,
+        cameraLayout.$.cam.eye,
+        terrainLayout.$.state.y *
+          (receiveShadow ? sampleSunShadow(v.position, std.normalize(normal), v.clip.xy) : 1),
+        clay
+          ? std.normalize(std.mul(environmentLayout.$.data.worldToView, d.vec4f(normal, 0)).xyz)
+          : v.viewNormalGeometry,
       );
-      const sampler = device.createSampler({ minFilter: "linear", magFilter: "linear" });
-      const layout = device.createBindGroupLayout({
-        entries: [
-          { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: "uniform" } },
-          { binding: 1, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: "float" } },
-          { binding: 2, visibility: GPUShaderStage.FRAGMENT, sampler: { type: "filtering" } },
-        ],
-      });
-      this.group = device.createBindGroup({
-        layout,
-        entries: [
-          { binding: 0, resource: { buffer: this.state } },
-          { binding: 1, resource: distance.createView() },
-          { binding: 2, resource: sampler },
-        ],
-      });
-      const emptyLayout = device.createBindGroupLayout({ entries: [] });
-      this.emptyGroup = device.createBindGroup({ layout: emptyLayout, entries: [] });
-      const pipelineLayout = device.createPipelineLayout({
-        bindGroupLayouts: [cameraLayout, layout, emptyLayout, environment.layout],
-      });
-      const shaders = terrainShaders(
-        environment.shader,
-        options,
-        mode,
-        invariantPosition,
-        environment.shadows && !options.vistaBand,
-      );
-      const pipeline = (code: string, buffers: GPUVertexBufferLayout[]) => {
-        const module = device.createShaderModule({ code });
-        return device.createRenderPipeline({
-          layout: pipelineLayout,
-          multisample: { count: sampleCount },
-          vertex: { module, entryPoint: "vertex", buffers },
-          fragment: {
-            module,
-            entryPoint: "fragment",
-            targets: [
-              {
-                format: "rgba16float",
-                ...(options.vistaBand === "farFog"
-                  ? {
-                      blend: {
-                        color: {
-                          srcFactor: "src-alpha" as const,
-                          dstFactor: "one-minus-src-alpha" as const,
-                          operation: "add" as const,
-                        },
-                        alpha: {
-                          srcFactor: "one" as const,
-                          dstFactor: "one-minus-src-alpha" as const,
-                          operation: "add" as const,
-                        },
-                      },
-                    }
-                  : {}),
-              },
-            ],
-          },
-          primitive: { topology: "triangle-list", cullMode: "back", frontFace: "ccw" },
-          depthStencil: battleWorldDepth(options.vistaBand === "farFog" ? "read" : "read-write"),
-        });
+      return d.vec4f(lit.rgb, farFog ? vistaOpacity(v.position, cameraLayout.$.cam.eye) : lit.a);
+    });
+    const vertex = tgpu.vertexFn({
+      in: { position: d.vec3f, normal: d.vec3f, color: d.vec3f, tint: d.f32, water: d.f32 },
+      out: Varyings,
+    })((v) => {
+      "use gpu";
+      return {
+        clip: std.mul(cameraLayout.$.cam.viewProj, d.vec4f(v.position, 1)),
+        position: v.position,
+        normal: v.normal,
+        color: v.color,
+        tint: v.tint,
+        water: v.water,
+        viewNormalGeometry: std.normalize(
+          std.mul(environmentLayout.$.data.worldToView, d.vec4f(v.normal, 0)).xyz,
+        ),
       };
-      const groundPipeline = pipeline(shaders.ground, [
-        {
-          arrayStride: 40,
-          attributes: [
-            { shaderLocation: 0, offset: 0, format: "float32x3" },
-            { shaderLocation: 1, offset: 12, format: "float32x3" },
-            { shaderLocation: 2, offset: 36, format: "float32" },
-          ],
-        },
-        { arrayStride: 4, attributes: [{ shaderLocation: 3, offset: 0, format: "float32" }] },
-        { arrayStride: 12, attributes: [{ shaderLocation: 4, offset: 0, format: "float32x3" }] },
-      ]);
-      this.draws.push({
-        pipeline: groundPipeline,
-        buffers: [
-          buffer(ground.vertices, GPUBufferUsage.VERTEX),
-          buffer(ground.tint, GPUBufferUsage.VERTEX),
-          buffer(ground.surfaceColor, GPUBufferUsage.VERTEX),
-        ],
-        indices: buffer(frontSideGroundIndices(ground.indices), GPUBufferUsage.INDEX),
-        indexFormat: "uint32",
-        count: ground.indices.length,
-      });
-      if (horizon && horizon.mesh.indices.length) {
-        const h = horizon.mesh;
-        const p = pipeline(shaders.horizon, [
-          {
-            arrayStride: 40,
-            attributes: [
-              { shaderLocation: 0, offset: 0, format: "float32x3" },
-              { shaderLocation: 1, offset: 12, format: "float32x3" },
-              { shaderLocation: 2, offset: 24, format: "float32x3" },
-            ],
-          },
-        ]);
-        const horizonDraw: Draw = {
-          pipeline: p,
-          buffers: [buffer(h.vertices, GPUBufferUsage.VERTEX)],
-          indices: buffer(h.indices, GPUBufferUsage.INDEX),
-          indexFormat: "uint16",
-          count: h.indices.length,
-        };
-        this.draws.push(horizonDraw);
-        const caster = device.createShaderModule({
-          code: `${WORLD_CAMERA_WGSL}
-          @vertex fn vertex(@location(0) position:vec3f)->@builtin(position) vec4f {
-            return projectWorld(position);
-          }`,
-        });
-        this.horizonShadow = {
-          draw: horizonDraw,
-          pipeline: device.createRenderPipeline({
-            layout: device.createPipelineLayout({ bindGroupLayouts: [cameraLayout] }),
-            vertex: {
-              module: caster,
-              entryPoint: "vertex",
-              buffers: [
-                {
-                  arrayStride: 40,
-                  attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }],
+    });
+    const pipelineState = {
+      targets: {
+        format: "rgba16float" as const,
+        ...(options.vistaBand === "farFog"
+          ? {
+              blend: {
+                color: {
+                  srcFactor: "src-alpha" as const,
+                  dstFactor: "one-minus-src-alpha" as const,
+                  operation: "add" as const,
                 },
-              ],
-            },
-            // Three PCF shadow overrides FrontSide with BackSide; no terrain receiver bindings here.
-            primitive: { cullMode: "front", frontFace: "ccw" },
-            depthStencil: battleWorldDepth("read-write"),
-          }),
+                alpha: {
+                  srcFactor: "one" as const,
+                  dstFactor: "one-minus-src-alpha" as const,
+                  operation: "add" as const,
+                },
+              },
+            }
+          : {}),
+      },
+      primitive: {
+        topology: "triangle-list" as const,
+        cullMode: "back" as const,
+        frontFace: "ccw" as const,
+      },
+      depthStencil: battleWorldDepth(options.vistaBand !== "farFog" ? "read-write" : "read"),
+      multisample: { count: sampleCount },
+    };
+    const groundPipeline = root.createRenderPipeline({
+      ...pipelineState,
+      attribs: {
+        position: geometry.attrib.position,
+        normal: geometry.attrib.normal,
+        water: geometry.attrib.water,
+        tint: tintVertices.attrib,
+        color: colorVertices.attrib,
+      },
+      vertex,
+      fragment: groundShade,
+    });
+    const vertices = root
+        .createBuffer(geometry.schemaForCount(ground.vertices.length / 10))
+        .$usage("vertex"),
+      tints = root.createBuffer(tintVertices.schemaForCount(ground.tint.length)).$usage("vertex"),
+      colors = root
+        .createBuffer(colorVertices.schemaForCount(ground.surfaceColor.length / 3))
+        .$usage("vertex"),
+      indices = root.createBuffer(d.arrayOf(d.u32, ground.indices.length)).$usage("index");
+    owned.push(vertices, tints, colors, indices);
+    vertices.write(bytes(ground.vertices));
+    tints.write(bytes(ground.tint));
+    colors.write(bytes(ground.surfaceColor));
+    indices.write(bytes(frontSideGroundIndices(ground.indices)));
+    const boundGround = groundPipeline
+      .with(cameraGroup)
+      .with(group)
+      .with(environment.group)
+      .with(geometry, vertices)
+      .with(tintVertices, tints)
+      .with(colorVertices, colors)
+      .withIndexBuffer(indices);
+    const draws: ((pass: TgpuRenderPass) => void)[] = [
+      (pass) => boundGround.with(pass).drawIndexed(ground.indices.length),
+    ];
+    init.push(groundPipeline.initAsync());
+    let drawHorizonShadow = (_pass: TgpuRenderPass, _camera: TgpuBindGroup) => {};
+    if (horizon && horizon.mesh.indices.length) {
+      const h = horizon.mesh,
+        hv = root.createBuffer(geometry.schemaForCount(h.vertices.length / 10)).$usage("vertex"),
+        hi = root
+          .createBuffer(d.disarrayOf(d.u16, h.indices.length + (h.indices.length % 2)))
+          .$usage("index");
+      owned.push(hv, hi);
+      hv.write(bytes(h.vertices));
+      const indexData = new Uint16Array(h.indices.length + (h.indices.length % 2));
+      indexData.set(h.indices);
+      hi.write(bytes(indexData));
+      root.unwrap(hv);
+      root.unwrap(hi);
+      const hVertex = tgpu.vertexFn({
+        in: { position: d.vec3f, normal: d.vec3f, color: d.vec3f },
+        out: Varyings,
+      })((v) => {
+        "use gpu";
+        return {
+          clip: std.mul(cameraLayout.$.cam.viewProj, d.vec4f(v.position, 1)),
+          position: v.position,
+          normal: v.normal,
+          color: v.color,
+          tint: 0,
+          water: 0,
+          viewNormalGeometry: std.normalize(
+            std.mul(environmentLayout.$.data.worldToView, d.vec4f(v.normal, 0)).xyz,
+          ),
         };
-      }
-    } catch (error) {
-      this.dispose();
-      throw error;
+      });
+      const hFragment = tgpu.fragmentFn({ in: FragmentIn, out: d.vec4f })((v) => {
+        "use gpu";
+        const s = d.vec4f(terrainLinear(std.clamp(v.color, d.vec3f(0), d.vec3f(1))), 0.92);
+        return finish(
+          s,
+          v.normal,
+          v.position,
+          cameraLayout.$.cam.eye,
+          terrainLayout.$.state.y * sampleSunShadow(v.position, std.normalize(v.normal), v.clip.xy),
+          v.viewNormalGeometry,
+        );
+      });
+      const pipeline = root.createRenderPipeline({
+        ...pipelineState,
+        attribs: {
+          position: geometry.attrib.position,
+          normal: geometry.attrib.normal,
+          color: geometry.attrib.color,
+        },
+        vertex: hVertex,
+        fragment: hFragment,
+      });
+      const bound = pipeline
+        .with(cameraGroup)
+        .with(group)
+        .with(environment.group)
+        .with(geometry, hv)
+        .withIndexBuffer(hi);
+      draws.push((pass) => bound.with(pass).drawIndexed(h.indices.length));
+      init.push(pipeline.initAsync());
+      const shadowVertex = tgpu.vertexFn({
+        in: { position: d.vec3f },
+        out: { clip: d.builtin.position },
+      })((v) => {
+        "use gpu";
+        return { clip: std.mul(cameraLayout.$.cam.viewProj, d.vec4f(v.position, 1)) };
+      });
+      const shadowPipeline = root.createRenderPipeline({
+        attribs: { position: geometry.attrib.position },
+        vertex: shadowVertex,
+        primitive: { topology: "triangle-list", cullMode: "front" },
+        depthStencil: battleWorldDepth("read-write"),
+      });
+      init.push(shadowPipeline.initAsync());
+      drawHorizonShadow = (pass, camera) =>
+        shadowPipeline
+          .with(camera)
+          .with(geometry, hv)
+          .withIndexBuffer(hi)
+          .with(pass)
+          .drawIndexed(h.indices.length);
     }
-  }
-  setState(farStrength: number, shadow = 1) {
-    if (this.disposed) throw new Error("Terrain disposed");
-    this.device.queue.writeBuffer(this.state, 0, new Float32Array([farStrength, shadow, 0, 0]));
-  }
-  encode(pass: GPURenderPassEncoder, cameraGroup: GPUBindGroup) {
-    if (this.disposed) throw new Error("Terrain disposed");
-    pass.setBindGroup(0, cameraGroup);
-    pass.setBindGroup(1, this.group);
-    pass.setBindGroup(2, this.emptyGroup);
-    pass.setBindGroup(3, this.environment.bindGroup);
-    for (const draw of this.draws) {
-      pass.setPipeline(draw.pipeline);
-      draw.buffers.forEach((buffer, i) => pass.setVertexBuffer(i, buffer));
-      pass.setIndexBuffer(draw.indices, draw.indexFormat);
-      pass.drawIndexed(draw.count);
-    }
-  }
-  encodeHorizonShadow(pass: GPURenderPassEncoder, cameraGroup: GPUBindGroup) {
-    if (this.disposed) throw Error("Terrain disposed");
-    const shadow = this.horizonShadow;
-    if (!shadow) return;
-    pass.setPipeline(shadow.pipeline);
-    pass.setBindGroup(0, cameraGroup);
-    pass.setVertexBuffer(0, shadow.draw.buffers[0]);
-    pass.setIndexBuffer(shadow.draw.indices, shadow.draw.indexFormat);
-    pass.drawIndexed(shadow.draw.count);
-  }
-  dispose() {
-    if (this.disposed) return;
-    this.disposed = true;
-    for (const resource of this.owned) resource.destroy();
+    root.unwrap(vertices);
+    root.unwrap(tints);
+    root.unwrap(colors);
+    root.unwrap(indices);
+    root.unwrap(cameraGroup);
+    root.unwrap(group);
+    root.unwrap(linear);
+    const pipelinesReady = Promise.all(init);
+    await Promise.all([pipelinesReady, admission()]);
+    return {
+      stats: () => ({ groundTriangles: disposed ? null : ground.indices.length / 3 }),
+      setState(farStrength: number, shadow = 1) {
+        if (disposed) throw Error("TypeGPU terrain disposed");
+        state.write(d.vec4f(farStrength, shadow, 0, 0));
+      },
+      drawHorizonShadow(pass: TgpuRenderPass, camera: TgpuBindGroup) {
+        if (disposed) throw Error("TypeGPU terrain disposed");
+        drawHorizonShadow(pass, camera);
+      },
+      draw(pass: TgpuRenderPass, visible = { ground: true, horizon: true }) {
+        if (disposed) throw Error("TypeGPU terrain disposed");
+        if (visible.ground) draws[0](pass);
+        if (visible.horizon) draws[1]?.(pass);
+      },
+      render(attachments: TerrainAttachments) {
+        if (disposed) throw Error("TypeGPU terrain disposed");
+        const encoder = root["~unstable"].createCommandEncoder({ label: "TypeGPU terrain" });
+        const pass = encoder.beginRenderPass({
+          colorAttachments: {
+            view: attachments.color,
+            resolveTarget: attachments.resolveTarget,
+            clearValue: [0, 0, 0, 0],
+            loadOp: "clear",
+            storeOp: "store",
+          },
+          depthStencilAttachment: {
+            view: attachments.depth,
+            depthClearValue: 0,
+            depthLoadOp: "clear",
+            depthStoreOp: "store",
+          },
+        });
+        for (const draw of draws) draw(pass);
+        pass.end();
+        encoder.submit();
+      },
+      dispose,
+    };
+  } catch (error) {
+    await Promise.allSettled([...init, admission()]);
+    dispose();
+    throw error;
   }
 }

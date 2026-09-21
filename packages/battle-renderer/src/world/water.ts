@@ -1,136 +1,212 @@
-import { prepareWaterSurfaces, type BattleWaterInput } from "../waterData";
-import { waterShader } from "../shaders/water";
-import type { RawEnvironment } from "./environment";
 import { battleWorldDepth } from "../worldDepth";
-
-/** Opaque, front-sided, depth-writing water, matching the source standard
- * material. The caller encodes this before read-only world decals. All GPU
- * allocations here are owned; device, camera, environment and targets borrowed. */
-export class RawBattleWater {
-  private readonly owned: GPUBuffer[] = [];
-  private readonly draws: {
-    positions: GPUBuffer;
-    shore: GPUBuffer;
-    indices: GPUBuffer;
-    count: number;
-    group: GPUBindGroup;
-    pipeline: GPURenderPipeline;
-  }[] = [];
-  private readonly empty: GPUBindGroup;
-  private disposed = false;
-  constructor(
-    device: GPUDevice,
-    cameraLayout: GPUBindGroupLayout,
-    private readonly environment: RawEnvironment,
-    inputs: readonly BattleWaterInput[],
-    samples: 1 | 4 = 1,
-  ) {
-    try {
-      const layout = device.createBindGroupLayout({
-        entries: [
-          {
-            binding: 0,
-            visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-            buffer: { type: "uniform" },
-          },
-        ],
-      });
-      const emptyLayout = device.createBindGroupLayout({ entries: [] });
-      this.empty = device.createBindGroup({ layout: emptyLayout, entries: [] });
-      const pipelineLayout = device.createPipelineLayout({
-        bindGroupLayouts: [cameraLayout, layout, emptyLayout, environment.layout],
-      });
-      const pipelines = new Map<string, GPURenderPipeline>();
-      const buffer = (data: Float32Array | Uint32Array, usage: number) => {
-        const resource = device.createBuffer({
-          size: Math.max(4, data.byteLength),
-          usage,
-          mappedAtCreation: true,
-        });
-        this.owned.push(resource);
-        new Uint8Array(resource.getMappedRange()).set(
-          new Uint8Array(data.buffer, data.byteOffset, data.byteLength),
-        );
-        resource.unmap();
-        return resource;
-      };
-      for (const geometry of prepareWaterSurfaces(inputs)) {
-        const lake = geometry.kind === "lake";
-        let pipeline = pipelines.get(geometry.kind);
-        if (!pipeline) {
-          const module = device.createShaderModule({
-            label: `native ${geometry.kind} water`,
-            code: waterShader(environment.shader, lake),
-          });
-          pipeline = device.createRenderPipeline({
-            layout: pipelineLayout,
-            vertex: {
-              module,
-              entryPoint: "vertex",
-              buffers: [
-                {
-                  arrayStride: 12,
-                  attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }],
-                },
-                {
-                  arrayStride: 4,
-                  attributes: [{ shaderLocation: 1, offset: 0, format: "float32" }],
-                },
-              ],
-            },
-            fragment: { module, entryPoint: "fragment", targets: [{ format: "rgba16float" }] },
-            primitive: { topology: "triangle-list", cullMode: "back", frontFace: "ccw" },
-            depthStencil: battleWorldDepth("read-write"),
-            multisample: { count: samples },
-          });
-          pipelines.set(geometry.kind, pipeline);
-        }
-        const state = buffer(geometry.state, GPUBufferUsage.UNIFORM);
-        const shore = geometry.shoreDist;
-        this.draws.push({
-          positions: buffer(geometry.positions, GPUBufferUsage.VERTEX),
-          shore: buffer(shore, GPUBufferUsage.VERTEX),
-          indices: buffer(geometry.indices, GPUBufferUsage.INDEX),
-          count: geometry.indices.length,
-          pipeline,
-          group: device.createBindGroup({
-            layout,
-            entries: [{ binding: 0, resource: { buffer: state } }],
-          }),
-        });
-      }
-    } catch (error) {
-      this.dispose();
-      throw error;
-    }
-  }
-  encode(pass: GPURenderPassEncoder, camera: GPUBindGroup) {
-    if (this.disposed) throw new Error("Water disposed");
-    pass.setBindGroup(0, camera);
-    pass.setBindGroup(2, this.empty);
-    pass.setBindGroup(3, this.environment.bindGroup);
-    for (const draw of this.draws) {
-      pass.setPipeline(draw.pipeline);
-      pass.setBindGroup(1, draw.group);
-      pass.setVertexBuffer(0, draw.positions);
-      pass.setVertexBuffer(1, draw.shore);
-      pass.setIndexBuffer(draw.indices, "uint32");
-      pass.drawIndexed(draw.count);
-    }
-  }
-  stats() {
-    return {
-      draws: this.draws.length,
-      triangles: this.draws.reduce((sum, draw) => sum + draw.count / 3, 0),
-      ownedBuffers: this.disposed ? 0 : this.owned.length,
-      depth: "read-write",
-      blending: "opaque",
-      disposed: this.disposed,
+import { tgpu, d, type TgpuRenderPass, type TgpuBindGroup } from "typegpu";
+import { prepareWaterSurfaces, type BattleWaterInput } from "../waterData";
+import type { BattleWaterContent } from "../types";
+import { waterShaderBodies } from "../shaders/water";
+import { terrainWaterNoise, terrainLinear } from "./terrainFunctions";
+import { beginGpuAdmission } from "../gpuAdmission";
+import { typegpuCameraLayout } from "./camera";
+import type { TypegpuEnvironment } from "./environment";
+const WaterState = d.struct({ baseZ: d.f32, shoreX: d.f32, pad: d.vec2f });
+const WaterField = d.struct({ height: d.f32, normal: d.vec3f, foam: d.f32 });
+const VertexOut = d.struct({ clip: d.vec4f, position: d.vec3f, shore: d.f32 });
+const waterLayout = tgpu.bindGroupLayout({ water: { uniform: WaterState } }).$idx(1);
+const positions = tgpu.vertexLayout(d.disarrayOf(d.vec3f)),
+  shores = tgpu.vertexLayout(d.disarrayOf(d.f32));
+const varying = { ...VertexOut.propTypes, clip: d.builtin.position };
+/** Public typed buffers, pipelines and draw commands. Immutable water geometry
+ * is replaced by constructing another owner, not a hot-path capacity pool. */
+export async function createTypegpuWater(
+  device: GPUDevice,
+  camera: TgpuBindGroup,
+  environment: TypegpuEnvironment,
+  inputs: readonly BattleWaterInput[],
+  samples: 1 | 4,
+) {
+  const root = tgpu.initFromDevice({ device });
+  const owned: { destroy(): void }[] = [];
+  let disposed = false;
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    for (const resource of owned) resource.destroy();
+    root.destroy();
+  };
+  const admit = beginGpuAdmission(device);
+  try {
+    const own = <T extends { destroy(): void }>(value: T) => {
+      owned.push(value);
+      return value;
     };
-  }
-  dispose() {
-    if (this.disposed) return;
-    this.disposed = true;
-    for (const resource of this.owned) resource.destroy();
+    const draws: {
+      draw(pass: TgpuRenderPass): void;
+      surface: BattleWaterContent["surfaces"][number];
+    }[] = [];
+    const projectWorld = tgpu
+      .fn(
+        [d.vec3f],
+        d.vec4f,
+      )("(world:vec3f)->vec4f{return cam.viewProj*vec4f(world,1);}")
+      .$uses({
+        get cam() {
+          return typegpuCameraLayout.$.cam;
+        },
+      });
+    const shadeWorldSurface = tgpu
+      .fn(
+        [d.vec3f, d.vec3f, d.f32, d.f32, d.f32, d.f32, d.vec3f, d.vec3f, d.f32],
+        d.vec4f,
+      )(
+        "(base:vec3f,emissive:vec3f,roughness:f32,geom:f32,metal:f32,ao:f32,normal:vec3f,world:vec3f,shadow:f32)->vec4f{return shade(base,emissive,roughness,geom,metal,ao,normal,world,shadow,cam.eye);}",
+      )
+      .$uses({
+        shade: environment.shade,
+        get cam() {
+          return typegpuCameraLayout.$.cam;
+        },
+      });
+    const makePipeline = (lake: boolean) => {
+      const body = waterShaderBodies(lake);
+      const waterField = tgpu
+        .fn(
+          [d.vec2f, d.f32],
+          WaterField,
+        )(`(p:vec2f,t:f32)->WaterField{${body.field}}`)
+        .$uses({ WaterField, terrainWaterNoise });
+      const vertexBody = tgpu
+        .fn(
+          [d.vec3f, d.f32],
+          VertexOut,
+        )(`(p:vec3f,shore:f32)->VertexOut{${body.vertex}}`)
+        .$uses({
+          waterField,
+          get cam() {
+            return typegpuCameraLayout.$.cam;
+          },
+          get water() {
+            return waterLayout.$.water;
+          },
+          VertexOut,
+          projectWorld,
+        });
+      const fragmentBody = tgpu
+        .fn(
+          [VertexOut],
+          d.vec4f,
+        )(`(v:VertexOut)->vec4f{${body.fragment}}`)
+        .$uses({
+          waterField,
+          get cam() {
+            return typegpuCameraLayout.$.cam;
+          },
+          get water() {
+            return waterLayout.$.water;
+          },
+          VertexOut,
+          terrainWaterNoise,
+          terrainLinear,
+          shadeWorldSurface,
+        });
+      const vertex = tgpu.vertexFn({
+        in: { p: d.vec3f, shore: d.f32 },
+        out: {
+          ...varying,
+          // Public invariant() is supported; vertexFn's builtin type omits its decoration.
+          clip: d.invariant(
+            d.builtin.position,
+          ) as d.Decorated<d.Vec4f> as typeof d.builtin.position,
+        },
+      })((v) => {
+        "use gpu";
+        const r = vertexBody(v.p, v.shore);
+        return { clip: r.clip, position: r.position, shore: r.shore };
+      });
+      const fragment = tgpu.fragmentFn({ in: varying, out: d.vec4f })((v) => {
+        "use gpu";
+        return fragmentBody(VertexOut({ clip: v.clip, position: v.position, shore: v.shore }));
+      });
+      return root.createRenderPipeline({
+        vertex,
+        fragment,
+        attribs: { p: positions.attrib, shore: shores.attrib },
+        targets: { format: "rgba16float" },
+        primitive: { topology: "triangle-list", cullMode: "back", frontFace: "ccw" },
+        depthStencil: battleWorldDepth("read-write"),
+        multisample: { count: samples },
+      });
+    };
+    const pipelines = new Map<string, ReturnType<typeof makePipeline>>();
+    for (const data of prepareWaterSurfaces(inputs)) {
+      let pipeline = pipelines.get(data.kind);
+      if (!pipeline) {
+        pipeline = makePipeline(data.kind === "lake");
+        await pipeline.initAsync();
+        pipelines.set(data.kind, pipeline);
+      }
+      const p = own(
+        root.createBuffer(positions.schemaForCount(data.positions.length / 3)).$usage("vertex"),
+      );
+      p.write(data.positions.slice().buffer);
+      const shore = own(
+        root.createBuffer(shores.schemaForCount(data.shoreDist.length)).$usage("vertex"),
+      );
+      shore.write(data.shoreDist.slice().buffer);
+      const indices = own(root.createBuffer(d.arrayOf(d.u32, data.indices.length)).$usage("index"));
+      indices.write(data.indices.slice().buffer);
+      const state = own(
+        root
+          .createBuffer(WaterState, {
+            baseZ: data.state[0],
+            shoreX: data.state[1],
+            pad: d.vec2f(0),
+          })
+          .$usage("uniform"),
+      );
+      const group = root.createBindGroup(waterLayout, { water: state });
+      // TypeGPU buffers and groups are lazy; admission must include their real allocations.
+      root.unwrap(state);
+      root.unwrap(group);
+      const configured = pipeline
+        .with(camera)
+        .with(environment.group)
+        .with(group)
+        .with(positions, p)
+        .with(shores, shore)
+        .withIndexBuffer(indices);
+      draws.push({
+        surface: {
+          kind: data.kind,
+          level: data.level,
+          surfaceLevel: data.state[0],
+          triangles: data.indices.length / 3,
+        },
+        draw(pass) {
+          configured.with(pass).drawIndexed(data.indices.length);
+        },
+      });
+    }
+    await admit();
+    return {
+      draw(pass: TgpuRenderPass) {
+        if (disposed) throw Error("TypeGPU water disposed");
+        for (const draw of draws) draw.draw(pass);
+      },
+      stats() {
+        return {
+          draws: draws.length,
+          triangles: draws.reduce((sum, draw) => sum + draw.surface.triangles, 0),
+          surfaces: draws.map((draw) => ({ ...draw.surface })),
+          ownedBuffers: disposed ? 0 : owned.length,
+          disposed,
+          depth: "read-write",
+          blending: "opaque",
+        };
+      },
+      dispose,
+    };
+  } catch (error) {
+    dispose();
+    await admit();
+    throw error;
   }
 }

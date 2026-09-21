@@ -1,246 +1,283 @@
+import { beginGpuAdmission } from "../gpuAdmission";
+import { tgpu, d, std, common, type TgpuFn, type TgpuBindGroup } from "typegpu";
 import type { BattlePostGradeUniforms } from "../../../game-renderer/src/environment/postParameters";
+import { GRADE_LUMA } from "../../../game-renderer/src/environment/postParameters";
 import {
-  fullscreenWGSL,
-  postColorWGSL,
   BLOOM_KERNEL_RADII,
   bloomHighpassWgsl,
   bloomBlurWgsl,
   bloomCompositeWgsl,
+  gradeColorWgsl,
+  agxWgsl,
+  outputSrgbWgsl,
   postFinalWgsl,
   postDirectWgsl,
 } from "../shaders/post";
 
-type Stage = {
-  pipeline: GPURenderPipeline;
-  group: GPUBindGroup;
-  target: GPUTextureView;
-  label: string;
-};
+const Grade = d.struct({
+  strength: d.f32,
+  saturationBoost: d.f32,
+  contrast: d.f32,
+  splitTone: d.f32,
+  shadowLift: d.f32,
+  exposure: d.f32,
+  pad0: d.f32,
+  pad1: d.f32,
+});
+const sampled = tgpu.bindGroupLayout({
+  linearSampler: { sampler: "filtering" },
+  source: { texture: d.texture2d() },
+});
+const compositeLayout = tgpu.bindGroupLayout({
+  linearSampler: { sampler: "filtering" },
+  level0: { texture: d.texture2d() },
+  level1: { texture: d.texture2d() },
+  level2: { texture: d.texture2d() },
+  level3: { texture: d.texture2d() },
+  level4: { texture: d.texture2d() },
+});
+const finalLayout = tgpu.bindGroupLayout({
+  linearSampler: { sampler: "filtering" },
+  scene: { texture: d.texture2d() },
+  bloom: { texture: d.texture2d() },
+  grade: { uniform: Grade },
+});
 
-/** The world's post pass: borrowed device/input/output; owns only its intermediate
- * HDR textures, uniform and pipelines. No queue submission or waits during encode.
- * Recreate on resize/input replacement; no production backend switch. */
-export class RawBattlePost {
-  private readonly stages: Stage[] = [];
-  private readonly uniform: GPUBuffer;
-  private readonly directPipeline: GPURenderPipeline;
-  private readonly directGroup: GPUBindGroup;
-  private readonly release: (() => void)[] = [];
-  private readonly finalPipeline: GPURenderPipeline;
-  private readonly finalGroups: [GPUBindGroup, GPUBindGroup];
-  private disposed = false;
-
-  constructor(
-    private readonly device: GPUDevice,
-    input: GPUTextureView,
-    width: number,
-    height: number,
-    outputFormat: GPUTextureFormat = "rgba8unorm",
-  ) {
-    if (!Number.isInteger(width) || !Number.isInteger(height) || width < 64 || height < 64)
-      throw new Error("Five-level parity bloom requires a framebuffer at least 64×64");
-    if (outputFormat.endsWith("-srgb"))
-      throw new Error("Post shader already applies sRGB transfer; output must not encode twice");
-    try {
-      const sampler = device.createSampler({ minFilter: "linear", magFilter: "linear" });
-      this.uniform = device.createBuffer({
-        size: 32,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      });
-      this.release.push(() => this.uniform.destroy());
-      const texture = (w: number, h: number) => {
-        const t = device.createTexture({
-          size: [w, h],
-          format: "rgba16float",
-          usage:
-            GPUTextureUsage.RENDER_ATTACHMENT |
-            GPUTextureUsage.TEXTURE_BINDING |
-            GPUTextureUsage.COPY_SRC,
-        });
-        this.release.push(() => t.destroy());
-        return t.createView();
-      };
-      const pipeline = (code: string, format: GPUTextureFormat = "rgba16float") => {
-        const module = device.createShaderModule({ code: fullscreenWGSL + code });
-        return device.createRenderPipeline({
-          layout: "auto",
-          vertex: { module, entryPoint: "vertex" },
-          fragment: { module, entryPoint: "fragment", targets: [{ format }] },
-          primitive: { topology: "triangle-list" },
-        });
-      };
-      const sampled =
-        "@group(0) @binding(0) var linearSampler: sampler;\n@group(0) @binding(1) var source: texture_2d<f32>;\n";
-      const sampledGroup = (p: GPURenderPipeline, source: GPUTextureView) =>
-        device.createBindGroup({
-          layout: p.getBindGroupLayout(0),
-          entries: [
-            { binding: 0, resource: sampler },
-            { binding: 1, resource: source },
-          ],
-        });
-      const high = pipeline(
-        sampled +
-          `fn highpass${bloomHighpassWgsl}
-      @fragment fn fragment(v: VertexOut) -> @location(0) vec4f { return highpass(v.uv,source,linearSampler); }`,
-      );
-      let w = Math.floor(width / 2),
-        h = Math.floor(height / 2);
-      const bright = texture(w, h);
-      this.stages.push({
-        pipeline: high,
-        group: sampledGroup(high, input),
-        target: bright,
-        label: "bloom highpass",
-      });
-      let source = bright;
-      const levels: GPUTextureView[] = [];
-      let compositeTarget!: GPUTextureView;
-      for (const radius of BLOOM_KERNEL_RADII) {
-        const horizontal = texture(w, h),
-          vertical = texture(w, h);
-        if (levels.length === 0) compositeTarget = horizontal;
-        for (const [axis, target] of [
-          [0, horizontal],
-          [1, vertical],
-        ] as const) {
-          const p = pipeline(
-            sampled +
-              `fn blur${bloomBlurWgsl(radius, w, h, axis)}
-          @fragment fn fragment(v: VertexOut) -> @location(0) vec4f { return blur(v.uv,source,linearSampler); }`,
-          );
-          this.stages.push({
-            pipeline: p,
-            group: sampledGroup(p, source),
-            target,
-            label: `bloom ${axis === 0 ? "horizontal" : "vertical"} ${levels.length}`,
-          });
-          source = target;
-        }
-        levels.push(vertical);
-        w = Math.floor(w / 2);
-        h = Math.floor(h / 2);
-      }
-      const composite = pipeline(`
-      @group(0) @binding(0) var linearSampler: sampler;
-      ${levels.map((_, i) => `@group(0) @binding(${i + 1}) var level${i}: texture_2d<f32>;`).join("\n")}
-      fn composite${bloomCompositeWgsl}
-      @fragment fn fragment(v: VertexOut) -> @location(0) vec4f { return composite(v.uv,level0,level1,level2,level3,level4,linearSampler); }
-    `);
-      const compositeGroup = device.createBindGroup({
-        layout: composite.getBindGroupLayout(0),
-        entries: [
-          { binding: 0, resource: sampler },
-          ...levels.map((resource, i) => ({ binding: i + 1, resource })),
-        ],
-      });
-      this.stages.push({
-        pipeline: composite,
-        group: compositeGroup,
-        target: compositeTarget,
-        label: "bloom composite",
-      });
-      // A zero texture gives bloom-off the same final pipeline without sampling an
-      // uninitialized intermediate. WebGPU initializes newly allocated textures to zero.
-      const zero = texture(1, 1);
-      this.finalPipeline = pipeline(
-        postColorWGSL +
-          `
-      @group(0) @binding(0) var linearSampler: sampler;
-      @group(0) @binding(1) var scene: texture_2d<f32>;
-      @group(0) @binding(2) var bloom: texture_2d<f32>;
-      @group(0) @binding(3) var<uniform> grade: Grade;
-      fn finalColor${postFinalWgsl}
-      @fragment fn fragment(v: VertexOut) -> @location(0) vec4f { return finalColor(v.uv,scene,bloom,linearSampler,grade); }`,
-        outputFormat,
-      );
-      this.finalGroups = [zero, compositeTarget].map((bloom) =>
-        device.createBindGroup({
-          layout: this.finalPipeline.getBindGroupLayout(0),
-          entries: [
-            { binding: 0, resource: sampler },
-            { binding: 1, resource: input },
-            { binding: 2, resource: bloom },
-            { binding: 3, resource: { buffer: this.uniform } },
-          ],
+/** Borrowed input/output/device; TypeGPU owns all intermediate HDR resources and
+ * pipeline encoding. Grade is the validated recorded fixture state. */
+export async function createTypegpuPost(
+  device: GPUDevice,
+  input: GPUTextureView,
+  width: number,
+  height: number,
+  outputFormat: GPUTextureFormat = "rgba8unorm",
+) {
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 64 || height < 64)
+    throw new Error("Five-level parity bloom requires a framebuffer at least 64×64");
+  if (outputFormat.endsWith("-srgb"))
+    throw new Error("Post shader already applies sRGB transfer; output must not encode twice");
+  const root = tgpu.initFromDevice({ device });
+  const owned: { destroy(): void }[] = [];
+  let disposed = false;
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    for (const resource of owned) resource.destroy();
+    root.destroy();
+  };
+  const texture = (w: number, h: number) => {
+    const result = root
+      .createTexture({ size: [w, h], format: "rgba16float" })
+      .$usage("render", "sampled");
+    owned.push(result);
+    root.unwrap(result);
+    return result;
+  };
+  const admission = beginGpuAdmission(device);
+  const init: Promise<unknown>[] = [];
+  const admittedGroup = <T extends TgpuBindGroup>(group: T): T => {
+    root.unwrap(group);
+    return group;
+  };
+  try {
+    const sampler = root.createSampler({ minFilter: "linear", magFilter: "linear" });
+    const uniform = root.createBuffer(Grade).$usage("uniform");
+    owned.push(uniform);
+    root.unwrap(uniform);
+    root.unwrap(sampler);
+    const pipeline = (
+      shade: TgpuFn<(uv: d.Vec2f) => d.Vec4f>,
+      format: GPUTextureFormat = "rgba16float",
+    ) =>
+      root.createRenderPipeline({
+        vertex: common.fullScreenTriangle,
+        fragment: tgpu.fragmentFn({ in: { uv: d.vec2f }, out: d.vec4f })(({ uv }) => {
+          "use gpu";
+          return shade(uv);
         }),
-      ) as [GPUBindGroup, GPUBindGroup];
-      // Three's direct render still applies its output transform after HDR blending.
-      // Bypass only authored grade/bloom. Alpha ordering follows pinned Three
-      // RenderOutputNode/PremultiplyAlphaFunctions (MIT; ../shaders/LICENSE.three).
-      this.directPipeline = pipeline(
-        postColorWGSL +
-          `
-      @group(0) @binding(0) var linearSampler: sampler;
-      @group(0) @binding(1) var scene: texture_2d<f32>;
-      @group(0) @binding(2) var<uniform> grade: Grade;
-      fn directOutput${postDirectWgsl}
-      @fragment fn fragment(v: VertexOut) -> @location(0) vec4f {
-        return directOutput(textureSample(scene, linearSampler, v.uv), grade.exposure);
-      }`,
-        outputFormat,
-      );
-      this.directGroup = device.createBindGroup({
-        layout: this.directPipeline.getBindGroupLayout(0),
-        entries: [
-          { binding: 0, resource: sampler },
-          { binding: 1, resource: input },
-          { binding: 2, resource: { buffer: this.uniform } },
-        ],
+        targets: { format },
       });
-    } catch (error) {
-      this.dispose();
-      throw error;
-    }
-  }
-
-  setGrade(grade: BattlePostGradeUniforms, exposure: number) {
-    if (this.disposed) throw new Error("Raw post is disposed");
-    const values = [
-      grade.strength,
-      grade.saturationBoost,
-      grade.contrast,
-      grade.splitTone,
-      grade.shadowLift,
-      exposure,
-      0,
-      0,
-    ];
-    if (!values.every(Number.isFinite)) throw new Error("Post parameters must be finite");
-    this.device.queue.writeBuffer(this.uniform, 0, new Float32Array(values));
-  }
-
-  encode(encoder: GPUCommandEncoder, output: GPUTextureView, bloom = true, enabled = true) {
-    if (this.disposed) throw new Error("Raw post is disposed");
-    const draw = (
-      pipeline: GPURenderPipeline,
-      group: GPUBindGroup,
-      target: GPUTextureView,
-      label: string,
+    const stages: ((encoder: GPUCommandEncoder) => void)[] = [];
+    const blurStage = (
+      body: string,
+      source: GPUTextureView,
+      target: ReturnType<typeof texture>,
     ) => {
-      const pass = encoder.beginRenderPass({
-        label,
-        colorAttachments: [
-          { view: target, loadOp: "clear", storeOp: "store", clearValue: [0, 0, 0, 0] },
-        ],
+      const algorithm = tgpu.fn([d.vec2f, d.texture2d(), d.sampler()], d.vec4f)(body);
+      const shader = tgpu.fn(
+        [d.vec2f],
+        d.vec4f,
+      )((uv) => {
+        "use gpu";
+        return algorithm(uv, sampled.$.source, sampled.$.linearSampler);
       });
-      pass.setPipeline(pipeline);
-      pass.setBindGroup(0, group);
-      pass.draw(3);
-      pass.end();
+      const p = pipeline(shader).with(
+        admittedGroup(root.createBindGroup(sampled, { source, linearSampler: sampler })),
+      );
+      init.push(p.initAsync());
+      const targetView = target.createView("render");
+      stages.push((encoder) =>
+        p
+          .with(encoder)
+          .withColorAttachment({ view: targetView, clearValue: [0, 0, 0, 0] })
+          .draw(3),
+      );
     };
-    if (!enabled) {
-      draw(this.directPipeline, this.directGroup, output, "direct AgX output");
-      return;
+    let w = Math.floor(width / 2),
+      h = Math.floor(height / 2);
+    const bright = texture(w, h);
+    blurStage(bloomHighpassWgsl, input, bright);
+    let source = bright;
+    const levels: ReturnType<typeof texture>[] = [];
+    let compositeTarget: ReturnType<typeof texture> | undefined;
+    for (const radius of BLOOM_KERNEL_RADII) {
+      const horizontal = texture(w, h),
+        vertical = texture(w, h);
+      compositeTarget ??= horizontal;
+      blurStage(bloomBlurWgsl(radius, w, h, 0), root.unwrap(source.createView()), horizontal);
+      blurStage(bloomBlurWgsl(radius, w, h, 1), root.unwrap(horizontal.createView()), vertical);
+      source = vertical;
+      levels.push(vertical);
+      w = Math.floor(w / 2);
+      h = Math.floor(h / 2);
     }
-    if (bloom)
-      for (const stage of this.stages) draw(stage.pipeline, stage.group, stage.target, stage.label);
-    draw(this.finalPipeline, this.finalGroups[bloom ? 1 : 0], output, "grade AgX output");
-  }
-
-  dispose() {
-    if (this.disposed) return;
-    this.disposed = true;
-    for (const release of this.release.reverse()) release();
+    const compositeAlgorithm = tgpu.fn(
+      [
+        d.vec2f,
+        d.texture2d(),
+        d.texture2d(),
+        d.texture2d(),
+        d.texture2d(),
+        d.texture2d(),
+        d.sampler(),
+      ],
+      d.vec4f,
+    )(bloomCompositeWgsl);
+    const compositeShader = tgpu.fn(
+      [d.vec2f],
+      d.vec4f,
+    )((uv) => {
+      "use gpu";
+      return compositeAlgorithm(
+        uv,
+        compositeLayout.$.level0,
+        compositeLayout.$.level1,
+        compositeLayout.$.level2,
+        compositeLayout.$.level3,
+        compositeLayout.$.level4,
+        compositeLayout.$.linearSampler,
+      );
+    });
+    const composite = pipeline(compositeShader).with(
+      admittedGroup(
+        root.createBindGroup(compositeLayout, {
+          linearSampler: sampler,
+          level0: levels[0],
+          level1: levels[1],
+          level2: levels[2],
+          level3: levels[3],
+          level4: levels[4],
+        }),
+      ),
+    );
+    init.push(composite.initAsync());
+    const compositeView = compositeTarget!.createView("render");
+    stages.push((encoder) =>
+      composite
+        .with(encoder)
+        .withColorAttachment({ view: compositeView, clearValue: [0, 0, 0, 0] })
+        .draw(3),
+    );
+    const gradeColor = tgpu
+      .fn(
+        [d.vec3f, Grade],
+        d.vec3f,
+      )(gradeColorWgsl)
+      .$uses({ LUMA: tgpu.const(d.vec3f, d.vec3f(...GRADE_LUMA)) });
+    const agx = tgpu.fn([d.vec3f, d.f32], d.vec3f)(agxWgsl);
+    const outputSrgb = tgpu.fn([d.vec3f], d.vec3f)(outputSrgbWgsl);
+    const finalAlgorithm = tgpu
+      .fn(
+        [d.vec2f, d.texture2d(), d.texture2d(), d.sampler(), Grade],
+        d.vec4f,
+      )(postFinalWgsl)
+      .$uses({ gradeColor, agx, outputSrgb });
+    const finalShader = tgpu.fn(
+      [d.vec2f],
+      d.vec4f,
+    )((uv) => {
+      "use gpu";
+      return finalAlgorithm(
+        uv,
+        finalLayout.$.scene,
+        finalLayout.$.bloom,
+        finalLayout.$.linearSampler,
+        finalLayout.$.grade,
+      );
+    });
+    const directAlgorithm = tgpu
+      .fn(
+        [d.vec4f, d.f32],
+        d.vec4f,
+      )(postDirectWgsl)
+      .$uses({ agx, outputSrgb });
+    const directShader = tgpu.fn(
+      [d.vec2f],
+      d.vec4f,
+    )((uv) => {
+      "use gpu";
+      return directAlgorithm(
+        std.textureSample(finalLayout.$.scene, finalLayout.$.linearSampler, uv),
+        finalLayout.$.grade.exposure,
+      );
+    });
+    const direct = pipeline(directShader, outputFormat);
+    init.push(direct.initAsync());
+    const final = pipeline(finalShader, outputFormat);
+    init.push(final.initAsync());
+    const zero = texture(1, 1);
+    const groups = [zero, compositeTarget!].map((bloom) =>
+      admittedGroup(
+        root.createBindGroup(finalLayout, {
+          linearSampler: sampler,
+          scene: input,
+          bloom,
+          grade: uniform,
+        }),
+      ),
+    );
+    const pipelinesReady = Promise.all(init);
+    await Promise.all([pipelinesReady, admission()]);
+    return {
+      setGrade(grade: BattlePostGradeUniforms, exposure: number) {
+        if (disposed) throw new Error("TypeGPU post is disposed");
+        const value = { ...grade, exposure, pad0: 0, pad1: 0 };
+        if (!Object.values(value).every(Number.isFinite))
+          throw new Error("Post parameters must be finite");
+        uniform.write(value);
+      },
+      encode(encoder: GPUCommandEncoder, output: GPUTextureView, bloom = true, enabled = true) {
+        if (disposed) throw new Error("TypeGPU post is disposed");
+        if (!enabled) {
+          direct
+            .with(groups[0])
+            .with(encoder)
+            .withColorAttachment({ view: output, clearValue: [0, 0, 0, 0] })
+            .draw(3);
+          return;
+        }
+        if (bloom) for (const stage of stages) stage(encoder);
+        final
+          .with(groups[bloom ? 1 : 0])
+          .with(encoder)
+          .withColorAttachment({ view: output, clearValue: [0, 0, 0, 0] })
+          .draw(3);
+      },
+      dispose,
+    };
+  } catch (error) {
+    await Promise.allSettled([...init, admission()]);
+    dispose();
+    throw error;
   }
 }

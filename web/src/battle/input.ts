@@ -71,6 +71,18 @@ export class Input {
     // behaves as a selection box meanwhile — the common case — and converts to a
     // drag-move if the answer says the press landed on the selection.
     let dragMoving: boolean | null = false;
+    const updateLeftDrag = (x: number, y: number) => {
+      if (!lDown) return;
+      const moved = Math.hypot(x - lDown[0], y - lDown[1]);
+      if (dragMoving === true) {
+        const a = pickGround(...lDown);
+        const b = pickGround(x, y);
+        this.dragDelta = moved > DRAG_PX && a && b ? [b[0] - a[0], b[1] - a[1]] : null;
+        this.box = null;
+      } else {
+        this.box = moved > DRAG_PX ? { x0: lDown[0], y0: lDown[1], x1: x, y1: y } : null;
+      }
+    };
     let pickGeneration = 0;
     let mDown: [number, number] | null = null;
     canvas.addEventListener(
@@ -82,6 +94,7 @@ export class Input {
         }
         if (e.button === 0) {
           lDown = [e.clientX, e.clientY];
+          this.mouseCss = [...lDown];
           // Starting the drag ON a selected unit grabs the whole selection
           // (Total War drag-move); anywhere else it is a selection box.
           const point = pickGround(e.clientX, e.clientY);
@@ -89,9 +102,10 @@ export class Input {
           dragMoving = point ? null : false;
           if (point)
             void sink.pickUnit(...point).then((hit) => {
-              if (generation !== pickGeneration) return;
+              if (signal.aborted || generation !== pickGeneration) return;
               dragMoving = hit >= 0 && this.selected.includes(hit);
-              if (dragMoving) this.box = null;
+              // The pointer may already have stopped moving before this answer.
+              updateLeftDrag(...this.mouseCss);
             });
         }
         if (e.button === 2)
@@ -132,17 +146,7 @@ export class Input {
               : null;
         }
 
-        if (lDown) {
-          const moved = Math.hypot(e.clientX - lDown[0], e.clientY - lDown[1]);
-          if (dragMoving === true) {
-            const a = pickGround(...lDown);
-            const b = pickGround(e.clientX, e.clientY);
-            this.dragDelta = moved > DRAG_PX && a && b ? [b[0] - a[0], b[1] - a[1]] : null;
-          } else {
-            this.box =
-              moved > DRAG_PX ? { x0: lDown[0], y0: lDown[1], x1: e.clientX, y1: e.clientY } : null;
-          }
-        }
+        updateLeftDrag(...this.mouseCss);
       },
       { signal },
     );
@@ -180,7 +184,7 @@ export class Input {
             return;
           }
           void sink.pickUnit(...point).then((unit) => {
-            if (generation !== pickGeneration) return;
+            if (signal.aborted || generation !== pickGeneration) return;
             this.selected = unit >= 0 ? [unit] : [];
           });
         }

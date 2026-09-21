@@ -1,391 +1,376 @@
-import { crowdRigGroups, CrowdFramePacker, type CrowdAudiencePlan } from "../crowdData";
+import { battleWorldDepth } from "../worldDepth";
+import { tgpu, d, type TgpuBindGroup, type TgpuRenderPass } from "typegpu";
 import type { AppearanceBundle } from "../../../soldier-assets/src/appearanceBundle";
-import {
-  packSoldierVertices,
-  SOLDIER_VERTEX_LAYOUT,
-  type SoldierMeshData,
-} from "../../../soldier-assets/src/mesh";
+import { packSoldierVertices } from "../../../soldier-assets/src/mesh";
 import {
   packSoldierMaterials,
   SOLDIER_MATERIAL_ROWS,
-  SOLDIER_TEXTURE_COLOR_SPACES,
   type SoldierSurface,
-  type SoldierTextureChannel,
 } from "../../../soldier-assets/src/material";
-import { type CrowdInstance } from "../../../crowd-runtime/src/instanceData";
-import { RawPosePalette } from "../../../renderer-core/src/rawPosePalette";
-import type { GpuDeviceCaps } from "../../../renderer-core/src/capabilities";
+import type { CrowdInstance } from "../../../crowd-runtime/src/instanceData";
 import {
-  GrowableBuffer,
-  makeVertexBuffer,
-  makeIndexBuffer,
-} from "../../../renderer-core/src/gpuBuffers";
-import { uploadImageTexture } from "../../../renderer-core/src/imageTexture";
-import { soldierShader, type SoldierDiagnostic } from "../shaders/soldier";
-import type { RawEnvironment } from "./environment";
-import { battleWorldDepth } from "../worldDepth";
-
-type Audience = "main" | "shadow";
-type Bucket = {
-  mesh: SoldierMeshData;
-  vertices: GPUBuffer;
-  indices: GPUBuffer;
-  instances: Record<Audience, GrowableBuffer>;
-  counts: Record<Audience, number>;
-  palette: RawPosePalette;
-  material: GPUBindGroup;
-  beauty: GPURenderPipeline;
-  depth: GPURenderPipeline;
+  crowdRigGroups,
+  CrowdFramePacker,
+  type CrowdAudiencePlan,
+  type CrowdAudience,
+} from "../crowdData";
+import { crowdSampler, crowdTextureChannels } from "../crowdMaterial";
+import { createTypegpuPosePalette } from "./posePalette";
+import { createTypegpuSoldierImageOwner } from "./soldierImages";
+import { typegpuTextureBytes } from "./textureUpload";
+import {
+  crowdVertexAlgorithm,
+  crowdFragmentAlgorithm,
+  materialLayout,
+  SoldierVertex,
+} from "./crowdShader";
+import type { TypegpuEnvironment } from "./environment";
+import { beginGpuAdmission } from "../gpuAdmission";
+const Vertex = d.unstruct({
+  position: d.vec3f,
+  normal: d.vec3f,
+  color: d.vec4f,
+  joints: d.vec4f,
+  weights: d.vec4f,
+  uv: d.vec2f,
+  tangent: d.vec4f,
+  material: d.f32,
+  factionMask: d.f32,
+});
+const Instance = d.unstruct({ inst0: d.vec4f, inst1: d.vec4f, inst2: d.vec4f });
+const vertexLayout = tgpu.vertexLayout(d.disarrayOf(Vertex)),
+  instanceLayout = tgpu.vertexLayout(d.disarrayOf(Instance), "instance");
+const varyings = {
+  position: d.builtin.position,
+  world: d.location(0, d.vec3f),
+  normal: d.location(1, d.vec3f),
+  tangent: d.location(2, d.vec3f),
+  uv: d.location(3, d.vec2f),
+  color: d.location(4, d.vec3f),
+  material: d.location(5, d.interpolate("flat", d.u32)),
+  factionMask: d.location(6, d.f32),
+  properties: d.location(7, d.vec3f),
+  tangentSign: d.location(8, d.interpolate("flat", d.f32)),
+  geometryNormalView: d.location(9, d.vec3f),
 };
-/** Mesh tiers only; the caller owns the canonical visibility plan and must draw
- * its reported impostors separately. Depth encoding supplies casters; receiving
- * directional shadows remains a separate world-lighting integration contract. */
-export async function createRawCrowd(
+/** Typed palettes, vertex/material storage and beauty/depth encoding; borrowed world resources. */
+export async function createTypegpuCrowd(
   device: GPUDevice,
-  caps: GpuDeviceCaps,
   assets: Record<number, AppearanceBundle>,
-  cameraLayout: GPUBindGroupLayout,
-  environment: RawEnvironment,
-  {
-    sampleCount = 4,
-    diagnostic,
-    format = "rgba16float",
-    invariantPosition = true,
-  }: {
-    sampleCount?: 1 | 4;
-    diagnostic?: SoldierDiagnostic;
-    format?: "rgba16float" | "rgba32float";
-    invariantPosition?: boolean;
-  } = {},
+  camera: TgpuBindGroup,
+  env: TypegpuEnvironment,
+  samples: 1 | 4 = 4,
 ) {
-  const owned = new Set<GPUBuffer | GPUTexture>();
-  const palettes: RawPosePalette[] = [];
-  const instanceBuffers = new Set<GrowableBuffer>();
-  const ownInstances = (buffer: GrowableBuffer) => {
-    instanceBuffers.add(buffer);
-    return buffer;
+  const root = tgpu.initFromDevice({ device }),
+    groups = crowdRigGroups(assets),
+    packer = new CrowdFramePacker(groups),
+    owned: (() => void)[] = [];
+  let uploading = false;
+  let disposed = false,
+    ready = false,
+    impostorsPending = 0;
+  const own = <T extends { destroy(): void }>(x: T) => {
+    owned.push(() => x.destroy());
+    return x;
   };
-  const buckets = new Map<number, Bucket[]>();
-  let ready = false,
-    disposed = false,
-    impostorCount = 0;
   const dispose = () => {
     if (disposed) return;
     disposed = true;
-    for (const p of palettes) p.dispose();
-    for (const buffer of instanceBuffers) buffer.dispose();
-    for (const r of owned) r.destroy();
+    for (const f of owned.reverse()) f();
+    root.destroy();
   };
-  const assertLive = () => {
-    if (disposed) throw new Error("Raw crowd is disposed");
+  const assertReady = () => {
+    if (disposed || !ready) throw new Error("TypeGPU crowd frame is not ready");
   };
-  const own = <T extends GPUBuffer | GPUTexture>(r: T): T => {
-    owned.add(r);
-    return r;
-  };
+  const finishAdmission = beginGpuAdmission(device);
   try {
-    if (!Object.keys(assets).length) throw new Error("Raw crowd requires loaded appearances");
-    const paletteLayout = device.createBindGroupLayout({
-      entries: [
-        { binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: "read-only-storage" } },
-      ],
-    });
-    const materialLayout = device.createBindGroupLayout({
-      entries: [
-        {
-          binding: 0,
-          visibility: GPUShaderStage.FRAGMENT,
-          texture: { sampleType: "unfilterable-float" },
-        },
-        ...[1, 3, 5].flatMap((binding) => [
-          {
-            binding,
-            visibility: GPUShaderStage.FRAGMENT,
-            texture: { sampleType: "float" as const },
-          },
-          {
-            binding: binding + 1,
-            visibility: GPUShaderStage.FRAGMENT,
-            sampler: { type: "filtering" as const },
-          },
-        ]),
-      ],
-    });
-    const pipelineLayout = device.createPipelineLayout({
-      bindGroupLayouts: [cameraLayout, paletteLayout, materialLayout, environment.layout],
-    });
-    const casterPipelineLayout = device.createPipelineLayout({
-      bindGroupLayouts: [cameraLayout, paletteLayout, materialLayout, environment.casterLayout],
-    });
-    const offsets = SOLDIER_VERTEX_LAYOUT.offsets;
-    const vertex: GPUVertexBufferLayout = {
-      arrayStride: SOLDIER_VERTEX_LAYOUT.strideFloats * 4,
-      attributes: [
-        [0, offsets.position, "float32x3"],
-        [1, offsets.normal, "float32x3"],
-        [2, offsets.color, "float32x4"],
-        [3, offsets.joints, "float32x4"],
-        [4, offsets.weights, "float32x4"],
-        [5, offsets.uv, "float32x2"],
-        [6, offsets.tangent, "float32x4"],
-        [7, offsets.material, "float32"],
-        [8, offsets.faction, "float32"],
-      ].map(([shaderLocation, offset, format]) => ({
-        shaderLocation: shaderLocation as number,
-        offset: (offset as number) * 4,
-        format: format as GPUVertexFormat,
-      })),
-    };
-    const instance: GPUVertexBufferLayout = {
-      arrayStride: 48,
-      stepMode: "instance",
-      attributes: [
-        { shaderLocation: 9, offset: 0, format: "float32x4" },
-        { shaderLocation: 10, offset: 16, format: "float32x4" },
-        { shaderLocation: 11, offset: 32, format: "float32x4" },
-      ],
-    };
-    const surfaceCache = new Map<
-      SoldierSurface,
-      { binding: GPUBindGroup; images: { baseColor: boolean; normal: boolean; orm: boolean } }
-    >();
-    const prepareSurface = async (surface: SoldierSurface) => {
-      const cached = surfaceCache.get(surface);
+    const palettes: Awaited<ReturnType<typeof createTypegpuPosePalette>>[] = [];
+    for (const g of groups) {
+      const a = Object.values(g)[0],
+        p = await createTypegpuPosePalette(device, a.rig, a.animation, g);
+      palettes.push(p);
+      owned.push(p.dispose);
+    }
+    // Images are owned once for the whole catalog; tables and samplers below
+    // stay per appearance.
+    const surfaceImages = createTypegpuSoldierImageOwner(device);
+    owned.push(surfaceImages.dispose);
+    const materials = new Map<SoldierSurface, TgpuBindGroup<typeof materialLayout.entries>>();
+    async function prepare(
+      surface: SoldierSurface,
+    ): Promise<TgpuBindGroup<typeof materialLayout.entries>> {
+      const cached = materials.get(surface);
       if (cached) return cached;
       const table = own(
-        device.createTexture({
-          size: [surface.materials.length, SOLDIER_MATERIAL_ROWS],
-          format: "rgba32float",
-          usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
-        }),
+        root
+          .createTexture({
+            size: [surface.materials.length, SOLDIER_MATERIAL_ROWS],
+            format: "rgba32float",
+          })
+          .$usage("sampled"),
       );
-      device.queue.writeTexture(
-        { texture: table },
-        packSoldierMaterials(surface.materials),
-        { bytesPerRow: surface.materials.length * 16 },
-        [surface.materials.length, SOLDIER_MATERIAL_ROWS],
-      );
-      const entries: GPUBindGroupEntry[] = [{ binding: 0, resource: table.createView() }];
-      const images = {
-        baseColor: !!surface.textures.baseColor,
-        normal: !!surface.textures.normal,
-        orm: !!surface.textures.orm,
-      };
-      for (const [i, channel] of (
-        ["baseColor", "normal", "orm"] as SoldierTextureChannel[]
-      ).entries()) {
-        const definition = surface.textures[channel];
-        let image: GPUTexture;
-        if (definition) {
-          const bitmap = await createImageBitmap(
-            new Blob([definition.image], { type: definition.mimeType }),
-            { colorSpaceConversion: "none", premultiplyAlpha: "none", imageOrientation: "none" },
-          );
-          try {
-            image = own(
-              await uploadImageTexture(device, bitmap, {
-                colorSpace: SOLDIER_TEXTURE_COLOR_SPACES[channel],
-                generateMipmaps: definition.sampler.mipmapFilter !== "none",
-              }),
-            );
-          } finally {
-            bitmap.close();
-          }
-        } else {
-          image = own(
-            device.createTexture({
-              size: [1, 1],
-              format: channel === "baseColor" ? "rgba8unorm-srgb" : "rgba8unorm",
-              usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
-            }),
-          );
-          device.queue.writeTexture(
-            { texture: image },
-            new Uint8Array([255, 255, 255, 255]),
-            {},
-            [1, 1],
-          );
-        }
-        const s = definition?.sampler;
-        const sampler = device.createSampler({
-          magFilter: s?.magFilter ?? "linear",
-          minFilter: s?.minFilter ?? "linear",
-          mipmapFilter: s?.mipmapFilter === "none" ? "nearest" : (s?.mipmapFilter ?? "nearest"),
-          addressModeU: s?.wrapS ?? "clamp-to-edge",
-          addressModeV: s?.wrapT ?? "clamp-to-edge",
-          ...(s?.mipmapFilter === "none" ? { lodMaxClamp: 0 } : {}),
-        });
-        entries.push(
-          { binding: 1 + i * 2, resource: image.createView() },
-          { binding: 2 + i * 2, resource: sampler },
-        );
-      }
-      const result = {
-        binding: device.createBindGroup({ layout: materialLayout, entries }),
-        images,
-      };
-      surfaceCache.set(surface, result);
-      return result;
-    };
-    const rigGroups = crowdRigGroups(assets);
-    const packer = new CrowdFramePacker(rigGroups);
-    const paletteFor = new Map<number, RawPosePalette>();
-    for (const group of rigGroups) {
-      const first = Object.values(group)[0];
-      const palette = new RawPosePalette(
-        device,
-        caps,
-        first.rig,
-        first.animation,
-        group,
-        `native crowd rig${palettes.length}`,
-        paletteLayout,
-      );
-      palettes.push(palette);
-      for (const id of Object.keys(group)) paletteFor.set(Number(id), palette);
+      table.write(typegpuTextureBytes(packSoldierMaterials(surface.materials)));
+      const images = [];
+      for (const channel of crowdTextureChannels)
+        images.push(await surfaceImages.acquire(surface, channel));
+      const group = root.createBindGroup(materialLayout, {
+        materialTable: table.createView(d.texture2d(d.f32), { sampleType: "unfilterable-float" }),
+        baseMap: images[0],
+        baseSampler: root.createSampler(crowdSampler(surface, "baseColor")),
+        normalMap: images[1],
+        normalSampler: root.createSampler(crowdSampler(surface, "normal")),
+        ormMap: images[2],
+        ormSampler: root.createSampler(crowdSampler(surface, "orm")),
+      });
+      materials.set(surface, group);
+      return group;
     }
-    const pipelines = new Map<string, { beauty: GPURenderPipeline; depth: GPURenderPipeline }>();
-    for (const [id, bundle] of Object.entries(assets)) {
-      const classId = Number(id),
-        palette = paletteFor.get(classId)!,
-        surface = await prepareSurface(bundle.surface);
-      const key = `${palette.bones}/${JSON.stringify(surface.images)}`;
-      let pipeline = pipelines.get(key);
-      if (!pipeline) {
-        const module = device.createShaderModule({
-          code: soldierShader(
-            palette.bones,
-            environment.shader,
-            surface.images,
-            diagnostic,
-            invariantPosition,
-            false,
-            environment.shadows,
-          ),
-        });
-        const state = {
-          layout: pipelineLayout,
-          vertex: { module, entryPoint: "vertex", buffers: [vertex, instance] },
-          primitive: { topology: "triangle-list" as const, cullMode: "none" as const },
-          depthStencil: battleWorldDepth("read-write"),
-        };
-        const [beauty, depth] = await Promise.all([
-          device.createRenderPipelineAsync({
-            ...state,
-            multisample: { count: sampleCount },
-            fragment: { module, entryPoint: "fragment", targets: [{ format }] },
-          }),
-          device.createRenderPipelineAsync({
-            ...state,
-            layout: casterPipelineLayout,
-            multisample: { count: 1 },
-          }),
-        ]);
-        pipeline = { beauty, depth };
-        pipelines.set(key, pipeline);
-      }
-      const list: Bucket[] = [];
-      buckets.set(classId, list);
-      for (const [lod, mesh] of bundle.tiers.entries())
-        list.push({
-          mesh,
-          vertices: own(
-            makeVertexBuffer(device, `native crowd ${classId}/${lod}`, packSoldierVertices(mesh)),
-          ),
-          indices: own(
-            makeIndexBuffer(device, `native crowd indices${classId}/${lod}`, mesh.indices),
-          ),
-          instances: {
-            main: ownInstances(
-              new GrowableBuffer(device, "native crowd main", GPUBufferUsage.VERTEX, 256 * 48),
-            ),
-            shadow: ownInstances(
-              new GrowableBuffer(device, "native crowd shadow", GPUBufferUsage.VERTEX, 256 * 48),
-            ),
+    const buckets: {
+      id: number;
+      lod: number;
+      audience: CrowdAudience;
+      triangles: number;
+      readonly count: number;
+      update(data: Float32Array<ArrayBuffer>): Promise<void>;
+      draw(pass: TgpuRenderPass, cameraGroup: TgpuBindGroup): void;
+    }[] = [];
+    for (const [idText, asset] of Object.entries(assets)) {
+      const id = Number(idText),
+        rig = groups.findIndex((g) => id in g),
+        group = await prepare(asset.surface),
+        fragmentAlgorithm = crowdFragmentAlgorithm(
+          {
+            baseColor: !!asset.surface.textures.baseColor,
+            normal: !!asset.surface.textures.normal,
+            orm: !!asset.surface.textures.orm,
           },
-          counts: { main: 0, shadow: 0 },
-          palette,
-          material: surface.binding,
-          ...pipeline,
-        });
-    }
-    return {
-      upload(instances: readonly CrowdInstance[], plan: CrowdAudiencePlan) {
-        assertLive();
-        ready = false;
-        impostorCount = 0;
-        const packed = packer.pack(instances, plan);
-        impostorCount = packed.impostorsPending;
-        palettes.forEach((palette, i) => {
-          const indices = packed.rigIndices[i];
-          palette.upload(
-            indices.length,
-            (j) => instances[indices[j]].playback ?? instances[indices[j]],
-            (j) => instances[indices[j]].classId,
+          env,
+        );
+      const makeVertex = (vertexAlgorithm: ReturnType<typeof crowdVertexAlgorithm>) =>
+        tgpu.vertexFn({
+          in: { ...Vertex.propTypes, ...Instance.propTypes },
+          out: varyings,
+        })((v) => {
+          "use gpu";
+          const result = vertexAlgorithm(
+            v.position,
+            v.normal,
+            v.color,
+            v.joints,
+            v.weights,
+            v.uv,
+            v.tangent,
+            v.material,
+            v.factionMask,
+            v.inst0,
+            v.inst1,
+            v.inst2,
           );
+          return {
+            position: result.position,
+            world: result.world,
+            normal: result.normal,
+            tangent: result.tangent,
+            uv: result.uv,
+            color: result.color,
+            material: result.material,
+            factionMask: result.factionMask,
+            properties: result.properties,
+            tangentSign: result.tangentSign,
+            geometryNormalView: result.geometryNormalView,
+          };
         });
-        for (const [id, list] of buckets)
-          for (const [lod, b] of list.entries())
-            for (const audience of ["main", "shadow"] as const) {
-              const data = packed.packed.get(id)![audience][lod];
-              b.counts[audience] = data.length / 12;
-              if (data.length) b.instances[audience].write(data);
-            }
-        ready = true;
+      const vertex = makeVertex(crowdVertexAlgorithm(palettes[rig].bones, env.layout));
+      const casterVertex = makeVertex(crowdVertexAlgorithm(palettes[rig].bones, env.casterLayout));
+      const fragment = tgpu.fragmentFn({
+        in: { ...varyings, front: d.builtin.frontFacing },
+        out: d.vec4f,
+      })((v) => {
+        "use gpu";
+        return fragmentAlgorithm(
+          SoldierVertex({
+            position: v.position,
+            world: v.world,
+            normal: v.normal,
+            tangent: v.tangent,
+            uv: v.uv,
+            color: v.color,
+            material: v.material,
+            factionMask: v.factionMask,
+            properties: v.properties,
+            tangentSign: v.tangentSign,
+            geometryNormalView: v.geometryNormalView,
+          }),
+          v.front,
+        );
+      });
+      const state = {
+        attribs: { ...vertexLayout.attrib, ...instanceLayout.attrib },
+        vertex,
+        primitive: { topology: "triangle-list" as const, cullMode: "none" as const },
+        depthStencil: battleWorldDepth("read-write"),
+      };
+      const beauty = root.createRenderPipeline({
+          ...state,
+          fragment,
+          targets: { format: "rgba16float" },
+          multisample: { count: samples },
+        }),
+        depth = root.createRenderPipeline({ ...state, vertex: casterVertex });
+      await Promise.all([beauty.initAsync(), depth.initAsync()]);
+      for (const [lod, mesh] of asset.tiers.entries()) {
+        const vertices = own(
+            root
+              .createBuffer(vertexLayout.schemaForCount(mesh.positions.length / 3))
+              .$usage("vertex"),
+          ),
+          indices = own(root.createBuffer(d.arrayOf(d.u32, mesh.indices.length)).$usage("index"));
+        vertices.write(packSoldierVertices(mesh).slice().buffer);
+        indices.write(Uint32Array.from(mesh.indices).buffer);
+        for (const audience of ["main", "shadow"] as const) {
+          let capacity = 256,
+            count = 0,
+            instances = root.createBuffer(instanceLayout.schemaForCount(capacity)).$usage("vertex");
+          owned.push(() => instances.destroy());
+          buckets.push({
+            id,
+            lod,
+            audience,
+            triangles: mesh.indices.length / 3,
+            get count() {
+              return count;
+            },
+            async update(data: Float32Array<ArrayBuffer>) {
+              count = data.length / 12;
+              if (count > capacity) {
+                const finish = beginGpuAdmission(device),
+                  nextCapacity = Math.max(count, capacity * 2);
+                let next: typeof instances | undefined;
+                try {
+                  next = root
+                    .createBuffer(instanceLayout.schemaForCount(nextCapacity))
+                    .$usage("vertex");
+                  root.unwrap(next);
+                  await finish();
+                  if (disposed) throw new Error("Crowd disposed during growth");
+                  instances.destroy();
+                  instances = next;
+                  capacity = nextCapacity;
+                } catch (error) {
+                  next?.destroy();
+                  try {
+                    await finish();
+                  } catch (admissionError) {
+                    if (admissionError !== error)
+                      throw new AggregateError([error, admissionError], "Crowd growth failed");
+                  }
+                  throw error;
+                }
+              }
+              if (count) {
+                const host = instances.arrayBuffer;
+                new Float32Array(host).set(data);
+                instances.write(host, { startOffset: 0, endOffset: data.byteLength });
+              }
+            },
+            draw(pass: TgpuRenderPass, cameraGroup: TgpuBindGroup) {
+              if (!count) return;
+              if (audience === "main")
+                beauty
+                  .with(cameraGroup)
+                  .with(palettes[rig].bindGroup)
+                  .with(group)
+                  .with(env.group)
+                  .with(vertexLayout, vertices)
+                  .with(instanceLayout, instances)
+                  .withIndexBuffer(indices)
+                  .with(pass)
+                  .drawIndexed(mesh.indices.length, count);
+              else
+                depth
+                  .with(cameraGroup)
+                  .with(palettes[rig].bindGroup)
+                  .with(env.casterGroup)
+                  .with(vertexLayout, vertices)
+                  .with(instanceLayout, instances)
+                  .withIndexBuffer(indices)
+                  .with(pass)
+                  .drawIndexed(mesh.indices.length, count);
+            },
+          });
+        }
+      }
+    }
+    await finishAdmission();
+    return {
+      async upload(instances: readonly CrowdInstance[], plan: CrowdAudiencePlan) {
+        if (disposed) throw new Error("TypeGPU crowd disposed");
+        if (uploading) throw new Error("Crowd upload already pending");
+        uploading = true;
+        try {
+          ready = false;
+          const p = packer.pack(instances, plan);
+          impostorsPending = p.impostorsPending;
+          for (let i = 0; i < palettes.length; i++) {
+            if (disposed) throw new Error("Crowd disposed during upload");
+            const indices = p.rigIndices[i];
+            await palettes[i].upload(
+              indices.length,
+              (j) => instances[indices[j]].playback ?? instances[indices[j]],
+              (j) => instances[indices[j]].classId,
+            );
+          }
+          for (const b of buckets) {
+            if (disposed) throw new Error("Crowd disposed during upload");
+            await b.update(p.packed.get(b.id)![b.audience][b.lod]);
+          }
+          if (disposed) throw new Error("Crowd disposed during upload");
+          ready = true;
+        } finally {
+          uploading = false;
+        }
       },
       precompute(encoder: GPUCommandEncoder) {
-        assertLive();
-        if (!ready) throw new Error("Crowd frame is not ready");
+        assertReady();
         for (const p of palettes) p.precompute(encoder);
       },
-      draw(pass: GPURenderPassEncoder, camera: GPUBindGroup, audience: Audience = "main") {
-        assertLive();
-        if (!ready) throw new Error("Crowd frame is not ready");
-        pass.setBindGroup(0, camera);
-        pass.setBindGroup(
-          3,
-          audience === "shadow" ? environment.casterBindGroup : environment.bindGroup,
-        );
-        for (const list of buckets.values())
-          for (const b of list) {
-            const count = b.counts[audience];
-            if (!count) continue;
-            pass.setPipeline(audience === "main" ? b.beauty : b.depth);
-            pass.setBindGroup(1, b.palette.bindGroup);
-            pass.setBindGroup(2, b.material);
-            pass.setVertexBuffer(0, b.vertices);
-            pass.setVertexBuffer(1, b.instances[audience].buffer);
-            pass.setIndexBuffer(
-              b.indices,
-              b.mesh.indices instanceof Uint16Array ? "uint16" : "uint32",
-            );
-            pass.drawIndexed(b.mesh.indices.length, count);
-          }
+      draw(
+        pass: TgpuRenderPass,
+        audience: CrowdAudience = "main",
+        cameraGroup: TgpuBindGroup = camera,
+      ) {
+        assertReady();
+        for (const b of buckets) if (b.audience === audience) b.draw(pass, cameraGroup);
       },
       stats() {
-        const result = {
-          mainTriangles: 0,
-          shadowTriangles: 0,
-          mainDraws: 0,
-          shadowDraws: 0,
-          impostorsPending: impostorCount,
+        return {
+          clipInvariant: false,
+          mainTriangles: buckets
+            .filter((b) => b.audience === "main")
+            .reduce((n, b) => n + b.count * b.triangles, 0),
+          shadowTriangles: buckets
+            .filter((b) => b.audience === "shadow")
+            .reduce((n, b) => n + b.count * b.triangles, 0),
+          mainDraws: buckets.filter((b) => b.audience === "main" && b.count).length,
+          shadowDraws: buckets.filter((b) => b.audience === "shadow" && b.count).length,
+          impostorsPending,
           pose: palettes.map((p) => p.stats()),
+          // Unique material images this preparation allocated, apart from the
+          // surface bindings pointing at them: a retained-resource count, not
+          // physical VRAM.
+          images: surfaceImages.stats(),
         };
-        for (const list of buckets.values())
-          for (const b of list)
-            for (const audience of ["main", "shadow"] as const) {
-              const n = b.counts[audience];
-              if (n) {
-                result[`${audience}Triangles`] += (b.mesh.indices.length / 3) * n;
-                result[`${audience}Draws`]++;
-              }
-            }
-        return result;
       },
       dispose,
     };
   } catch (error) {
     dispose();
+    try {
+      await finishAdmission();
+    } catch (admissionError) {
+      if (admissionError !== error)
+        throw new AggregateError([error, admissionError], "TypeGPU crowd admission failed");
+    }
     throw error;
   }
 }

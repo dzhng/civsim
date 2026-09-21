@@ -1,5 +1,5 @@
 /// <reference path="../../../../../web/node_modules/vitest/globals.d.ts" />
-import { claimCanvas } from "../canvasOwnership";
+import { claimCanvas } from "../../../../../web/src/battle/canvasOwnership";
 test("a cancelled queued replacement cannot let a third surface bypass the draining owner", async () => {
   const canvas = {};
   const first = claimCanvas(canvas),

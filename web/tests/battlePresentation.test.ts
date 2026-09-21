@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, test, vi } from "vitest";
-import { BattleRenderer } from "../src/battle/renderer";
+import { presentationRenderer } from "./support/battleRendererPresentation";
 import {
   captureBattleRenderCamera,
   type BattlePresentation,
@@ -34,7 +34,16 @@ const packet = (): BattlePresentation => ({
   crowd: {
     positions: new Float32Array([1, 2]),
     facings: new Float32Array([0]),
-    playback: [],
+    playback: [
+      {
+        appearanceId: 0,
+        base: {
+          source: { kind: "clip", sample: { clip: "idle", phase: 0 } },
+          destination: { clip: "idle", phase: 0 },
+          weight: 1,
+        },
+      },
+    ],
     alive: new Float32Array([1]),
     count: 1,
     observationTick: 7,
@@ -44,56 +53,59 @@ const packet = (): BattlePresentation => ({
     triangles: new Float32Array([1, 2, 3]),
   },
 });
-function fixture(submit = true) {
-  const events: string[] = [];
-  const renderer = Object.create(BattleRenderer.prototype) as BattleRenderer;
-  Object.assign(renderer, {
-    renderedFrameId: 4,
-    setUnitReadouts: vi.fn(() => events.push("readouts")),
-    draw: vi.fn(() => events.push("draw")),
-    drawTris: vi.fn(() => events.push("triangles")),
-    drawTacticalLines: vi.fn(() => {
-      events.push("render");
-      if (submit) Object.assign(renderer, { renderedFrameId: 5 });
-    }),
-    frameMetrics: () => ({ gpuSubmission: null }),
+test("present uploads one coherent packet before the startup hook and submission", async () => {
+  const f = presentationRenderer(),
+    p = packet();
+  const result = await f.renderer.present(p, undefined, () => f.events.push("startup-settle"));
+  expect(f.events).toEqual([
+    "readouts",
+    "crowd",
+    "triangles",
+    "startup-settle",
+    "lines",
+    "prepare",
+    "submit",
+  ]);
+  expect(f.instances[0][0]).toMatchObject({
+    x: 1,
+    y: 2,
+    facing: 0,
+    alive: true,
+    playback: p.crowd!.playback[0],
   });
-  return { renderer, events };
-}
-test("source present is synchronous and uses capture override hooks in original startup order", () => {
-  const f = fixture(),
-    p = packet();
-  const result = f.renderer.present(p, undefined, () => f.events.push("startup-settle"));
-  expect(result).not.toBeInstanceOf(Promise);
-  expect(f.events).toEqual(["readouts", "draw", "triangles", "startup-settle", "render"]);
-  expect(f.renderer.draw).toHaveBeenCalledWith(
-    p.crowd!.positions,
-    p.crowd!.facings,
-    p.crowd!.playback,
-    p.crowd!.alive,
-    1,
-    p.camera,
-    7,
-    0.02,
-  );
-  expect(result).toMatchObject({ submitted: true, renderedFrameId: 5, gpuSubmission: null });
+  expect(f.triangles).toEqual([p.crowd!.triangles]);
+  expect(result).toMatchObject({
+    submitted: true,
+    renderedFrameId: 5,
+    gpuSubmission: { submissionId: 1, source: "battle-draw" },
+  });
 });
-test("skipped frozen presentation does not fabricate a submission and empty arcs preserve implicit clearing", () => {
-  const f = fixture(false),
+test("empty arcs clear prior geometry and a repeated frozen packet retains its submission", async () => {
+  const f = presentationRenderer(),
     p = packet();
+  await f.renderer.present(p);
+  p.fixedTime = 1;
   p.crowd!.triangles = new Float32Array();
-  expect(f.renderer.present(p)).toMatchObject({ submitted: false, renderedFrameId: 4 });
-  expect(f.events).toEqual(["readouts", "draw", "render"]);
+  const first = await f.renderer.present(p);
+  expect(f.triangles.at(-1)).toEqual(new Float32Array());
+  f.events.length = 0;
+  expect(await f.renderer.present(p)).toMatchObject({
+    submitted: false,
+    renderedFrameId: first.renderedFrameId,
+    gpuSubmission: first.gpuSubmission,
+  });
+  expect(f.events).toEqual([]);
 });
-test("cancelled presentation cannot enter source hooks or submit after the startup hook", () => {
-  const f = fixture(),
+test("cancelled presentation cannot upload or submit after the startup hook", async () => {
+  const f = presentationRenderer(),
     abort = new AbortController();
   abort.abort();
-  expect(() => f.renderer.present(packet(), abort.signal)).toThrow();
+  await expect(f.renderer.present(packet(), abort.signal)).rejects.toThrow();
   expect(f.events).toEqual([]);
   const next = new AbortController();
-  expect(() => f.renderer.present(packet(), next.signal, () => next.abort())).toThrow();
-  expect(f.events).toEqual(["readouts", "draw", "triangles"]);
+  await expect(f.renderer.present(packet(), next.signal, () => next.abort())).rejects.toThrow();
+  expect(f.events).toContain("crowd");
+  expect(f.events).not.toContain("submit");
 });
 test("camera packet remains fixed after live camera and its target arrays change", () => {
   const target: [number, number, number] = [1, 2, 3],
@@ -113,58 +125,40 @@ test("camera packet remains fixed after live camera and its target arrays change
   expect(captured.zoom).toBe(2);
 });
 
-test("aborted startup readiness cannot settle the shared renderer again after two animation frames", async () => {
+test("aborted startup readiness cannot submit again after two animation frames", async () => {
   const callbacks: FrameRequestCallback[] = [];
   vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
     callbacks.push(callback);
     return 1;
   });
   try {
-    const renderer = Object.create(BattleRenderer.prototype) as BattleRenderer;
-    const world = { settlePresentedFrame: vi.fn(async () => {}) };
-    Object.assign(renderer, { world, disposed: false });
+    const f = presentationRenderer();
+    await f.renderer.present(packet());
+    f.events.length = 0;
     const abort = new AbortController();
-    const pending = renderer.settlePresentedFrame(abort.signal);
-    await Promise.resolve();
+    const pending = f.renderer.settlePresentedFrame(abort.signal);
+    // Let the first readiness submission reach its animation-frame barrier.
+    await vi.waitFor(() => expect(callbacks).toHaveLength(1));
+    const rejected = expect(pending).rejects.toThrow();
     abort.abort();
     callbacks.shift()!(0);
     callbacks.shift()!(0);
-    await pending;
-    expect(world.settlePresentedFrame).toHaveBeenCalledTimes(1);
+    await rejected;
+    expect(f.events.filter((event) => event === "submit")).toHaveLength(1);
   } finally {
     vi.unstubAllGlobals();
   }
 });
 
-test("source environment time follows a held benchmark clock and otherwise keeps its wall clock", () => {
-  const renderer = Object.create(BattleRenderer.prototype) as BattleRenderer;
-  const times: number[] = [];
-  const world = {
-    soldierAssets: null,
-    setTime: (seconds: number) => times.push(seconds),
-    draw: () => {},
-    drawTris: () => {},
-    drawTacticalLines: () => {},
-    uploadUnitReadouts: () => {},
-    gpuSubmissionIdentity: () => null,
-  };
-  Object.assign(renderer, {
-    world,
-    fixedTime: null,
-    preserveFrozenEffects: false,
-    renderedFrameId: 0,
-    readoutFrameKey: "",
-    triangleVerts: new Float32Array(),
-    frameStart: 0,
-    framePerf: { buildMs: 0, uploadMs: 0, drawMs: 0, frameCpuMs: 0 },
-  });
+test("presentation time stays captured for both benchmark and wall-clock packets", async () => {
+  const f = presentationRenderer();
   const clock = vi.spyOn(performance, "now").mockReturnValue(4000);
   try {
-    renderer.present({ ...packet(), clock: "benchmark", timeSeconds: 12.5 });
-    expect(times).toEqual([12.5, 12.5]);
-    times.length = 0;
-    renderer.present({ ...packet(), timeSeconds: 12.5 });
-    expect(times).toEqual([4, 4]);
+    await f.renderer.present({ ...packet(), clock: "benchmark", timeSeconds: 12.5 });
+    expect(f.times).toEqual([12.5, 12.5]);
+    f.times.length = 0;
+    await f.renderer.present({ ...packet(), timeSeconds: 17.25 });
+    expect(f.times).toEqual([17.25, 17.25]);
   } finally {
     clock.mockRestore();
   }

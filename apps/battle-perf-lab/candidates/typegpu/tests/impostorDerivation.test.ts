@@ -16,7 +16,7 @@ import {
   impostorDerivation,
   impostorViewBlock,
   writeImpostorState,
-} from "../impostorDerivation";
+} from "../../../../../packages/battle-renderer/src/world/impostorDerivation";
 import {
   F32_STEP,
   STORED_F32,

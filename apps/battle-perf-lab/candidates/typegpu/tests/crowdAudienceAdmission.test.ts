@@ -18,8 +18,10 @@ const layers = vi.hoisted(
       dispose: ReturnType<typeof vi.fn>;
     }[],
 );
-vi.mock("../crowd", () => ({ createTypegpuCrowd: async () => mesh }));
-vi.mock("../impostor", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/crowd", () => ({
+  createTypegpuCrowd: async () => mesh,
+}));
+vi.mock("../../../../../packages/battle-renderer/src/world/impostor", () => ({
   createTypegpuImpostors: async () => {
     const layer = {
       updateState: vi.fn(),
@@ -32,7 +34,7 @@ vi.mock("../impostor", () => ({
     return layer;
   },
 }));
-import { createTypegpuCrowdAudience } from "../crowdAudience";
+import { createTypegpuCrowdAudience } from "../../../../../packages/battle-renderer/src/world/crowdAudience";
 import type { CrowdProjectionView } from "../../../../../packages/crowd-runtime/src/visibility";
 
 const view = (pixels: number): CrowdProjectionView => ({
@@ -241,4 +243,30 @@ test("an unadmitted, refused, empty or released population reports nothing admit
   expect(owner.admitted()).toBeNull();
   expect(owner.debugSoldierAnim(0)).toBeNull();
   expect([...owner.admittedPoses()]).toEqual([]);
+});
+
+test("explicit mesh authoring keeps distant appearances drawable without allocating atlases", async () => {
+  const authoring = { 0: { ...assets[0], tiers: [{}, {}, {}, {}] } };
+  const count = layers.length;
+  const owner = await createTypegpuCrowdAudience(
+    {} as never,
+    authoring as never,
+    null,
+    {} as never,
+    {} as never,
+  );
+  try {
+    const distant = view(0.01);
+    await owner.upload([soldier], [distant, { ...distant, shadow: true }], camera);
+    expect(owner.stats().shadowTierHistogram).toEqual({ l0: 0, l1: 0, l2: 0, l3: 1, l4: 0 });
+    expect(owner.stats().visibleTierHistogram).toEqual({ l0: 0, l1: 0, l2: 0, l3: 1, l4: 0 });
+    expect(layers.length).toBe(count);
+    await owner.reproject([view(100)], camera);
+    expect(owner.stats().visibleTierHistogram).toEqual({ l0: 1, l1: 0, l2: 0, l3: 0, l4: 0 });
+  } finally {
+    owner.dispose();
+  }
+  await expect(
+    createTypegpuCrowdAudience({} as never, authoring as never, {}, {} as never, {} as never),
+  ).rejects.toThrow("Missing prepared impostor atlas for appearance 0");
 });

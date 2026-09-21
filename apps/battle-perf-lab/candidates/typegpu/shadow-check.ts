@@ -16,9 +16,12 @@
  * caster fitting, cascade motion, PCF softness or shadow readability.
  */
 import { tgpu, d } from "typegpu";
-import { createTypegpuSunShadow } from "./shadow";
-import { createTypegpuEnvironment, type TypegpuEnvironment } from "./environment";
-import { Camera, typegpuCameraLayout } from "./camera";
+import { createTypegpuSunShadow } from "../../../../packages/battle-renderer/src/world/shadow";
+import {
+  createTypegpuEnvironment,
+  type TypegpuEnvironment,
+} from "../../../../packages/battle-renderer/src/world/environment";
+import { Camera, typegpuCameraLayout } from "../../../../packages/battle-renderer/src/world/camera";
 import { frameCamera } from "../../../../packages/battle-renderer/src/frameCamera";
 import { CSM_CASCADES } from "../../../../packages/game-renderer/src/battle/shadowPolicy";
 import { readF32Texture } from "../../src/numericalReadback";

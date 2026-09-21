@@ -23,18 +23,57 @@ export class BattleFreeze {
   }
 
   /** Freeze, then have the authority run to the target tick and wait until that
-   * tick has actually been consumed here, so a capture can never read a state from
-   * before the advance it asked for. */
+   * tick has been consumed and a subsequent loop presentation has completed.
+   * Settling the renderer alone can redraw the preceding packet. */
   async freezeAtTick(
     target: number,
     advanceTo: (tick: number) => Promise<void>,
     afterAdvance: () => void,
+    awaitPresentation: () => Promise<void>,
     options: { effects?: boolean } = {},
   ): Promise<void> {
+    this.signal?.throwIfAborted();
     this.effects = options.effects === true;
     this.doFreeze(true);
     await advanceTo(target);
+    this.signal?.throwIfAborted();
     afterAdvance();
+    await awaitPresentation();
+    this.signal?.throwIfAborted();
     await this.renderer.settlePresentedFrame(this.signal);
+  }
+}
+
+/** A waiter accepts only a presentation begun after it registered. An older
+ * in-flight packet cannot satisfy a freeze requested while that packet awaited. */
+export class BattlePresentationBarrier {
+  private started = 0;
+  private failure: { error: unknown } | null = null;
+  private waiters = new Set<{ after: number; resolve(): void; reject(error: unknown): void }>();
+  constructor(signal: AbortSignal) {
+    if (signal.aborted) this.fail(signal.reason);
+    else signal.addEventListener("abort", () => this.fail(signal.reason), { once: true });
+  }
+  begin(): number {
+    return ++this.started;
+  }
+  complete(presentation: number): void {
+    for (const waiter of this.waiters) {
+      if (presentation <= waiter.after) continue;
+      this.waiters.delete(waiter);
+      waiter.resolve();
+    }
+  }
+  waitForNext(): Promise<void> {
+    if (this.failure) return Promise.reject(this.failure.error);
+    return new Promise((resolve, reject) => {
+      this.waiters.add({ after: this.started, resolve, reject });
+    });
+  }
+  fail(error: unknown): void {
+    if (this.failure) return;
+    this.failure = { error };
+    for (const waiter of this.waiters) waiter.reject(error);
+    this.waiters.clear();
   }
 }

@@ -1,3 +1,4 @@
+import { battleRendererReady } from "../worlds.mjs";
 import { PNG } from "pngjs";
 import { cropRatio } from "./battle-map-style-legibility-lib.js";
 
@@ -44,7 +45,7 @@ export async function run(ctx) {
 
 async function captureLakeFrame(ctx, page, env) {
   await page.goto(`${ctx.target}/?map=gen&seed=${SEED}&ai=off&env=${env}`);
-  await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 60000 });
+  await battleRendererReady(page);
   await page.evaluate(() => window.__game.freezeAtTick(60));
   const pose = await page.evaluate(async (seed) => {
     const debug = window.__game.terrainDebug();
@@ -136,15 +137,16 @@ async function captureLakeFrame(ctx, page, env) {
 }
 
 function assertLakeStats(ctx, label, stats, lake) {
-  const sea = stats?.terrain?.sea;
+  const water = stats?.terrain?.water;
+  const lakes = water?.surfaces.filter((surface) => surface.kind === "lake");
   ctx.check(
-    `${label}: renderer builds one generated lake plane from seaLayer`,
+    `${label}: installed water geometry matches the generated lake and has no ocean`,
     stats?.renderer === "gpu" &&
-      stats?.terrain?.fixture === "sim-tint" &&
+      stats?.terrain?.installed === true &&
       stats?.terrain?.vista !== null &&
-      sea?.lakePlanes >= 1 &&
-      sea?.oceanPlanes === 0 &&
-      Math.abs((sea?.lakeSurfaces?.[0]?.level ?? NaN) - lake.level) < 1e-3,
+      lakes?.length >= 1 &&
+      water.surfaces.every((surface) => surface.kind === "lake") &&
+      Math.abs((lakes[0]?.level ?? NaN) - lake.level) < 1e-3,
     JSON.stringify({ terrain: stats?.terrain, lake }),
   );
 }

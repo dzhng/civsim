@@ -1,21 +1,25 @@
-import type { PhotorealBattleWorld } from "../../../packages/photoreal-renderer/src/battle/battleWorld";
+import type {
+  BattleCameraSnapshot,
+  BattleTacticalLineFrame,
+} from "../../../packages/battle-renderer/src/types";
+import type { SoldierPlayback } from "../../../packages/crowd-runtime/src/actionTimeline";
+import type { BattleStandardInstance } from "../../../packages/game-renderer/src/models/shared/battleStandardData";
+import type { BattleReadoutInstance } from "../../../packages/game-renderer/src/battle/readoutData";
+import type { BattleTerrainGrid } from "../../../packages/game-renderer/src/battle/terrainFeatures";
+import type { BattleTerrainOptions } from "../../../packages/game-renderer/src/battle/terrainOptions";
 import type { BattleEnvironmentId } from "../../../packages/game-renderer/src/environment/environment";
 import type { BattlePostGradeUniforms } from "../../../packages/game-renderer/src/environment/postParameters";
 import type { GraphicsSettings } from "../../../web/src/shared/graphicsSettings";
 
-type Draw = Parameters<PhotorealBattleWorld["draw"]>;
-type Static = Parameters<PhotorealBattleWorld["setStatic"]>;
-type Terrain = Parameters<PhotorealBattleWorld["setTerrain"]>;
-
-/** Fixture data is borrowed read-only. Capture owns its buffers and must not reuse
- * live wasm views; the Three control snapshots static inputs during preparation. */
+/** Portable archived data. Readers borrow these arrays and never need the renderer
+ * that originally recorded them; the archive owns their exact bytes. */
 export interface BattleReplayAssets {
   readonly soldierCatalogUrl: string;
-  readonly soldierUnit: Readonly<Static[0]>;
-  readonly teams: readonly Static[1][number][];
-  readonly classes: readonly Static[2][number][];
-  readonly terrain: Readonly<Terrain[0]>;
-  readonly terrainOptions: Readonly<NonNullable<Terrain[1]>>;
+  readonly soldierUnit: Readonly<Uint32Array>;
+  readonly teams: readonly number[];
+  readonly classes: readonly number[];
+  readonly terrain: Readonly<BattleTerrainGrid>;
+  readonly terrainOptions: Readonly<BattleTerrainOptions>;
 }
 
 export type BattleReplaySettings = Readonly<
@@ -28,18 +32,31 @@ export type BattleReplaySettings = Readonly<
 >;
 
 /** Semantic updates on resolved plain battle data; these are not GPU commands. */
-export type BattleReplayMethod =
-  | "setTime"
-  | "draw"
-  | "uploadUnitReadouts"
-  | "drawTris"
-  | "drawTacticalLines"
-  | "settlePresentedFrame"
-  | "render";
+interface BattleReplayArguments {
+  setTime: [seconds: number];
+  draw: [
+    positions: Float32Array,
+    facings: Float32Array,
+    playback: readonly SoldierPlayback[],
+    alive: Float32Array,
+    count: number,
+    camera: BattleCameraSnapshot,
+    frameDt?: number,
+  ];
+  uploadUnitReadouts: [
+    standards: readonly BattleStandardInstance[],
+    readouts: readonly BattleReadoutInstance[],
+  ];
+  drawTris: [vertices: Float32Array, camera: BattleCameraSnapshot];
+  drawTacticalLines: [lines: BattleTacticalLineFrame, camera: BattleCameraSnapshot];
+  settlePresentedFrame: [];
+  render: [];
+}
+export type BattleReplayMethod = keyof BattleReplayArguments;
 export type BattleReplayCommand = {
   [Method in BattleReplayMethod]: {
     readonly method: Method;
-    readonly args: Parameters<PhotorealBattleWorld[Method]>;
+    readonly args: BattleReplayArguments[Method];
   };
 }[BattleReplayMethod];
 
@@ -48,6 +65,6 @@ export interface BattleReplayFrame {
   readonly frameId: number;
   readonly simTick: number;
   readonly timeSeconds: number;
-  readonly camera: Readonly<Draw[5]>;
+  readonly camera: Readonly<BattleCameraSnapshot>;
   readonly commands: readonly BattleReplayCommand[];
 }

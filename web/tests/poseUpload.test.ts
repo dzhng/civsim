@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { PoseUpload } from "../../apps/battle-perf-lab/src/poseUpload";
+import { PoseUpload } from "../../packages/battle-renderer/src/poseUpload";
 import { bakeLocalAnimation } from "@packages/soldier-assets/src/localAnimation";
 import { mat4Identity } from "@packages/soldier-assets/src/localPose";
 import type { ImportedRig } from "@packages/soldier-assets/src/rig";

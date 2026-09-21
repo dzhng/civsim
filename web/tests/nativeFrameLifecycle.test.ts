@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { afterEach, expect, test, vi } from "vitest";
-import { RawBattleFrame } from "../../packages/battle-renderer/src/world/frame";
-import { RawBattlePost } from "../../packages/battle-renderer/src/world/post";
-import type { RawEnvironment } from "../../packages/battle-renderer/src/world/environment";
+import { RawBattleFrame } from "../../apps/battle-perf-lab/src/raw/world/frame";
+import { RawBattlePost } from "../../apps/battle-perf-lab/src/raw/world/post";
+import type { RawEnvironment } from "../../apps/battle-perf-lab/src/raw/world/environment";
 
 afterEach(() => vi.unstubAllGlobals());
 function gpu() {

@@ -6,7 +6,11 @@
 import { describe, expect, it } from "vitest";
 import { tgpu, d } from "typegpu";
 import { WORKGROUP, impostorRecordEntries } from "../impostorRecordCheck";
-import { ImpostorRecord, ImpostorState, ImpostorViewBlock } from "../impostorDerivation";
+import {
+  ImpostorRecord,
+  ImpostorState,
+  ImpostorViewBlock,
+} from "../../../../../packages/battle-renderer/src/world/impostorDerivation";
 import { IMPOSTOR_ATLAS_POLICY } from "../../../../../packages/soldier-assets/src/impostorAtlas";
 
 const ATLAS = { ...IMPOSTOR_ATLAS_POLICY, center: [0.1, -0.2, 0.9] as const, worldSpan: 1.7 };

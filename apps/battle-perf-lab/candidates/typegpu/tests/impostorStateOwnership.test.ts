@@ -7,9 +7,12 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { tgpu, d } from "typegpu";
 import { recordingGpu } from "./recordingDevice";
-import { createTypegpuImpostors } from "../impostor";
-import { createTypegpuCrowdAudience } from "../crowdAudience";
-import { ImpostorState, ImpostorViewBlock } from "../impostorDerivation";
+import { createTypegpuImpostors } from "../../../../../packages/battle-renderer/src/world/impostor";
+import { createTypegpuCrowdAudience } from "../../../../../packages/battle-renderer/src/world/crowdAudience";
+import {
+  ImpostorState,
+  ImpostorViewBlock,
+} from "../../../../../packages/battle-renderer/src/world/impostorDerivation";
 import type { CrowdInstance } from "../../../../../packages/crowd-runtime/src/instanceData";
 import type { ImpostorView } from "../../../../../packages/battle-renderer/src/impostorData";
 import type { CrowdProjectionView } from "../../../../../packages/crowd-runtime/src/visibility";
@@ -22,7 +25,9 @@ const mesh = vi.hoisted(() => ({
   stats: () => ({}),
   dispose: vi.fn(),
 }));
-vi.mock("../crowd", () => ({ createTypegpuCrowd: async () => mesh }));
+vi.mock("../../../../../packages/battle-renderer/src/world/crowd", () => ({
+  createTypegpuCrowd: async () => mesh,
+}));
 
 beforeEach(() => vi.clearAllMocks());
 afterEach(() => vi.unstubAllGlobals());

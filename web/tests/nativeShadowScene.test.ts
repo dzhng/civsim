@@ -22,7 +22,7 @@ function layer(extra = {}) {
     ...extra,
   };
 }
-vi.mock("../../packages/battle-renderer/src/world/frame", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/frame", () => ({
   RawBattleFrame: class {
     width = 1280;
     height = 800;
@@ -39,7 +39,7 @@ vi.mock("../../packages/battle-renderer/src/world/frame", () => ({
     }
   },
 }));
-vi.mock("../../packages/battle-renderer/src/world/terrainScene", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/terrainScene", () => ({
   createRawBattleTerrainScene: async () =>
     layer({
       grid: () => ({}),
@@ -54,7 +54,7 @@ vi.mock("../../packages/battle-renderer/src/world/terrainScene", () => ({
       drawShadow: vi.fn((_pass: unknown, camera: unknown) => state.terrainShadowDraws.push(camera)),
     }),
 }));
-vi.mock("../../packages/battle-renderer/src/world/crowdAudience", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/crowdAudience", () => ({
   createRawCrowdAudience: async () =>
     layer({
       upload: vi.fn((_instances: unknown, views: unknown[]) => {
@@ -75,7 +75,7 @@ vi.mock("../../packages/battle-renderer/src/world/crowdAudience", () => ({
       ),
     }),
 }));
-vi.mock("../../packages/battle-renderer/src/world/grassField", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/grassField", () => ({
   createRawGrassField: async () =>
     layer({
       setTerrain: vi.fn(),
@@ -88,18 +88,18 @@ vi.mock("../../packages/battle-renderer/src/world/grassField", () => ({
       snapshot: () => ({ terrainDetailStrength: 1 }),
     }),
 }));
-vi.mock("../../packages/battle-renderer/src/world/standards", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/standards", () => ({
   createRawStandards: async () => layer({ setView: vi.fn() }),
 }));
-vi.mock("../../packages/battle-renderer/src/world/readout", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/readout", () => ({
   createRawReadout: () => layer({ setCamera: vi.fn() }),
 }));
-vi.mock("../../packages/battle-renderer/src/world/overlay", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/overlay", () => ({
   createRawLineLayer: async () => layer(),
   createRawRingLayer: async () => layer(),
   createRawTriangleLayer: async () => layer(),
 }));
-vi.mock("../../packages/battle-renderer/src/world/environment", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/environment", () => ({
   createRawEnvironment: async (
     _device: unknown,
     _env: unknown,
@@ -110,7 +110,7 @@ vi.mock("../../packages/battle-renderer/src/world/environment", () => ({
     return layer({ setView: vi.fn(), sky: { setRays: vi.fn() }, exposure: 1 });
   },
 }));
-import { createRawBattleScene } from "../../packages/battle-renderer/src/battleScene";
+import { createRawBattleScene } from "../../apps/battle-perf-lab/src/raw/battleScene";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { productionBladeFieldProfile } from "@packages/game-renderer/src/battle/battleGrassResidency";
 import { CSM_CASCADES } from "@packages/game-renderer/src/battle/shadowPolicy";

@@ -8,7 +8,7 @@ import { isBattleRoadSurface } from "@packages/game-renderer/src/battle/photorea
 import {
   coverEdgeCoverage,
   mudInteriorCoverage,
-} from "@packages/photoreal-renderer/src/battle/groundDetail";
+} from "../../../packages/game-renderer/src/battle/groundEdgeTelemetry";
 
 describe("photoreal battle ground surfaces", () => {
   it("preserves the stride-10 vertex contract", () => {

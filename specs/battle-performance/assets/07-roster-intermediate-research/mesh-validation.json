@@ -1,0 +1,480 @@
+[
+  {
+    "key": "heavy-kit",
+    "result": {
+      "triangles": [
+        7958,
+        1958,
+        982,
+        782
+      ],
+      "clips": [
+        "bend",
+        "bend-pronation",
+        "death",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "hit",
+        "idle",
+        "pronation",
+        "ready",
+        "run",
+        "sword-effort",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "light-spear",
+    "result": {
+      "triangles": [
+        7962,
+        1970,
+        986,
+        786
+      ],
+      "clips": [
+        "bend",
+        "bend-pronation",
+        "death",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "hit",
+        "idle",
+        "pronation",
+        "ready",
+        "run",
+        "spear-effort",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "longsword",
+    "result": {
+      "triangles": [
+        7980,
+        2004,
+        1048,
+        868
+      ],
+      "clips": [
+        "at-ease",
+        "bend",
+        "bend-pronation",
+        "death",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "hit",
+        "pronation",
+        "ready",
+        "run",
+        "sword-effort",
+        "twohand-carry",
+        "twohand-ready",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "phalanx",
+    "result": {
+      "triangles": [
+        7984,
+        2028,
+        1078,
+        876
+      ],
+      "clips": [
+        "at-ease",
+        "bend",
+        "bend-pronation",
+        "death",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "hit",
+        "pike-carry",
+        "pike-ready",
+        "pike-thrust",
+        "pronation",
+        "ready",
+        "run",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "foot-roster--archers",
+    "result": {
+      "triangles": [
+        7978,
+        1963,
+        980,
+        784
+      ],
+      "clips": [
+        "bend",
+        "bend-pronation",
+        "bow-release",
+        "death",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "hit",
+        "idle",
+        "pronation",
+        "ready",
+        "run",
+        "sword-effort",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "foot-roster--skirmishers",
+    "result": {
+      "triangles": [
+        7972,
+        1966,
+        980,
+        786
+      ],
+      "clips": [
+        "bend",
+        "bend-pronation",
+        "death",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "hit",
+        "idle",
+        "pronation",
+        "ready",
+        "run",
+        "sword-effort",
+        "throw-release",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "shock-cavalry",
+    "result": {
+      "triangles": [
+        7920,
+        1932,
+        986,
+        756
+      ],
+      "clips": [
+        "death",
+        "hit",
+        "idle",
+        "melee",
+        "ready",
+        "run",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "horse-archer",
+    "result": {
+      "triangles": [
+        7950,
+        1932,
+        968,
+        760
+      ],
+      "clips": [
+        "death",
+        "hit",
+        "idle",
+        "melee",
+        "ready",
+        "release",
+        "run",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "foot-roster--artillery-crew",
+    "result": {
+      "triangles": [
+        7968,
+        1972,
+        986,
+        790
+      ],
+      "clips": [
+        "bend",
+        "bend-pronation",
+        "crew-release",
+        "death",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "hit",
+        "idle",
+        "pronation",
+        "ready",
+        "run",
+        "sword-effort",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "foot-roster--peasant",
+    "result": {
+      "triangles": [
+        7976,
+        1976,
+        980,
+        786
+      ],
+      "clips": [
+        "bend",
+        "bend-pronation",
+        "death",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "hit",
+        "idle",
+        "pronation",
+        "ready",
+        "run",
+        "sword-effort",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "foot-roster--light-sword",
+    "result": {
+      "triangles": [
+        7972,
+        1974,
+        976,
+        786
+      ],
+      "clips": [
+        "bend",
+        "bend-pronation",
+        "death",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "hit",
+        "idle",
+        "pronation",
+        "ready",
+        "run",
+        "sword-effort",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "heavy-spear",
+    "result": {
+      "triangles": [
+        7968,
+        1960,
+        992,
+        788
+      ],
+      "clips": [
+        "bend",
+        "bend-pronation",
+        "death",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "hit",
+        "idle",
+        "pronation",
+        "ready",
+        "run",
+        "spear-effort",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "foot-roster--medium-infantry",
+    "result": {
+      "triangles": [
+        7958,
+        1958,
+        982,
+        782
+      ],
+      "clips": [
+        "bend",
+        "bend-pronation",
+        "death",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "hit",
+        "idle",
+        "pronation",
+        "ready",
+        "run",
+        "sword-effort",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "medium-spear",
+    "result": {
+      "triangles": [
+        7962,
+        1958,
+        986,
+        788
+      ],
+      "clips": [
+        "bend",
+        "bend-pronation",
+        "death",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "hit",
+        "idle",
+        "pronation",
+        "ready",
+        "run",
+        "spear-effort",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "medium-phalanx",
+    "result": {
+      "triangles": [
+        7972,
+        2010,
+        1066,
+        866
+      ],
+      "clips": [
+        "at-ease",
+        "bend",
+        "bend-pronation",
+        "death",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "hit",
+        "pike-carry",
+        "pike-ready",
+        "pike-thrust",
+        "pronation",
+        "ready",
+        "run",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "shock-cavalry-sidearm",
+    "result": {
+      "triangles": [
+        7914,
+        1936,
+        990,
+        762
+      ],
+      "clips": [
+        "death",
+        "hit",
+        "idle",
+        "melee",
+        "ready",
+        "run",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "heavy-phalanx-sidearm",
+    "result": {
+      "triangles": [
+        7984,
+        2028,
+        1072,
+        876
+      ],
+      "clips": [
+        "bend",
+        "bend-pronation",
+        "death",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "hit",
+        "idle",
+        "pronation",
+        "ready",
+        "run",
+        "sword-effort",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  },
+  {
+    "key": "medium-phalanx-sidearm",
+    "result": {
+      "triangles": [
+        7970,
+        2006,
+        1066,
+        870
+      ],
+      "clips": [
+        "bend",
+        "bend-pronation",
+        "death",
+        "guarded-backward-walk",
+        "guarded-left-walk",
+        "guarded-right-walk",
+        "hit",
+        "idle",
+        "pronation",
+        "ready",
+        "run",
+        "sword-effort",
+        "walk"
+      ],
+      "invariant": "exact rig/actions and retained material/texture semantics; finite UV/tangent/normal/skin; normalized four-weight export"
+    }
+  }
+]

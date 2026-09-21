@@ -179,13 +179,17 @@ export function installBattleDebugApi({
      * answered once: no frame or stats read scans the population. Null from a
      * renderer that owns no such measurement, never another backend's assignment. */
     verifySeating: async () => (await renderer.verifySeating?.()) ?? null,
-    rendererMemoryInfo: () => ({
-      ...renderer.memoryInfo(),
-      // The battle's WASM heap now lives in the authority worker. What this thread
-      // owns of the simulation is the publication seam, so that is what it reports.
-      publicationCapacityBytes: sim.identity.publicationCapacityBytes,
-      publicationPool: sim.telemetry(performance.now()).publicationPool,
-    }),
+    rendererMemoryInfo: () => {
+      const memory = renderer.memoryInfo();
+      if (!memory) return null;
+      return {
+        ...memory,
+        // The battle's WASM heap now lives in the authority worker. What this thread
+        // owns of the simulation is the publication seam, so that is what it reports.
+        publicationCapacityBytes: sim.identity.publicationCapacityBytes,
+        publicationPool: sim.telemetry(performance.now()).publicationPool,
+      };
+    },
     disposeRenderer: owners.disposeRenderer,
     audio: () => audio.inspect(),
     heightAt: (x: number, y: number) => renderer.heightAt(x, y),

@@ -23,6 +23,7 @@ export function* prepareWaterSurfaces(inputs: readonly BattleWaterInput[]) {
     if (!geometry) continue;
     yield {
       kind: input.kind,
+      level: input.kind === "lake" ? input.spec.level : input.spec.baseZ,
       ...geometry,
       shoreDist: geometry.shoreDist ?? new Float32Array(geometry.positions.length / 3),
       state: new Float32Array(

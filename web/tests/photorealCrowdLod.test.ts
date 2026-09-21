@@ -23,10 +23,6 @@ import {
 } from "@packages/crowd-runtime/src/visibility";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
 import { projectionFootprint } from "@packages/renderer-core/src/camera3d";
-import { createCrowdDrawMesh } from "@packages/photoreal-renderer/src/battle/crowdLayer";
-import { configureSunShadows } from "@packages/photoreal-renderer/src/battle/shadowRig";
-import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
-import type { CSMShadowNode } from "three/examples/jsm/csm/CSMShadowNode.js";
 
 const assets = {
   0: { manifest: { bounds: { center: [0, 0, 0.9] as [number, number, number], radius: 0.9 } } },
@@ -320,26 +316,6 @@ test("a held shadow tier follows the real fitted extents rather than stalling", 
   }
 });
 
-test("the production mesh selected for a shadow-only body really casts shadows", () => {
-  const plan = planCrowdLods([body(0, -100)], [mainView(), shadowView()], assets);
-  const geometries = Array.from(
-    { length: IMPOSTOR_LEVEL },
-    () => new THREE.InstancedBufferGeometry(),
-  );
-  const materials = geometries.map(() => new THREE.MeshStandardNodeMaterial());
-  const meshes = geometries.map((geometry, lod) =>
-    createCrowdDrawMesh(0, lod, geometry, materials[lod], "shadow"),
-  );
-  assert.equal(meshes[plan.shadowLevels[0]].castShadow, true);
-  assert.deepEqual(
-    meshes.map((mesh) => mesh.castShadow),
-    [true, true, true, true],
-  );
-  assert.ok(meshes.every((mesh) => !mesh.receiveShadow));
-  geometries.forEach((geometry) => geometry.dispose());
-  materials.forEach((material) => material.dispose());
-});
-
 test("a finer shadow map changes only the shadow audience", () => {
   const instance = body(0, 150);
   const coarse = planCrowdLods([instance], [mainView(), shadowView()], assets);
@@ -349,57 +325,6 @@ test("a finer shadow map changes only the shadow audience", () => {
   assert.equal(coarse.shadowLevels[0], COARSEST_SHADOW_LOD);
   assert.equal(fine.shadowLevels[0], 0);
   assert.equal(fine.visibility[0], 3);
-});
-
-test("actual single and cascade cameras see shadow meshes but the main camera cannot", () => {
-  const camera = new THREE.PerspectiveCamera(50, 1.6, 1, 2000);
-  const geometry = new THREE.InstancedBufferGeometry();
-  const material = new THREE.MeshStandardNodeMaterial();
-  const main = createCrowdDrawMesh(0, 0, geometry, material, "main");
-  const caster = createCrowdDrawMesh(0, COARSEST_SHADOW_LOD, geometry, material, "shadow");
-  assert.equal(main.castShadow, false);
-  assert.equal(main.layers.test(camera.layers), true);
-  assert.equal(caster.layers.test(camera.layers), false);
-  for (const mode of ["single", "csm"] as const) {
-    // Renderer/device is the boundary; real shadow configuration and CSM setup run here.
-    const renderer = {
-      shadowMap: {},
-      coordinateSystem: THREE.WebGPUCoordinateSystem,
-      reversedDepthBuffer: false,
-    } as unknown as THREE.WebGPURenderer;
-    const sun = new THREE.DirectionalLight();
-    sun.position.set(0, -100, 200);
-    const scene = new THREE.Scene();
-    scene.add(sun, sun.target);
-    const rig = configureSunShadows(renderer, sun, CIVSIM_ENVIRONMENTS.golden, mode);
-    let cameras: THREE.Camera[] = [sun.shadow.camera];
-    if (mode === "csm") {
-      const csm = sun.shadow.shadowNode as CSMShadowNode;
-      // Public setup creates the actual cloned cascade cameras without a GPU render.
-      csm.setup({ camera, renderer } as unknown as Parameters<CSMShadowNode["setup"]>[0]);
-      cameras = csm.lights.map((light) => {
-        assert.ok(light.shadow);
-        return light.shadow.camera;
-      });
-      assert.equal(cameras.length, rig.identity().cascades);
-    }
-    for (const shadowCamera of cameras) {
-      assert.equal(caster.layers.test(shadowCamera.layers), true);
-      assert.equal(
-        main.layers.test(shadowCamera.layers),
-        true,
-        "ordinary world layers remain admitted",
-      );
-      assert.notEqual(
-        shadowCamera.layers.mask & 0xfffffffe,
-        0,
-        "Three must not replace this mask with the main-camera mask",
-      );
-    }
-    rig.dispose();
-  }
-  geometry.dispose();
-  material.dispose();
 });
 
 test("near-plane bounds keep full detail and corpse shading never moves authored bounds", () => {

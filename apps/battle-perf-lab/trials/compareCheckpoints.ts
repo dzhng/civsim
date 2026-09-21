@@ -42,11 +42,12 @@ type Path = readonly string[];
 
 /**
  * `three` is the source build: `web/src/battle/renderer.ts:352` spreads
- * `PhotorealBattleWorld.stats()` (`packages/photoreal-renderer/src/battle/battleWorld.ts:612`),
+ * `PhotorealBattleWorld.stats()` at pinned revision
+ * `16ad724514eeb840f241917c8fedb437a52ac1e3`,
  * whose `crowd` is `PhotorealCrowd.stats()` (`…/battle/crowdLayer.ts:499`).
  *
- * `raw`/`typegpu`/`vgpu` are lab live builds: `NativeBattleRenderer.stats()`
- * (`apps/battle-perf-lab/src/live/NativeBattleRenderer.ts:693`) nests the lab scene
+ * Historical `raw`/`typegpu`/`vgpu` lab live builds at pinned revision
+ * `16ad724514eeb840f241917c8fedb437a52ac1e3` nested the lab scene
  * under `native`, and each backend's `crowdAudience.ts` spreads
  * `createCrowdAudienceHistory().stats()` (`packages/battle-renderer/src/crowdAudienceHistory.ts:137`).
  *

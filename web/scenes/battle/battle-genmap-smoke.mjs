@@ -1,3 +1,4 @@
+import { battleRendererReady } from "../worlds.mjs";
 import { PNG } from "pngjs";
 
 const SEED7_HASH = "0x9053a4fa78867b91";
@@ -8,7 +9,7 @@ export const meta = {
   world: "battle-generated-seed-7",
   tier: "quick",
   snapshots: ["battle-genmap-smoke"],
-  describe: "Generated battle map seed 7 boots Rust -> wasm -> frontend -> photoreal -> screen.",
+  describe: "Generated battle map seed 7 boots Rust -> wasm -> frontend -> TypeGPU -> screen.",
 };
 
 export async function run(ctx) {
@@ -22,17 +23,12 @@ export async function run(ctx) {
     errorPrefix: "battle-genmap-smoke",
   });
   await page.goto(`${ctx.target}/?map=gen&seed=7`);
-  await page.waitForFunction(
-    () => {
-      const stats = window.__game?.stats?.();
-      return (
-        window.__ready === true &&
-        stats?.renderStats?.ready === true &&
-        stats.renderStats.terrain?.fixture === "sim-tint"
-      );
-    },
-    undefined,
-    { timeout: 20000 },
+  await battleRendererReady(page);
+  const installed = await page.evaluate(() => window.__game.stats().renderStats.terrain);
+  ctx.check(
+    "generated terrain has committed drawable ground",
+    installed?.installed === true && installed.groundTriangles > 0,
+    JSON.stringify(installed),
   );
 
   const terrain = await page.evaluate(() => window.__game.terrainDebug());
@@ -79,8 +75,8 @@ export async function run(ctx) {
     JSON.stringify(terrain.certificates),
   );
 
-  await page.evaluate(() => {
-    window.__game.freezeAtTick(240);
+  await page.evaluate(async () => {
+    await window.__game.freezeAtTick(240);
     const c = window.__cam;
     c.yaw = -Math.PI / 2;
     c.zoom = 0.72;

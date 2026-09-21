@@ -1,5 +1,5 @@
 /// <reference path="../../../web/node_modules/vitest/globals.d.ts" />
-import { createSceneLifecycle } from "../src/sceneLifecycle";
+import { createSceneLifecycle } from "../../../packages/battle-renderer/src/sceneLifecycle";
 test("pending operation excludes concurrency and closes before deferred cleanup", async () => {
   const release = vi.fn(),
     life = createSceneLifecycle(release);

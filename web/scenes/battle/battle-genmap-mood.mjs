@@ -1,3 +1,4 @@
+import { battleRendererReady } from "../worlds.mjs";
 import { PNG } from "pngjs";
 import { BAND_CROPS, HORIZON_TARGET, VIEWPORT, VISTA_CAMERA } from "./battle-map-style.mjs";
 
@@ -42,14 +43,10 @@ export async function run(ctx) {
     const stats = await page.evaluate(() => window.__game.stats().renderStats);
     ctx.check(
       "generated map explicit environment selected overcast-highland",
-      stats?.environment === "overcast-highland" &&
-        stats?.terrain?.environment?.id === "overcast-highland" &&
-        stats?.terrain?.environment?.source === "CIVSIM_ENVIRONMENTS.overcast-highland" &&
-        stats?.terrain?.environment?.waterAlias === "CIVSIM_ENVIRONMENTS.overcast-highland" &&
+      stats?.native?.environment === "overcast-highland" &&
         stats?.terrain?.vista?.bands?.some((b) => b.name === "farFog"),
       JSON.stringify({
-        environment: stats?.environment,
-        terrainEnvironment: stats?.terrain?.environment,
+        environment: stats?.native?.environment,
         vista: stats?.terrain?.vista,
       }),
     );
@@ -98,10 +95,12 @@ export async function run(ctx) {
 
 async function boot(page, target) {
   await page.goto(`${target}/?map=gen&seed=${SEED}&ai=off&env=${ENV}`);
+  await battleRendererReady(page, 180000);
   await page.waitForFunction(
-    () =>
-      window.__ready === true &&
-      window.__game?.stats?.().renderStats?.terrain?.vista?.bands?.length === 2,
+    () => {
+      const terrain = window.__game?.stats?.().renderStats?.terrain;
+      return terrain?.installed === true && terrain.vistaBands === 2;
+    },
     undefined,
     { timeout: 180000 },
   );

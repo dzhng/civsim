@@ -9,7 +9,12 @@
 import { afterEach, expect, test, vi } from "vitest";
 import { attachedLayer, recordingGpu } from "./recordingDevice";
 import { d } from "typegpu";
-import { SunCascade, SunShadow, createTypegpuSunShadow, sunShadowSampleBodyWgsl } from "../shadow";
+import {
+  SunCascade,
+  SunShadow,
+  createTypegpuSunShadow,
+  sunShadowSampleBodyWgsl,
+} from "../../../../../packages/battle-renderer/src/world/shadow";
 import {
   SUN_CASCADE_RECORD_FLOATS,
   SUN_SHADOW_BLOCK_FLOATS,

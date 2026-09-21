@@ -1,19 +1,14 @@
 import { nativeGpuScope } from "../gpuScope";
 import { beginGpuAdmission } from "../gpuAdmission";
+import { BATTLE_DEPTH_ATTACHMENT, battleDepthReversed } from "../worldDepth";
+import { tgpu, type TgpuRenderPass, type TgpuBindGroup, type TgpuCommandEncoder } from "typegpu";
+import { Camera, typegpuCameraLayout } from "./camera";
+import type { TypegpuEnvironment } from "./environment";
+import { createTypegpuPost } from "./post";
 import { frameCamera, type FrameCameraSnapshot } from "../frameCamera";
 import type { BattlePostGradeUniforms } from "../../../game-renderer/src/environment/postParameters";
-import type { RawEnvironment } from "./environment";
-import { RawBattlePost } from "./post";
-import { BATTLE_DEPTH_ATTACHMENT, battleDepthReversed } from "../worldDepth";
-
-/** One native HDR frame: borrowed device/environment, owned attachments/camera/post.
- * Scene layers encode into the same reverse-Z depth and multisampled color target.
- * This is an integration surface, not a complete or rankable battle backend. */
-export class RawBattleFrame {
-  readonly cameraLayout: GPUBindGroupLayout;
-  readonly cameraGroup: GPUBindGroup;
-  private readonly camera: GPUBuffer;
-  private attachments: ReturnType<RawBattleFrame["createAttachments"]>;
+/** Stable camera bindings; replacement owns only attachments and their post chain. */
+export class TypegpuBattleFrame {
   private disposed = false;
   private resizing = false;
   private view?: {
@@ -21,120 +16,91 @@ export class RawBattleFrame {
     observer: readonly [number, number, number];
     grade: BattlePostGradeUniforms;
   };
-  get width() {
-    return this.attachments.width;
-  }
-  get height() {
-    return this.attachments.height;
-  }
-  /** Borrowed until successful resize or disposal; callers must reacquire its view. */
-  get hdr() {
-    return this.attachments.hdr;
-  }
-  constructor(
+  private readonly camera;
+  readonly cameraGroup;
+  private constructor(
+    private readonly root: ReturnType<typeof tgpu.initFromDevice>,
     private readonly device: GPUDevice,
-    private readonly environment: RawEnvironment,
-    width: number,
-    height: number,
+    private readonly environment: TypegpuEnvironment,
     readonly samples: 1 | 4,
     private readonly outputFormat: GPUTextureFormat,
+    private resources: Awaited<ReturnType<typeof frameResources>>,
   ) {
-    this.camera = device.createBuffer({
-      size: 192,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
+    this.camera = root.createBuffer(Camera).$usage("uniform");
     try {
-      this.cameraLayout = device.createBindGroupLayout({
-        entries: [
-          {
-            binding: 0,
-            visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-            buffer: { type: "uniform" },
-          },
-        ],
-      });
-      this.cameraGroup = device.createBindGroup({
-        layout: this.cameraLayout,
-        entries: [{ binding: 0, resource: { buffer: this.camera } }],
-      });
-      this.attachments = this.createAttachments(width, height);
+      this.cameraGroup = root.createBindGroup(typegpuCameraLayout, { cam: this.camera });
+      root.unwrap(this.cameraGroup);
     } catch (error) {
       this.camera.destroy();
       throw error;
     }
   }
-  private createAttachments(width: number, height: number) {
-    const release: (() => void)[] = [];
-    const dispose = () => {
-      for (const destroy of release.splice(0).reverse()) destroy();
-    };
-    const own = (descriptor: GPUTextureDescriptor) => {
-      const texture = this.device.createTexture(descriptor);
-      release.push(() => texture.destroy());
-      return texture;
-    };
+  static async create(
+    device: GPUDevice,
+    environment: TypegpuEnvironment,
+    width: number,
+    height: number,
+    samples: 1 | 4,
+    outputFormat: GPUTextureFormat,
+  ) {
+    const root = tgpu.initFromDevice({ device });
+    let resources: Awaited<ReturnType<typeof frameResources>> | undefined;
     try {
-      const hdr = own({
-        size: [width, height],
-        format: "rgba16float",
-        usage:
-          GPUTextureUsage.RENDER_ATTACHMENT |
-          GPUTextureUsage.TEXTURE_BINDING |
-          GPUTextureUsage.COPY_SRC,
-      });
-      const color =
-        this.samples === 1
-          ? hdr
-          : own({
-              size: [width, height],
-              format: "rgba16float",
-              sampleCount: this.samples,
-              usage: GPUTextureUsage.RENDER_ATTACHMENT,
-            });
-      const depthDescriptor: GPUTextureDescriptor = {
-        size: [width, height],
-        format: BATTLE_DEPTH_ATTACHMENT.format,
-        sampleCount: this.samples,
-        usage: GPUTextureUsage.RENDER_ATTACHMENT,
-      };
-      const depth = own(depthDescriptor);
-      const post = new RawBattlePost(
-        this.device,
-        hdr.createView(),
-        width,
-        height,
-        this.outputFormat,
-      );
-      release.push(() => post.dispose());
-      return { width, height, hdr, color, depth, depthDescriptor, post, dispose };
+      resources = await frameResources(root, device, width, height, samples, outputFormat);
+      const admit = beginGpuAdmission(device);
+      let frame: TypegpuBattleFrame | undefined;
+      try {
+        frame = new TypegpuBattleFrame(root, device, environment, samples, outputFormat, resources);
+        await admit();
+        return frame;
+      } catch (error) {
+        frame?.camera.destroy();
+        await admit().catch(() => {});
+        throw error;
+      }
     } catch (error) {
-      dispose();
+      resources?.dispose();
+      root.destroy();
       throw error;
     }
   }
-  /** Concurrent requests reject; callers await each resize. Rendering may continue
-   * using the old bundle until admission finishes. Same-size calls allocate nothing. */
-  async resize(width: number, height: number): Promise<void> {
+  get width() {
+    return this.resources.width;
+  }
+  get height() {
+    return this.resources.height;
+  }
+  get cameraBuffer() {
     this.assertLive();
-    if (this.resizing) throw new Error("Native frame resize already pending");
+    return this.root.unwrap(this.camera);
+  }
+  get hdr() {
+    this.assertLive();
+    return this.root.unwrap(this.resources.hdr);
+  }
+  async resize(width: number, height: number) {
+    this.assertLive();
+    if (this.resizing) throw Error("TypeGPU frame resize already pending");
     if (width === this.width && height === this.height) return;
     this.resizing = true;
-    const finish = beginGpuAdmission(this.device);
-    let next: ReturnType<RawBattleFrame["createAttachments"]> | undefined;
+    let next: Awaited<ReturnType<typeof frameResources>> | undefined;
     try {
-      next = this.createAttachments(width, height);
-      await finish();
+      next = await frameResources(
+        this.root,
+        this.device,
+        width,
+        height,
+        this.samples,
+        this.outputFormat,
+      );
       this.assertLive();
       if (this.view) this.writeCamera(this.view, next);
-      const previous = this.attachments;
-      this.attachments = next;
+      const previous = this.resources;
+      this.resources = next;
       next = undefined;
       previous.dispose();
-    } catch (error) {
-      await finish().catch(() => {});
-      next?.dispose();
-      throw error;
     } finally {
+      next?.dispose();
       this.resizing = false;
     }
   }
@@ -155,42 +121,50 @@ export class RawBattleFrame {
       observer: [...observer] as [number, number, number],
       grade: { ...grade },
     };
-    this.writeCamera(view, this.attachments);
+    this.writeCamera(view, this.resources);
     this.view = view;
   }
   private writeCamera(
-    view: NonNullable<RawBattleFrame["view"]>,
-    target: RawBattleFrame["attachments"],
+    view: NonNullable<TypegpuBattleFrame["view"]>,
+    resources: Awaited<ReturnType<typeof frameResources>>,
   ) {
-    const camera = frameCamera(view.snapshot, target.width, target.height);
-    target.post.setGrade(view.grade, this.environment.exposure);
-    this.device.queue.writeBuffer(this.camera, 0, camera.bytes);
-    this.environment.setView(camera.view, view.observer);
-    this.environment.sky.setRays(camera.rays);
+    const state = frameCamera(view.snapshot, resources.width, resources.height);
+    this.camera.write(state.bytes.buffer);
+    this.environment.setView(state.view, view.observer);
+    this.environment.sky.setRays(state.rays);
+    resources.post.setGrade(view.grade, this.environment.exposure);
   }
-
+  createCommandEncoder() {
+    this.assertLive();
+    return this.root["~unstable"].createCommandEncoder();
+  }
+  /** Public unwrap interop for library-owned pose/sky/post encoding. */
+  nativeEncoder(encoder: TgpuCommandEncoder) {
+    return this.root.unwrap(encoder);
+  }
   encode(
-    encoder: GPUCommandEncoder,
+    encoder: TgpuCommandEncoder,
     output: GPUTextureView,
-    draw: (pass: GPURenderPassEncoder, camera: GPUBindGroup) => void,
+    draw: (pass: TgpuRenderPass, camera: TgpuBindGroup) => void,
     bloom: boolean,
-    postEnabled = true,
+    post = true,
   ) {
     this.assertLive();
+    const raw = this.root.unwrap(encoder),
+      r = this.resources;
     nativeGpuScope(this.device, "main", () => {
-      this.environment.sky.encodeBackground(encoder, this.attachments.color.createView());
+      this.environment.sky.encodeBackground(raw, this.root.unwrap(r.color).createView());
       const pass = encoder.beginRenderPass({
-        label: "native composed scene",
         colorAttachments: [
           {
-            view: this.attachments.color.createView(),
-            resolveTarget: this.samples === 4 ? this.hdr.createView() : undefined,
+            view: r.color,
+            resolveTarget: this.samples === 4 ? r.hdr : undefined,
             loadOp: "load",
             storeOp: "store",
           },
         ],
         depthStencilAttachment: {
-          view: this.attachments.depth.createView(),
+          view: r.depth,
           depthClearValue: BATTLE_DEPTH_ATTACHMENT.clearValue,
           depthLoadOp: BATTLE_DEPTH_ATTACHMENT.loadOp,
           depthStoreOp: BATTLE_DEPTH_ATTACHMENT.storeOp,
@@ -202,19 +176,22 @@ export class RawBattleFrame {
         pass.end();
       }
     });
-    nativeGpuScope(this.device, "post", () =>
-      this.attachments.post.encode(encoder, output, bloom, postEnabled),
-    );
+    nativeGpuScope(this.device, "post", () => r.post.encode(raw, output, bloom, post));
   }
-  /** The depth buffer this frame has actually allocated and the convention its
-   *  passes use, derived from their descriptors and shared pipeline policy. */
+  /** The depth buffer this frame has actually installed, read back off the
+   *  typed texture's own `props` — the size, format and sample count TypeGPU
+   *  holds for the resource — paired with the shared attachment policy its
+   *  pass clears and the convention derived from that policy. `installed`
+   *  follows the texture's own destroyed flag, so a disposed frame reports the
+   *  released buffer rather than a remembered one. */
   depthStats() {
-    const { depthDescriptor: descriptor, width, height } = this.attachments;
-    const samples = descriptor.sampleCount ?? 1;
+    const { props, destroyed } = this.resources.depth;
+    const [width, height] = props.size;
+    const samples = props.sampleCount ?? 1;
     return {
-      owner: "raw-battle-frame" as const,
-      installed: !this.disposed,
-      format: descriptor.format,
+      owner: "typegpu-battle-frame" as const,
+      installed: !destroyed,
+      format: props.format,
       samples,
       width,
       height,
@@ -222,17 +199,91 @@ export class RawBattleFrame {
       loadOp: BATTLE_DEPTH_ATTACHMENT.loadOp,
       storeOp: BATTLE_DEPTH_ATTACHMENT.storeOp,
       reversed: battleDepthReversed(),
-      // depth32float, one 4-byte sample per pixel per MSAA sample.
-      requestedBytes: this.disposed ? 0 : width * height * 4 * samples,
+      // The shared format is depth32float: 4 bytes per pixel per MSAA sample.
+      requestedBytes: destroyed ? 0 : width * height * 4 * samples,
     };
   }
+  render(
+    output: GPUTextureView,
+    prepare: (encoder: TgpuCommandEncoder) => void,
+    draw: (pass: TgpuRenderPass, camera: TgpuBindGroup) => void,
+    bloom: boolean,
+    post = true,
+  ) {
+    const encoder = this.createCommandEncoder();
+    prepare(encoder);
+    this.encode(encoder, output, draw, bloom, post);
+    encoder.submit();
+  }
   private assertLive() {
-    if (this.disposed) throw new Error("Native frame is disposed");
+    if (this.disposed) throw Error("TypeGPU frame disposed");
   }
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
-    this.attachments.dispose();
+    this.resources.dispose();
     this.camera.destroy();
+    this.root.destroy();
+  }
+}
+async function frameResources(
+  root: ReturnType<typeof tgpu.initFromDevice>,
+  device: GPUDevice,
+  width: number,
+  height: number,
+  samples: 1 | 4,
+  outputFormat: GPUTextureFormat,
+) {
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 64 || height < 64)
+    throw Error("TypeGPU frame requires integer dimensions at least 64×64");
+  const owned: (() => void)[] = [];
+  const own = <T extends { destroy(): void }>(x: T) => {
+    owned.push(() => x.destroy());
+    return x;
+  };
+  const dispose = () => {
+    for (const f of owned.splice(0).reverse()) f();
+  };
+  const admit = beginGpuAdmission(device);
+  try {
+    const hdr = own(
+      root
+        .createTexture({ size: [width, height], format: "rgba16float" })
+        .$usage("render", "sampled"),
+    );
+    const color =
+      samples === 1
+        ? hdr
+        : own(
+            root
+              .createTexture({ size: [width, height], format: "rgba16float", sampleCount: 4 })
+              .$usage("render"),
+          );
+    const depth = own(
+      root
+        .createTexture({
+          size: [width, height],
+          format: BATTLE_DEPTH_ATTACHMENT.format,
+          sampleCount: samples,
+        })
+        .$usage("render"),
+    );
+    root.unwrap(hdr);
+    root.unwrap(color);
+    root.unwrap(depth);
+    await admit();
+    const post = await createTypegpuPost(
+      device,
+      root.unwrap(hdr).createView(),
+      width,
+      height,
+      outputFormat,
+    );
+    owned.push(post.dispose);
+    return { width, height, hdr, color, depth, post, dispose };
+  } catch (error) {
+    await admit().catch(() => {});
+    dispose();
+    throw error;
   }
 }

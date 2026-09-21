@@ -5,9 +5,9 @@ import {
   createTypegpuSunShadow,
   sunSamplingLayout,
   shadowVisibility as visibility,
-} from "../candidates/typegpu/shadow";
+} from "../../../packages/battle-renderer/src/world/shadow";
 import { createVgpuSunShadow } from "./vgpu/shadow";
-import { Camera, typegpuCameraLayout } from "../candidates/typegpu/camera";
+import { Camera, typegpuCameraLayout } from "../../../packages/battle-renderer/src/world/camera";
 import {
   shadowPcfWgsl,
   shadowVisibilityWgsl,

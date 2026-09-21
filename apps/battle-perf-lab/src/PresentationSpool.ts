@@ -5,7 +5,7 @@ import {
 } from "./grassRecordChunks";
 import { ReplayWindow, encodeReplayValue } from "./replayArchive";
 import type { BattleReplayAssets, BattleReplaySettings } from "./fixture";
-import type { CapturedReplayFrame } from "./CaptureBattleRenderer";
+import type { CapturedReplayFrame } from "./captureData";
 
 export interface SpoolWindow {
   name: string;

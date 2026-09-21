@@ -1,6 +1,6 @@
 import { tgpu } from "typegpu";
 import { initFromDevice, target, frame } from "vgpu";
-import { createTypegpuReadout } from "../candidates/typegpu/readout";
+import { createTypegpuReadout } from "../../../packages/battle-renderer/src/world/readout";
 import { createVgpuReadout } from "./vgpu/readout";
 import { destroyVgpuTarget } from "./vgpu/targetLifetime";
 export async function createReadoutControlBackend(

@@ -1,9 +1,7 @@
 // @vitest-environment node
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import { Scene, Mesh, InstancedBufferGeometry } from "three/webgpu";
-import { uniform } from "three/tsl";
-import { PhotorealStandardLayer } from "@packages/photoreal-renderer/src/battle/standardLayer";
+import { standardLiveryForFaction } from "@packages/game-renderer/src/models/shared/standardAsset";
 import {
   BattleStandardRecords,
   type BattleStandardInstance,
@@ -19,48 +17,37 @@ const banner: BattleStandardInstance = {
   factionId: "crimson",
   selected: true,
 };
-test("native interleaved standards match actual source attributes through growth, shrink and empty", () => {
-  const scene = new Scene(),
-    source = new PhotorealStandardLayer(scene, uniform(0));
+test("interleaved standards retain pose, color, selection and active count through growth and shrink", () => {
   const records = new BattleStandardRecords();
-  try {
-    for (const instances of [
-      [banner],
-      Array.from({ length: 40 }, (_, i) => ({
-        ...banner,
-        unitId: i,
-        x: i * 0.3,
-        selected: i % 2 === 0,
-      })),
-      [{ ...banner, selected: false }],
-      [],
-    ]) {
-      source.upload(instances);
-      const data = records.write(instances);
-      const object = scene.getObjectByName("battle-unit-3d-standards");
-      assert.ok(object instanceof Mesh && object.geometry instanceof InstancedBufferGeometry);
-      const geometry = object.geometry;
-      assert.equal(records.count, source.stats().standards);
-      assert.equal(records.selected, source.stats().selected);
-      assert.equal(geometry.instanceCount, instances.length);
-      assert.equal(data.length, instances.length * 11);
-      for (let i = 0; i < instances.length; i++) {
-        assert.deepEqual(
-          Array.from(data.subarray(i * 11, i * 11 + 4)),
-          Array.from(geometry.getAttribute("standardPose").array.slice(i * 4, i * 4 + 4)),
-        );
-        assert.deepEqual(
-          Array.from(data.subarray(i * 11 + 4, i * 11 + 8)),
-          Array.from(geometry.getAttribute("standardMeta").array.slice(i * 4, i * 4 + 4)),
-        );
-        assert.deepEqual(
-          Array.from(data.subarray(i * 11 + 8, i * 11 + 11)),
-          Array.from(geometry.getAttribute("standardField").array.slice(i * 3, i * 3 + 3)),
-        );
-      }
+  for (const instances of [
+    [banner],
+    Array.from({ length: 40 }, (_, i) => ({
+      ...banner,
+      unitId: i,
+      x: i * 0.3,
+      selected: i % 2 === 0,
+    })),
+    [{ ...banner, selected: false }],
+    [],
+  ]) {
+    const data = records.write(instances);
+    assert.equal(records.count, instances.length);
+    assert.equal(records.selected, instances.filter((instance) => instance.selected).length);
+    assert.equal(data.length, instances.length * 11);
+    for (let i = 0; i < instances.length; i++) {
+      const instance = instances[i];
+      assert.deepEqual(
+        Array.from(data.subarray(i * 11, i * 11 + 5)),
+        Array.from(
+          new Float32Array([instance.x, instance.y, instance.z, instance.yaw, instance.scale]),
+        ),
+      );
+      assert.equal(data[i * 11 + 7], +instance.selected);
+      assert.deepEqual(
+        Array.from(data.subarray(i * 11 + 8, i * 11 + 11)),
+        Array.from(new Float32Array(standardLiveryForFaction(instance.factionId).field)),
+      );
     }
-  } finally {
-    source.dispose();
   }
 });
 test("selection and reordering keep a unit's wave phase and caller legibility scale", () => {

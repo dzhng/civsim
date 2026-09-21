@@ -1,18 +1,10 @@
-import {
-  productionBladeFieldProfile,
-  initialBladeFieldTransition,
-} from "../../packages/game-renderer/src/battle/battleGrassResidency";
 // @vitest-environment node
-import * as THREE from "three/webgpu";
 import { expect, test } from "vitest";
 import {
-  buildBattleTerrain,
-  BattleTerrainSurface,
-} from "@packages/photoreal-renderer/src/battle/battleTerrainBuild";
-import { createBattleFrameUniforms } from "@packages/photoreal-renderer/src/battle/battleTsl";
-import { createSeaDisplacementSource } from "@packages/photoreal-renderer/src/battle/seaLayer";
-
-import { createBladeFieldTransitionUniforms } from "@packages/photoreal-renderer/src/battle/bladeFieldLayer";
+  prepareBattleTerrain,
+  terrainPickingMeshes,
+} from "@packages/battle-renderer/src/terrainScenePreparation";
+import { createTerrainPicking } from "@packages/battle-renderer/src/terrainPicking";
 import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terrainFeatures";
 
 test("vista mountains join a lowered playable edge instead of exposing their underside", () => {
@@ -30,16 +22,11 @@ test("vista mountains join a lowered playable edge instead of exposing their und
   // The renderer omits odd source samples at its coarser mesh resolution.
   // This peak must not become an invisible obstacle for clicking.
   grid.height![3 * grid.w + 3] = 200;
-  const built = buildBattleTerrain({
+  const built = prepareBattleTerrain({
     grid,
     cover: "green-grass",
     slopeBands: null,
-    lakeSurfaces: [],
-    frame: createBattleFrameUniforms(),
-    sea: createSeaDisplacementSource(),
-    grassTransition: createBladeFieldTransitionUniforms(
-      initialBladeFieldTransition(productionBladeFieldProfile()),
-    ),
+    lakes: [],
     vista: {
       shape: "lowered bay",
       bands: [
@@ -60,31 +47,25 @@ test("vista mountains join a lowered playable edge instead of exposing their und
       ],
     },
   });
-  const surface = new BattleTerrainSurface(new THREE.Scene());
-  surface.replace(built);
-  try {
-    const renderedHeight = built.ground.geometry.getAttribute("position").getZ(0);
-    expect(surface.surfaceHeightAt(-2, -2)).toBeCloseTo(renderedHeight, 4);
-    expect(surface.raycast({ origin: [-2, -2, 400], dir: [0, 0, -1] })?.[2]).toBeCloseTo(
-      renderedHeight,
-      4,
-    );
-    const positions = built.vistaMeshes[0].geometry.getAttribute("position");
-    const seam: number[] = [];
-    for (let i = 0; i < positions.count; i++)
-      if (positions.getX(i) === 16 && Math.abs(positions.getY(i)) < 16)
-        seam.push(positions.getZ(i));
-    const ray = new THREE.Raycaster(new THREE.Vector3(15, 0, 20), new THREE.Vector3(0, 0, -1));
-    expect(
-      ray.intersectObjects([built.ground, ...built.vistaMeshes]).length,
-      "the gap between cell-centre ground vertices and the vista must be sealed",
-    ).toBeGreaterThan(0);
-    expect(seam.length).toBeGreaterThan(0);
-    expect(Math.max(...seam)).toBeCloseTo(
-      built.ground.geometry.getAttribute("position").getZ(0),
-      4,
-    );
-  } finally {
-    surface.dispose();
-  }
+  const surface = createTerrainPicking(terrainPickingMeshes(built.data));
+  const renderedHeight = built.data.ground.vertices[2];
+  expect(
+    surface.surfaceHeightAt(-2, -2, () => {
+      throw Error("rendered ground must answer picking without a height-field fallback");
+    }),
+  ).toBeCloseTo(renderedHeight, 4);
+  expect(surface.raycast({ origin: [-2, -2, 400], dir: [0, 0, -1] })?.[2]).toBeCloseTo(
+    renderedHeight,
+    4,
+  );
+  const positions = built.data.vistaMeshes[0].mesh.vertices;
+  const seam: number[] = [];
+  for (let i = 0; i < positions.length; i += 10)
+    if (positions[i] === 16 && Math.abs(positions[i + 1]) < 16) seam.push(positions[i + 2]);
+  expect(
+    surface.raycast({ origin: [15, 0, 20], dir: [0, 0, -1] }),
+    "the gap between cell-centre ground vertices and the vista must be sealed",
+  ).not.toBeNull();
+  expect(seam.length).toBeGreaterThan(0);
+  expect(Math.max(...seam)).toBeCloseTo(renderedHeight, 4);
 });

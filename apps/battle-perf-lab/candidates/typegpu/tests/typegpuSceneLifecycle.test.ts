@@ -38,10 +38,10 @@ function layer(extra = {}) {
   state.owners.push(value);
   return value;
 }
-vi.mock("../environment", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/environment", () => ({
   createTypegpuEnvironment: async () => layer(),
 }));
-vi.mock("../frame", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/frame", () => ({
   TypegpuBattleFrame: class {
     width = 1440;
     height = 900;
@@ -79,7 +79,7 @@ vi.mock("../frame", () => ({
     }
   },
 }));
-vi.mock("../terrainScene", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/terrainScene", () => ({
   createTypegpuBattleTerrainScene: async () =>
     layer({
       replace: async (...args: unknown[]) => {
@@ -108,7 +108,7 @@ vi.mock("../terrainScene", () => ({
       drawShadow: vi.fn(),
     }),
 }));
-vi.mock("../crowdAudience", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/crowdAudience", () => ({
   createTypegpuCrowdAudience: async () => {
     if (state.crowdFailure) throw state.crowdFailure;
     await state.crowdHold;
@@ -149,7 +149,7 @@ vi.mock("../crowdAudience", () => ({
     return owner;
   },
 }));
-vi.mock("../grassField", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/grassField", () => ({
   createTypegpuGrassField: async () =>
     layer({
       setTerrain: state.setTerrain,
@@ -162,10 +162,10 @@ vi.mock("../grassField", () => ({
       snapshot: () => ({ terrainDetailStrength: 1 }),
     }),
 }));
-vi.mock("../standards", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/standards", () => ({
   createTypegpuStandards: async () => layer({ upload: state.standardsUpload, setView: vi.fn() }),
 }));
-vi.mock("../readout", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/readout", () => ({
   createTypegpuReadout: () => layer({ upload: state.readoutUpload, setCamera: vi.fn() }),
 }));
 /** An overlay layer that reports the vertex count it was actually uploaded, so a
@@ -189,12 +189,12 @@ function triangleLayer() {
   state.triangleLayers.push(value);
   return value;
 }
-vi.mock("../overlay", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/overlay", () => ({
   createTypegpuLineLayer: async () => overlayLayer(),
   createTypegpuRingLayer: async () => overlayLayer(),
   createTypegpuTriangleLayer: async () => triangleLayer(),
 }));
-import { createTypegpuBattleScene } from "../battleScene";
+import { createTypegpuBattleScene } from "../../../../../packages/battle-renderer/src/battleScene";
 import { battleSceneCamera } from "../../../../../packages/battle-renderer/src/sceneCamera";
 import type { BattleSceneOptions } from "../../../../../packages/battle-renderer/src/sceneTypes";
 import type { TgpuCommandEncoder } from "typegpu";

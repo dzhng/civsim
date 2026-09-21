@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { trackNativeGpuAllocations } from "../src/nativeGpuAllocations";
-import { trackBufferLifetime } from "../src/bufferLifetimeCheck";
-import { trackTextureLifetime } from "../src/textureLifetimeCheck";
-import { textureAllocationBytes } from "../src/textureAllocationBytes";
+import { trackNativeGpuAllocations } from "../../../packages/battle-renderer/src/nativeGpuAllocations";
+import { trackBufferLifetime } from "../../../packages/battle-renderer/src/bufferLifetimeCheck";
+import { trackTextureLifetime } from "../../../packages/battle-renderer/src/textureLifetimeCheck";
+import { textureAllocationBytes } from "../../../packages/battle-renderer/src/textureAllocationBytes";
 
 function deviceMock() {
   return {

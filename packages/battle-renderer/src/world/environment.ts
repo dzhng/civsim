@@ -1,193 +1,255 @@
-import type { RawSunShadow } from "./shadow";
 import {
-  shadowPcfWgsl,
-  shadowVisibilityWgsl,
-  sunShadowBlockWgsl,
-  sunShadowSampleWgsl,
-} from "../shaders/shadow";
+  SunShadow,
+  shadowVisibility,
+  sunShadowEntries,
+  sunShadowSampleBodyWgsl,
+  type TypegpuSunShadow,
+} from "./shadow";
+import { Camera, typegpuCameraLayout } from "./camera";
 import type { NativeShadowMode } from "../shadowData";
+import { typegpuTextureBytes } from "./textureUpload";
+import { tgpu, d } from "typegpu";
 import type { CivsimEnvironment } from "../../../game-renderer/src/environment/environment";
 import { photorealEnvironment } from "../../../game-renderer/src/environment/physicalEnvironment";
 import { skyModelParams } from "../../../game-renderer/src/environment/skyParameters";
-import { createRawSky } from "./sky";
-import { createRawPmrem } from "./pmrem";
-import { cubeUvWGSL } from "../shaders/pmrem";
+import { createTypegpuSky } from "./sky";
+import { createTypegpuPmrem } from "./pmrem";
+import { samplePmrem } from "./pmremSampling";
 import { standardPbrWgsl } from "../shaders/standardPbr";
 import { aerialWgsl } from "../shaders/aerial";
 import { equirectUvWgsl } from "../shaders/physicalSky";
 import { DFG_LUT_DATA, DFG_LUT_SIZE } from "../shaders/dfgLut";
-
 import { environmentFunctions, type WorldSurfaceDiagnostic } from "../shaders/environment";
 
-/** All native world materials share group3. Camera/projection stays group0,
- * with the canonical WORLD_CAMERA_WGSL block supplied by the material. */
-export function rawEnvironmentWgsl(
-  env: CivsimEnvironment,
-  diagnostic?: WorldSurfaceDiagnostic,
-  shadows: NativeShadowMode | null = null,
-): string {
-  return `
-    struct Environment {
-      worldToView:mat4x4f, observer:vec4f, sunDirection:vec4f, sunRadiance:vec4f, settings:vec4f
-    };
-    @group(3) @binding(0) var<uniform> environment:Environment;
-    @group(3) @binding(1) var environmentSky:texture_2d<f32>;
-    @group(3) @binding(2) var environmentPmrem:texture_2d<f32>;
-    @group(3) @binding(3) var environmentDfg:texture_2d<f32>;
-    @group(3) @binding(4) var environmentSampler:sampler;
-    ${
-      shadows
-        ? `
-    ${sunShadowBlockWgsl}
-    @group(3) @binding(5) var<uniform> sunShadow:SunShadow;
-    @group(3) @binding(6) var sunDepth:texture_depth_2d_array;
-    @group(3) @binding(7) var sunCompare:sampler_comparison;
-    fn shadowPcf${shadowPcfWgsl("cascade-array")}
-    fn shadowVisibility${shadowVisibilityWgsl("cascade-array")}
-    ${sunShadowSampleWgsl(shadows, "cascade-array")}`
-        : ""
-    }
-    ${cubeUvWGSL}
-    fn standardPbr${standardPbrWgsl}
-    fn equirectUv${equirectUvWgsl}
-    fn applyAerial${aerialWgsl(env)}
-    ${Object.entries(environmentFunctions(diagnostic))
-      .map(([name, body]) => `fn ${name}${body}`)
-      .join("\n")}
-    fn geometryRoughness(normalWorld:vec3f)->f32 {
-      return geometryRoughnessWithView(normalWorld,environment.worldToView);
-    }
-    fn shadeWorldSurface(base:vec3f,emissive:vec3f,roughness:f32,geomRoughness:f32,metal:f32,ao:f32,normalWorld:vec3f,worldPosition:vec3f,shadow:f32)->vec4f {
-      return shadeEnvironment(base,emissive,roughness,geomRoughness,metal,ao,normalWorld,worldPosition,shadow,cam.eye,environment.observer.xyz,environment.sunDirection.xyz,environment.sunRadiance.xyz,environment.settings.y,environment.settings.x,environmentSky,environmentPmrem,environmentDfg,environmentSampler);
-    }
-  `;
-}
+const Environment = d.struct({
+  worldToView: d.mat4x4f,
+  observer: d.vec4f,
+  sunDirection: d.vec4f,
+  sunRadiance: d.vec4f,
+  settings: d.vec4f,
+});
+const environmentEntries = {
+  data: { uniform: Environment, visibility: ["vertex", "fragment"] },
+  sky: { texture: d.texture2d(), visibility: ["fragment"] },
+  pmrem: { texture: d.texture2d(), visibility: ["fragment"] },
+  dfg: { texture: d.texture2d(), visibility: ["fragment"] },
+  linear: { sampler: "filtering", visibility: ["fragment"] },
+} satisfies Parameters<typeof tgpu.bindGroupLayout>[0];
+export const environmentLayout = tgpu.bindGroupLayout(environmentEntries);
+const shadowEnvironmentLayout = tgpu.bindGroupLayout({
+  ...environmentEntries,
+  ...sunShadowEntries,
+});
+const casterEnvironmentLayout = tgpu.bindGroupLayout({
+  data: { uniform: Environment, visibility: ["vertex"] },
+});
+const standardPbr = tgpu
+  .fn(
+    [
+      d.vec3f,
+      d.vec3f,
+      d.f32,
+      d.f32,
+      d.f32,
+      d.f32,
+      d.vec3f,
+      d.vec3f,
+      d.vec3f,
+      d.vec3f,
+      d.f32,
+      d.f32,
+      d.texture2d(),
+      d.sampler(),
+      d.f32,
+      d.texture2d(),
+      d.sampler(),
+    ],
+    d.vec3f,
+  )(standardPbrWgsl)
+  .$uses({ samplePmrem });
+const equirectUv = tgpu.fn([d.vec3f], d.vec2f)(equirectUvWgsl);
 
-/** Prepared once per environment. This owns the sky, IBL, DFG and one small view
- * buffer; borrowed device/camera data/output attachments retain their owners. */
-export async function createRawEnvironment(
+/** The receiver's sun-shadow entry point for one mode: the inherited sampling
+ * body (see shadow.ts for that boundary) bound to THIS owner's typed resources
+ * — the environment block, the world camera and the cascade depth array. High
+ * reads the shared view row and near plane, so a receiver blends its cascades
+ * against the same admitted frame the fits came from. */
+export function typegpuSunShadowSample(mode: NativeShadowMode) {
+  const inherited = tgpu
+    .fn(
+      [
+        Environment,
+        Camera,
+        SunShadow,
+        d.textureDepth2dArray(),
+        d.comparisonSampler(),
+        d.vec3f,
+        d.vec3f,
+        d.vec2f,
+      ],
+      d.f32,
+    )(sunShadowSampleBodyWgsl(mode))
+    .$uses({ Environment, Camera, SunShadow, shadowVisibility });
+  return tgpu.fn(
+    [d.vec3f, d.vec3f, d.vec2f],
+    d.f32,
+  )((world, normal, pixel) => {
+    "use gpu";
+    return inherited(
+      shadowEnvironmentLayout.$.data,
+      typegpuCameraLayout.$.cam,
+      shadowEnvironmentLayout.$.sun,
+      shadowEnvironmentLayout.$.sunDepth,
+      shadowEnvironmentLayout.$.sunCompare,
+      world,
+      normal,
+      pixel,
+    );
+  });
+}
+/** Shadows off: receivers keep the same entry point and read nothing. */
+const unshadowed = tgpu.fn(
+  [d.vec3f, d.vec3f, d.vec2f],
+  d.f32,
+)("(world:vec3f,normal:vec3f,pixel:vec2f)->f32{return 1.0;}");
+
+/** TypeGPU resource ownership; exposed GPU views are borrowed by component bindings. */
+export async function createTypegpuEnvironment(
   device: GPUDevice,
   env: CivsimEnvironment,
+  diagnostic?: WorldSurfaceDiagnostic,
   backgroundSamples: 1 | 4 = 1,
-  shadow?: Pick<RawSunShadow, "state" | "receiverView" | "comparison" | "mode">,
+  shadow?: TypegpuSunShadow,
+  aerial = true,
 ) {
-  const spec = photorealEnvironment(env);
-  let sky: Awaited<ReturnType<typeof createRawSky>> | undefined;
-  let pmrem: Awaited<ReturnType<typeof createRawPmrem>> | undefined;
-  let dfg: GPUTexture | undefined, uniform: GPUBuffer | undefined;
+  const root = tgpu.initFromDevice({ device }),
+    owned: { destroy(): void }[] = [];
   let disposed = false;
   const dispose = () => {
     if (disposed) return;
     disposed = true;
-    sky?.dispose();
-    pmrem?.dispose();
-    dfg?.destroy();
-    uniform?.destroy();
+    for (const r of owned) r.destroy();
+    root.destroy();
   };
   try {
-    sky = await createRawSky(device, skyModelParams(env), backgroundSamples);
-    pmrem = await createRawPmrem(device, sky.lut);
-    dfg = device.createTexture({
-      size: [DFG_LUT_SIZE, DFG_LUT_SIZE],
-      format: "rg16float",
-      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+    const sky = await createTypegpuSky(device, skyModelParams(env), backgroundSamples);
+    owned.push({ destroy: sky.dispose });
+    const pmrem = await createTypegpuPmrem(device, sky.lut);
+    owned.push({ destroy: pmrem.dispose });
+    const dfg = root
+      .createTexture({ size: [DFG_LUT_SIZE, DFG_LUT_SIZE], format: "rg16float" })
+      .$usage("sampled");
+    owned.push(dfg);
+    dfg.write(typegpuTextureBytes(DFG_LUT_DATA));
+    const data = root.createBuffer(Environment).$usage("uniform");
+    owned.push(data);
+    const linear = root.createSampler({ minFilter: "linear", magFilter: "linear" });
+    const resources = {
+      data,
+      sky: sky.lut.createView(),
+      pmrem: pmrem.texture.createView(),
+      dfg: dfg.createView(),
+      linear,
+    };
+    const layout = shadow ? shadowEnvironmentLayout : environmentLayout;
+    const group = shadow
+      ? root.createBindGroup(shadowEnvironmentLayout, {
+          ...resources,
+          sun: shadow.state,
+          sunDepth: shadow.receiverView,
+          sunCompare: shadow.comparison,
+        })
+      : root.createBindGroup(environmentLayout, resources);
+    const casterGroup = root.createBindGroup(casterEnvironmentLayout, { data });
+    const sampleSunShadow = shadow ? typegpuSunShadowSample(shadow.mode) : unshadowed;
+    const spec = photorealEnvironment(env),
+      functions = environmentFunctions(diagnostic, aerial);
+    const applyAerial = tgpu
+      .fn(
+        [d.vec4f, d.vec3f, d.vec3f, d.vec3f, d.texture2d(), d.sampler()],
+        d.vec4f,
+      )(aerialWgsl(env))
+      .$uses({ equirectUv });
+    const fromView = tgpu.fn([d.vec3f], d.f32)(functions.geometryRoughnessFromView);
+    const shadeAlgorithm = tgpu
+      .fn(
+        [
+          d.vec3f,
+          d.vec3f,
+          d.f32,
+          d.f32,
+          d.f32,
+          d.f32,
+          d.vec3f,
+          d.vec3f,
+          d.f32,
+          d.vec3f,
+          d.vec3f,
+          d.vec3f,
+          d.vec3f,
+          d.f32,
+          d.f32,
+          d.texture2d(),
+          d.texture2d(),
+          d.texture2d(),
+          d.sampler(),
+        ],
+        d.vec4f,
+      )(functions.shadeEnvironment)
+      .$uses({ standardPbr, applyAerial });
+    const shade = tgpu.fn(
+      [d.vec3f, d.vec3f, d.f32, d.f32, d.f32, d.f32, d.vec3f, d.vec3f, d.f32, d.vec3f],
+      d.vec4f,
+    )((base, emissive, roughness, geomRoughness, metal, ao, normal, position, shadow, eye) => {
+      "use gpu";
+      return shadeAlgorithm(
+        base,
+        emissive,
+        roughness,
+        geomRoughness,
+        metal,
+        ao,
+        normal,
+        position,
+        shadow,
+        eye,
+        layout.$.data.observer.xyz,
+        layout.$.data.sunDirection.xyz,
+        layout.$.data.sunRadiance.xyz,
+        layout.$.data.settings.y,
+        layout.$.data.settings.x,
+        layout.$.sky,
+        layout.$.pmrem,
+        layout.$.dfg,
+        layout.$.linear,
+      );
     });
-    device.queue.writeTexture({ texture: dfg }, DFG_LUT_DATA, { bytesPerRow: DFG_LUT_SIZE * 4 }, [
-      DFG_LUT_SIZE,
-      DFG_LUT_SIZE,
-    ]);
-    uniform = device.createBuffer({
-      size: 128,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
-    const sampler = device.createSampler({ minFilter: "linear", magFilter: "linear" });
-    const layout = device.createBindGroupLayout({
-      entries: [
-        {
-          binding: 0,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          buffer: { type: "uniform" },
-        },
-        ...[1, 2, 3].map((binding) => ({
-          binding,
-          visibility: GPUShaderStage.FRAGMENT,
-          texture: { sampleType: "float" as const },
-        })),
-        { binding: 4, visibility: GPUShaderStage.FRAGMENT, sampler: { type: "filtering" } },
-        ...(shadow
-          ? [
-              {
-                binding: 5,
-                visibility: GPUShaderStage.FRAGMENT,
-                buffer: { type: "uniform" as const },
-              },
-              {
-                binding: 6,
-                visibility: GPUShaderStage.FRAGMENT,
-                texture: { sampleType: "depth" as const, viewDimension: "2d-array" as const },
-              },
-              {
-                binding: 7,
-                visibility: GPUShaderStage.FRAGMENT,
-                sampler: { type: "comparison" as const },
-              },
-            ]
-          : []),
-      ],
-    });
-    const bindGroup = device.createBindGroup({
-      layout,
-      entries: [
-        { binding: 0, resource: { buffer: uniform } },
-        { binding: 1, resource: sky.lut.createView() },
-        { binding: 2, resource: pmrem.texture.createView() },
-        { binding: 3, resource: dfg.createView() },
-        { binding: 4, resource: sampler },
-        ...(shadow
-          ? [
-              { binding: 5, resource: { buffer: shadow.state } },
-              { binding: 6, resource: shadow.receiverView },
-              { binding: 7, resource: shadow.comparison },
-            ]
-          : []),
-      ],
-    });
-    // A caster must not bind the sampled depth texture it is currently writing.
-    // Its vertex stage needs only the existing view uniform from this owner.
-    const casterLayout = device.createBindGroupLayout({
-      entries: [{ binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: "uniform" } }],
-    });
-    const casterBindGroup = device.createBindGroup({
-      layout: casterLayout,
-      entries: [{ binding: 0, resource: { buffer: uniform } }],
-    });
-    const values = new Float32Array(32);
-    values.set(spec.sunDirection, 20);
-    values.set(
-      spec.sunColor.map((c) => c * spec.sunIntensity),
-      24,
-    );
-    values[28] = pmrem.maxMip;
-    values[29] = spec.environmentIntensity;
     return {
+      group,
       layout,
-      bindGroup,
-      casterLayout,
-      casterBindGroup,
+      casterLayout: casterEnvironmentLayout,
+      casterGroup,
       shadows: Boolean(shadow),
       shadowMode: shadow?.mode ?? null,
+      sampleSunShadow,
+      shade,
+      geometryRoughnessFromView: fromView,
       sky,
       pmrem,
       exposure: spec.exposure,
-      shader: rawEnvironmentWgsl(env, undefined, shadow?.mode ?? null),
-      /** View matrix must come from renderer-core camera3d; observer is the exact
-       * source aerial observer; live battle uses focus XY at zero elevation. */
       setView(worldToView: ArrayLike<number>, observer: readonly [number, number, number]) {
-        if (disposed) throw new Error("Raw environment is disposed");
-        if (worldToView.length !== 16) throw new Error("Expected a camera view matrix");
-        values.set(worldToView, 0);
-        values.set(observer, 16);
-        device.queue.writeBuffer(uniform!, 0, values);
+        if (disposed) throw Error("TypeGPU environment disposed");
+        if (worldToView.length !== 16) throw Error("Expected camera view matrix");
+        data.write({
+          worldToView: Array.from(worldToView),
+          observer: d.vec4f(...observer, 0),
+          sunDirection: d.vec4f(...spec.sunDirection, 0),
+          sunRadiance: d.vec4f(
+            ...(spec.sunColor.map((c) => c * spec.sunIntensity) as [number, number, number]),
+            0,
+          ),
+          settings: d.vec4f(pmrem.maxMip, spec.environmentIntensity, 0, 0),
+        });
       },
       dispose,
     };
@@ -196,4 +258,4 @@ export async function createRawEnvironment(
     throw error;
   }
 }
-export type RawEnvironment = Awaited<ReturnType<typeof createRawEnvironment>>;
+export type TypegpuEnvironment = Awaited<ReturnType<typeof createTypegpuEnvironment>>;

@@ -13,7 +13,7 @@ vi.mock("../../../../packages/battle-renderer/src/crowdData", async (original) =
   ...(await original<object>()),
   crowdRigGroups: () => [{ 0: { rig: {}, animation: {} }, 1: { rig: {}, animation: {} } }],
 }));
-vi.mock("../posePalette", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/posePalette", () => ({
   createTypegpuPosePalette: async () => ({
     bones: 1,
     bindGroup: {},
@@ -58,9 +58,11 @@ vi.mock("typegpu", async (original) => {
     },
   };
 });
-vi.mock("../imageTexture", () => ({ createTypegpuImageTexture: vi.fn() }));
-import { createTypegpuImageTexture } from "../imageTexture";
-import { createTypegpuCrowd } from "../crowd";
+vi.mock("../../../../../packages/battle-renderer/src/world/imageTexture", () => ({
+  createTypegpuImageTexture: vi.fn(),
+}));
+import { createTypegpuImageTexture } from "../../../../../packages/battle-renderer/src/world/imageTexture";
+import { createTypegpuCrowd } from "../../../../../packages/battle-renderer/src/world/crowd";
 import type {
   SoldierSampler,
   SoldierSurface,

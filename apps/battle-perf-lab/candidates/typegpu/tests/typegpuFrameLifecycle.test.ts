@@ -7,7 +7,7 @@ const state = vi.hoisted(() => ({
   encode: vi.fn(),
   failGroup: false,
 }));
-vi.mock("../post", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/post", () => ({
   createTypegpuPost: state.post,
 }));
 vi.mock("typegpu", async (original) => {
@@ -47,8 +47,8 @@ vi.mock("typegpu", async (original) => {
     },
   };
 });
-import { TypegpuBattleFrame } from "../frame";
-import type { TypegpuEnvironment } from "../environment";
+import { TypegpuBattleFrame } from "../../../../../packages/battle-renderer/src/world/frame";
+import type { TypegpuEnvironment } from "../../../../../packages/battle-renderer/src/world/environment";
 import type { TgpuCommandEncoder } from "typegpu";
 import { BATTLE_DEPTH_ATTACHMENT } from "../../../../../packages/battle-renderer/src/worldDepth";
 const device = {

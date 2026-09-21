@@ -2,35 +2,29 @@ import { createServer } from "node:http";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { mkdir, writeFile, readFile, readdir } from "node:fs/promises";
-import { gzipSync, gunzipSync } from "node:zlib";
+import { gunzipSync } from "node:zlib";
 import { createHash } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 const root = new URL("../../../", import.meta.url);
 const { chromium } = await import(new URL("web/node_modules/playwright/index.mjs", root).href);
 const { PNG } = await import(new URL("web/node_modules/pngjs/lib/png.js", root).href);
 const base = process.argv[2] ?? "http://127.0.0.1:5189";
-const output =
-  process.argv[3] ??
-  fileURLToPath(new URL("specs/battle-performance/assets/02a-spool-motion", root));
-const windows = process.argv[4]
-  ? JSON.parse(process.argv[4])
-  : [{ name: "origin-motion", startMs: 0, frameLimit: 6 }];
-const diagnostic = process.argv[7] === "localize";
-const replayOnly = process.argv[5] === "replay-only";
-const backend = ["raw", "typegpu", "vgpu"].includes(process.argv[7]) ? process.argv[7] : null;
-const native = backend !== null;
-if (native && !replayOnly)
-  throw Error("Native replay requires an existing archive; source capture is disabled");
+const output = process.argv[3];
+const archive = process.argv[4];
+const backend = process.argv[5] ?? "typegpu";
+if (!output || !archive || !["raw", "typegpu", "vgpu"].includes(backend))
+  throw Error(
+    "Usage: spoolReplay.mjs <replay-url> <empty-output> <archive> [raw|typegpu|vgpu] [atlas-catalog]",
+  );
 const atlasCatalog =
-  process.argv[8] ??
+  process.argv[6] ??
   "/@fs/" +
     fileURLToPath(new URL("specs/battle-performance/assets/02-full-atlas/catalog.json", root));
-const archive = replayOnly ? process.argv[6] : output;
-if (replayOnly && (!archive || resolve(archive) === resolve(output)))
+if (resolve(archive) === resolve(output))
   throw Error("Replay requires a separate archive input and empty output directory");
 await mkdir(output, { recursive: true });
 if ((await readdir(output)).length)
-  throw Error("Use an empty output directory for a new bounded recording");
+  throw Error("Use an empty output directory for a new bounded replay");
 const browser = await chromium.launch({
   channel: "chrome",
   headless: true,
@@ -68,77 +62,18 @@ const boundedWrite = async (name, bytes) => {
 const sink = createServer(async (request, response) => {
   response.setHeader("Access-Control-Allow-Origin", base);
   response.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-  response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  response.setHeader("Access-Control-Allow-Headers", "content-type");
+  response.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   if (request.method === "OPTIONS") {
     response.end();
     return;
   }
   const resource = /^\/resource\/((?:base|ring)-\d+-\d+)$/.exec(request.url ?? "");
-  if (resource) {
-    try {
-      const name = `resource-${resource[1]}.bin.gz`;
-      if (request.method === "GET") {
-        response.end(await readFile(`${archive}/${name}`));
-        return;
-      }
-      if (request.method !== "POST" || resources[resource[1]])
-        throw Error("Invalid resource publication");
-      const chunks = [];
-      let size = 0;
-      for await (const chunk of request) {
-        size += chunk.length;
-        if (size > 5 * 1024 * 1024) throw Error("Resource chunk cap exceeded");
-        chunks.push(chunk);
-      }
-      const bytes = Buffer.concat(chunks);
-      await boundedWrite(name, bytes);
-      resources[resource[1]] = {
-        bytes: bytes.length,
-        sha256: createHash("sha256").update(bytes).digest("hex"),
-      };
-      response.end("stored");
-    } catch (error) {
-      response.writeHead(500).end(String(error));
-    }
-    return;
-  }
-  const match = /^\/(\d+)\/(packet|image|draws)$/.exec(request.url ?? "");
-  if (request.method !== "POST" || !match) {
+  if (request.method !== "GET" || !resource) {
     response.writeHead(400).end();
     return;
   }
   try {
-    const chunks = [];
-    let size = 0;
-    for await (const chunk of request) {
-      size += chunk.length;
-      if (size > 128 * 1024 * 1024 || diskBytes + size > 1024 * 1024 * 1024)
-        throw Error("Disk sink byte cap exceeded");
-      chunks.push(chunk);
-    }
-    const bytes = Buffer.concat(chunks),
-      id = Number(match[1]),
-      name = `packet-${String(id).padStart(5, "0")}`;
-    if (match[2] === "packet") {
-      if (id !== packets.length + 1) throw Error("Disk packet sequence mismatch");
-      await boundedWrite(`${name}.json.gz`, bytes);
-      packets.push({
-        id,
-        name,
-        bytes: bytes.length,
-        sha256: createHash("sha256").update(bytes).digest("hex"),
-        snapshot: false,
-      });
-    } else if (match[2] === "draws") {
-      if (packets.at(-1)?.id !== id) throw Error("Draw count sequence mismatch");
-      packets.at(-1).draws = JSON.parse(bytes.toString());
-    } else {
-      if (packets.at(-1)?.id !== id) throw Error("Image packet sequence mismatch");
-      await boundedWrite(`${name}-source.png`, bytes);
-      packets.at(-1).snapshot = true;
-    }
-    response.end("stored");
+    response.end(await readFile(`${archive}/resource-${resource[1]}.bin.gz`));
   } catch (error) {
     response.writeHead(500).end(String(error));
   }
@@ -150,114 +85,38 @@ try {
     viewport: { width: 1440, height: 900 },
     deviceScaleFactor: 2,
   });
-  let page;
-  let inputs;
-  let identity;
-  if (replayOnly) {
-    const manifest = JSON.parse(await readFile(`${archive}/manifest.json`, "utf8"));
-    packets.push(...manifest.packets);
-    status = manifest.status;
-    identity = manifest.identity;
-    Object.assign(resources, manifest.resources);
-    diskBytes = 0;
-    inputs = gunzipSync(await readFile(`${archive}/inputs.json.gz`), {
-      maxOutputLength: 128 * 1024 * 1024,
-    }).toString();
-  } else {
-    page = await context.newPage();
-    page.setDefaultTimeout(180000);
-    page.on("pageerror", (e) => errors.push(e.message));
-    await page.goto(base);
-    await page.locator("#menu-benchmark").click();
-    await page.waitForFunction(() => !!window.__battleCapture);
-    await page.evaluate(({ windows, sink }) => window.__battleCapture.spool(windows, sink), {
-      windows,
-      sink: sinkUrl,
-    });
-    const deadline = Date.now() + 480000;
-    let lastLog = 0;
-    while (true) {
-      if (Date.now() > deadline) throw Error("Source recording exceeded 8 minutes");
-      const row = await page.evaluate(() => ({
-        status: window.__battleCapture.spoolStatus(),
-        benchmark: window.__game.benchmark.status(),
-      }));
-      status = row.status;
-      if (status.error) throw Error(JSON.stringify(status));
-      if (status.sourceComplete && status.queued === 0) break;
-      if (
-        row.benchmark &&
-        !["preparing", "running"].includes(row.benchmark.phase) &&
-        !status.sourceComplete
-      )
-        throw Error("Source ended before windows completed");
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      if (Date.now() - lastLog > 10000) {
-        console.log({
-          ...status,
-          phase: row.benchmark?.phase,
-          tick: row.benchmark?.tick,
-          elapsedMs: row.benchmark?.elapsedMs,
-        });
-        lastLog = Date.now();
-      }
-    }
-    inputs = await page.evaluate(async () => window.__battleCapture.spoolInputs().text());
-    identity = await page.evaluate(() => window.__battleCapture.spoolIdentity());
-    await boundedWrite("inputs.json.gz", gzipSync(inputs));
-    await boundedWrite(
-      "manifest.json",
-      JSON.stringify(
-        {
-          windows,
-          resources,
-          identity,
-          status,
-          packets,
-          diskBytes,
-          timing: "correctness only; compression and transport alter source cadence",
-        },
-        null,
-        2,
-      ),
-    );
-    await page.close();
-  }
-  page = await context.newPage();
+  const manifest = JSON.parse(await readFile(`${archive}/manifest.json`, "utf8"));
+  packets.push(...manifest.packets);
+  status = manifest.status;
+  const identity = manifest.identity;
+  Object.assign(resources, manifest.resources);
+  const inputs = gunzipSync(await readFile(`${archive}/inputs.json.gz`), {
+    maxOutputLength: 128 * 1024 * 1024,
+  }).toString();
+  const page = await context.newPage();
   page.on("pageerror", (e) => errors.push(e.message));
-  if (native)
-    page.on("console", (message) => {
-      if (["error", "warning"].includes(message.type())) errors.push(message.text());
-    });
-  await page.goto(native ? `${base}/replay.html` : base);
+  page.on("console", (message) => {
+    if (["error", "warning"].includes(message.type())) errors.push(message.text());
+  });
+  await page.goto(`${base}/replay.html`);
   await boundedBrowserCall(
     page.evaluate(
-      async ({ url, inputs, sinkUrl, resources, diagnostic, native, backend, atlasCatalog }) => {
+      async ({ url, inputs, sinkUrl, resources, backend, atlasCatalog }) => {
         const { createSpoolReplay } = await import(url);
         window.__spoolReplay = await createSpoolReplay(
           inputs,
           sinkUrl,
           resources,
-          native ? atlasCatalog : diagnostic,
+          atlasCatalog,
           backend,
         );
       },
       {
         url:
-          "/@fs/" +
-          fileURLToPath(
-            new URL(
-              native
-                ? "apps/battle-perf-lab/src/nativeSpoolReplay.ts"
-                : "apps/battle-perf-lab/src/spoolReplay.ts",
-              root,
-            ),
-          ),
+          "/@fs/" + fileURLToPath(new URL("apps/battle-perf-lab/src/nativeSpoolReplay.ts", root)),
         inputs,
         sinkUrl,
         resources,
-        diagnostic,
-        native,
         backend,
         atlasCatalog,
       },
@@ -276,13 +135,12 @@ try {
   const replayDeadline = Date.now() + 600000;
   let lastReplayLog = 0;
   for (const packet of packets) {
-    if (diagnostic && packet.id > 354) break;
     if (Date.now() > replayDeadline) throw Error("Offline replay exceeded 10 minutes");
     const compressed = await readFile(`${archive}/${packet.name}.json.gz`);
     if (createHash("sha256").update(compressed).digest("hex") !== packet.sha256)
       throw Error("Packet hash changed");
     const text = gunzipSync(compressed, { maxOutputLength: 128 * 1024 * 1024 }).toString();
-    status = { phase: native ? "native-replay" : "three-replay", packet: packet.id };
+    status = { phase: "native-replay", packet: packet.id };
     const result = await boundedBrowserCall(
       page.evaluate(async (text) => {
         const result = await window.__spoolReplay.present(text);
@@ -324,8 +182,7 @@ try {
     const grassMatches =
       typeof result.source.terrain.grass.recordHash === "string" &&
       result.source.terrain.grass.recordHash === result.replay.terrain.grass.recordHash;
-    const nativeHealthy =
-      !native || (!result.native.errors.length && result.native.gpuRecordsMatch !== false);
+    const nativeHealthy = !result.native.errors.length && result.native.gpuRecordsMatch !== false;
     if (!cameraMatches || !crowdMatches || !grassMatches || !nativeHealthy) {
       history.failedFrames++;
       if (history.failures.length < 32)
@@ -405,7 +262,7 @@ try {
       grassDrawsMatch: packet.snapshot ? isDeepStrictEqual(packet.draws, result.draws) : null,
       sourceGrassDraws: packet.draws,
       replayGrassDraws: result.draws,
-      ...(native ? { native: result.native } : {}),
+      native: result.native,
       sourceGrassRecordHash: item.summary.source.terrain.grass.recordHash,
       replayGrassRecordHash: item.summary.replay.terrain.grass.recordHash,
       grassRecordHashMatches:
@@ -430,31 +287,7 @@ try {
       replayCrowd: item.summary.replay.crowd.visibleTierHistogram,
       frameHash: createHash("sha256").update(item.frame).digest("hex"),
     };
-    if (result.localization) {
-      for (const key of ["original", "repeated", "grassHidden"]) {
-        await boundedWrite(
-          `${name}-${key}-crop.png`,
-          Buffer.from(result.localization[key].png, "base64"),
-        );
-        delete result.localization[key].png;
-      }
-      for (const [index, row] of (result.localization.attribution ?? []).entries()) {
-        await boundedWrite(`${name}-object-${index}-crop.png`, Buffer.from(row.png, "base64"));
-        delete row.png;
-      }
-      if (result.localization.restored) {
-        await boundedWrite(
-          `${name}-restored-crop.png`,
-          Buffer.from(result.localization.restored.png, "base64"),
-        );
-        delete result.localization.restored.png;
-      }
-      await boundedWrite(`${name}-localization.json`, JSON.stringify(result.localization, null, 2));
-    }
-    if (sourceBytes && replayBytes && !diagnostic) {
-      if (!native) await boundedWrite(`${name}-source.png`, sourceBytes);
-      await boundedWrite(`${name}-replay.png`, replayBytes);
-    }
+    if (sourceBytes && replayBytes) await boundedWrite(`${name}-replay.png`, replayBytes);
     findings.push(finding);
     findings.sort((a, b) => a.frameId - b.frameId);
     console.log({
@@ -467,14 +300,13 @@ try {
     await boundedWrite("findings.json", JSON.stringify(findings, null, 2));
   }
 
-  if (native)
-    errors.push(
-      ...(await boundedBrowserCall(
-        page.evaluate(() => window.__spoolReplay.finish()),
-        replayDeadline - Date.now(),
-        "Replay deadline reached while draining final submission",
-      )),
-    );
+  errors.push(
+    ...(await boundedBrowserCall(
+      page.evaluate(() => window.__spoolReplay.finish()),
+      replayDeadline - Date.now(),
+      "Replay deadline reached while draining final submission",
+    )),
+  );
   await page.evaluate(() => window.__spoolReplay.dispose());
   await boundedWrite("history.json", JSON.stringify(history, null, 2));
   await boundedWrite("browser-errors.json", JSON.stringify(errors, null, 2));

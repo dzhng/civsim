@@ -49,7 +49,7 @@ export async function captureHeavyRest(ctx, page) {
         { row, phase: frame / 30 },
       );
       await page.waitForFunction((before) => window.__battleModels.stats().frame > before, before);
-      await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+      await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
       await page.evaluate(() => {
         if (!document.querySelector("#candidate-caption"))
           throw new Error("Stationary capture lost the candidate-sheet caption owner");
@@ -60,7 +60,7 @@ export async function captureHeavyRest(ctx, page) {
         stats.sampled.clip === row.clip &&
           stats.sampled.phase === frame / 30 &&
           stats.sampled.duration === 6 &&
-          stats.render.soldiers === 1,
+          stats.render.crowd.instances === 1,
       );
       const shot = await page.screenshot({ clip: { x: 320, y: 96, width: 640, height: 640 } });
       await ctx.snap(null, snapshot, { shot, threshold: 0, maxDiffRatio: 0 });

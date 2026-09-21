@@ -1,7 +1,7 @@
-import { createRawEnvironment } from "../../../../packages/battle-renderer/src/world/environment";
-import { RawBattleFrame } from "../../../../packages/battle-renderer/src/world/frame";
-import { RawBattleWater } from "../../../../packages/battle-renderer/src/world/water";
-import { RawBattleTerrain } from "../../../../packages/battle-renderer/src/world/terrain";
+import { createRawEnvironment } from "./world/environment";
+import { RawBattleFrame } from "./world/frame";
+import { RawBattleWater } from "./world/water";
+import { RawBattleTerrain } from "./world/terrain";
 import type { CivsimEnvironment } from "../../../../packages/game-renderer/src/environment/environment";
 import type { PhotorealBattleGroundMesh } from "../../../../packages/game-renderer/src/battle/groundPass";
 import type { BattlePostGradeUniforms } from "../../../../packages/game-renderer/src/environment/postParameters";

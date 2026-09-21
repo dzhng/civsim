@@ -1,6 +1,6 @@
 /** Renderer-neutral cascade split and fit policy — the High shadow tier's one
  *  geometry owner. The pinned Three `CSMShadowNode`/`CSMFrustum` pair reached
- *  through `photoreal-renderer/src/battle/shadowRig.ts` is the behaviour this
+ *  through `web/tests/reference/threeShadowRig.ts` is the behaviour this
  *  reproduces; it stays a TEST ORACLE, never a runtime dependency of this file.
  *
  *  Division of labour: everything here is pure geometry (breaks, slice corners,
@@ -344,11 +344,7 @@ function transformPoint(m: Mat4, v: readonly number[]): Vec3 {
 }
 
 function lerp3(a: Vec3, b: Vec3, alpha: number): Vec3 {
-  return [
-    a[0] + (b[0] - a[0]) * alpha,
-    a[1] + (b[1] - a[1]) * alpha,
-    a[2] + (b[2] - a[2]) * alpha,
-  ];
+  return [a[0] + (b[0] - a[0]) * alpha, a[1] + (b[1] - a[1]) * alpha, a[2] + (b[2] - a[2]) * alpha];
 }
 
 function dot3(a: readonly number[], b: readonly number[]): number {

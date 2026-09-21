@@ -30,10 +30,8 @@ export async function run(ctx) {
     stats.renderer === "gpu" &&
       stats.renderStats?.ready === true &&
       stats.renderStats.soldiers === stats.soldiers &&
-      Object.values(stats.renderStats.native?.crowd?.impostors ?? {}).some(
-        (layer) => layer.instances > 0 && layer.draws > 0,
-      ) &&
-      stats.renderStats.environment === "golden-hour" &&
+      stats.renderStats.native?.crowd?.mainVisible > 0 &&
+      stats.renderStats.environment === "golden" &&
       hasBattleWorldDepthContract(stats.renderStats),
     JSON.stringify(stats),
   );
@@ -51,7 +49,7 @@ export async function run(ctx) {
     "WebGPU battle terrain includes sim-sourced feature detail",
     stats.renderStats?.terrain?.installed === true &&
       stats.renderStats.terrain.generation > 0 &&
-      stats.renderStats.environment === "golden-hour" &&
+      stats.renderStats.environment === "golden" &&
       stats.renderStats.terrain.grass?.layers?.some((layer) => layer.recordCount > 0) &&
       // Owner-reported indirect-draw wiring; resolved GPU blade counts are unavailable.
       stats.renderStats.terrain.grass.layers.every((layer) => layer.drawIndirect === true) &&
@@ -128,16 +126,27 @@ export async function run(ctx) {
     JSON.stringify(cache),
   );
   ctx.check(
-    "successful same-tick catalog reload presents a new crowd generation with the same pose",
+    "successful same-tick catalog reload presents a new crowd generation with reset playback",
     cache.reloadSameTick &&
       cache.reloadNewPayload &&
-      cache.reloadPhase === cache.advancedPhase &&
+      cache.reloadPhase === 0 &&
       cache.reloadClip === cache.priorClip &&
       hasBattleSeatingInspection(cache.beforeReload) &&
       hasBattleSeatingInspection(cache.afterReload) &&
       cache.afterReload.presentedFrameId > cache.beforeReload.presentedFrameId &&
       cache.afterReload.presented.crowdGeneration > cache.beforeReload.presented.crowdGeneration,
     JSON.stringify(cache),
+  );
+  await page.evaluate(() => {
+    window.__cam.zoom = 0;
+    window.__cam.clampView();
+  });
+  await page.evaluate(() => window.__game.freezeAtTick(window.__game.tickCount()));
+  const far = await page.evaluate(() => window.__game.stats().renderStats.native.crowd);
+  ctx.check(
+    "far overview submits the published impostor audience",
+    Object.values(far.impostors).some((layer) => layer.instances > 0 && layer.draws > 0),
+    JSON.stringify(far),
   );
   await page.close();
 }

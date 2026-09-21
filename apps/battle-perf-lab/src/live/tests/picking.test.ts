@@ -1,21 +1,14 @@
 /// <reference path="../../../../../web/node_modules/vitest/globals.d.ts" />
 import * as THREE from "three/webgpu";
+import { Octree } from "three/examples/jsm/math/Octree.js";
 import {
-  BattleTerrainSurface,
-  buildBattleTerrain,
-} from "../../../../../packages/photoreal-renderer/src/battle/battleTerrainBuild";
-import { createBattleFrameUniforms } from "../../../../../packages/photoreal-renderer/src/battle/battleTsl";
-import { createSeaDisplacementSource } from "../../../../../packages/photoreal-renderer/src/battle/seaLayer";
-import { createBladeFieldTransitionUniforms } from "../../../../../packages/photoreal-renderer/src/battle/bladeFieldLayer";
-import {
-  initialBladeFieldTransition,
-  productionBladeFieldProfile,
-} from "../../../../../packages/game-renderer/src/battle/battleGrassResidency";
-import { prepareBattleTerrain, terrainPickingMeshes } from "../../../../../packages/battle-renderer/src/terrainScenePreparation";
-import { createTerrainPicking } from "../../terrainPicking";
+  prepareBattleTerrain,
+  terrainPickingMeshes,
+} from "../../../../../packages/battle-renderer/src/terrainScenePreparation";
+import { createTerrainPicking } from "../../../../../packages/battle-renderer/src/terrainPicking";
 import type { WorldRay } from "../../../../../packages/renderer-core/src/camera3d";
 
-test("native CPU picking matches actual source Octree over playable/apron triangles, including grazing and backface rays", () => {
+test("native CPU picking matches independent Octree over playable/apron triangles, including grazing and backface rays", () => {
   const grid = {
     w: 8,
     h: 8,
@@ -49,21 +42,29 @@ test("native CPU picking matches actual source Octree over playable/apron triang
   };
   const data = prepareBattleTerrain({ grid, cover: "green-grass", vista, lakes: [] });
   const native = createTerrainPicking(terrainPickingMeshes(data.data));
-  const source = new BattleTerrainSurface(new THREE.Scene());
-  source.replace(
-    buildBattleTerrain({
-      grid,
-      cover: "green-grass",
-      vista,
-      lakeSurfaces: [],
-      slopeBands: null,
-      frame: createBattleFrameUniforms(),
-      sea: createSeaDisplacementSource(),
-      grassTransition: createBladeFieldTransitionUniforms(
-        initialBladeFieldTransition(productionBladeFieldProfile()),
-      ),
-    }),
-  );
+  const octree = new Octree();
+  for (const mesh of terrainPickingMeshes(data.data)) {
+    for (let i = 0; i < mesh.indices.length; i += 3) {
+      const point = (slot: number) =>
+        new THREE.Vector3().fromArray(mesh.vertices, mesh.indices[slot] * 10);
+      octree.addTriangle(new THREE.Triangle(point(i), point(i + 1), point(i + 2)));
+    }
+  }
+  octree.build();
+  const source = {
+    raycast(ray: WorldRay) {
+      const hit = octree.rayIntersect(
+        new THREE.Ray(new THREE.Vector3(...ray.origin), new THREE.Vector3(...ray.dir)),
+      );
+      return hit ? hit.position.toArray() : null;
+    },
+    surfaceHeightAt(x: number, y: number) {
+      return this.raycast({ origin: [x, y, 1000], dir: [0, 0, -1] })?.[2] ?? 0;
+    },
+    dispose() {
+      octree.clear();
+    },
+  };
   try {
     const rays: WorldRay[] = [];
     for (const x of [-40, -32, -16.001, -16, -15.999, -3, 0, 12, 15.999, 16, 16.001, 31, 40])

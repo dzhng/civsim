@@ -1,8 +1,8 @@
-import { RawBattleFrame } from "../../../../packages/battle-renderer/src/world/frame";
-import { createRawEnvironment } from "../../../../packages/battle-renderer/src/world/environment";
+import { RawBattleFrame } from "./world/frame";
+import { createRawEnvironment } from "./world/environment";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
-import { trackBufferLifetime } from "../bufferLifetimeCheck";
-import { trackTextureLifetime } from "../textureLifetimeCheck";
+import { trackBufferLifetime } from "../../../../packages/battle-renderer/src/bufferLifetimeCheck";
+import { trackTextureLifetime } from "../../../../packages/battle-renderer/src/textureLifetimeCheck";
 import { compareHdr, readHdrTexture } from "../numericalReadback";
 import type { FrameCameraSnapshot } from "../../../../packages/battle-renderer/src/frameCamera";
 

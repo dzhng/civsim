@@ -203,6 +203,7 @@ export function createGrassField<
     stats() {
       return {
         residency: owner.stats(),
+        packedStrideFloats: GRASS_FIELD_PACKED_STRIDE_FLOATS,
         // The visibility `route` and `draw` above actually obey, read off the
         // same prepared state they read. A layer that is off still holds its
         // records, so a record count cannot answer this question.

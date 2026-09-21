@@ -1,5 +1,4 @@
 import { requireSwiftShaderBaseline } from "./_swiftshader-baseline.ts";
-import { temporalSnapshots, verifyTemporalReplay } from "./_temporal-replay.mjs";
 import { fileURLToPath } from "node:url";
 import { PNG } from "pngjs";
 
@@ -38,7 +37,7 @@ async function replayDraw(page, proof) {
         `${root}packages/crowd-runtime/src/actionTimeline.ts`
       );
       const w = window.__battleModels.world;
-      const camera = structuredClone(w.stats().camera);
+      const camera = structuredClone(w.stats().preparedCamera);
       const asset = w.soldierAssets[4];
       const walk = asset.animation.clips.find(
         (clip) => clip.name === asset.manifest.presentation.actions.walk.clip,
@@ -69,17 +68,17 @@ async function replayDraw(page, proof) {
           incapacitated: proof === "disabled" && tick >= 15,
         }),
       });
-      w.crowd.upload([]);
+      await w.drawInstances([], camera);
       w.setTime(0);
       const expectedClip =
         proof === "threatened" ? asset.manifest.presentation.actions.run.clip : walk.name;
       const stride = asset.animation.clips.find((clip) => clip.name === expectedClip).strideMeters;
       return async (tick) => {
         const state = replay.seek(tick);
-        w.drawInstances(state.instances, camera);
-        await w.settlePresentedFrame();
-        w.render();
-        await w.world.settlePresentedFrame();
+        await w.drawInstances(state.instances, camera);
+
+        await w.render();
+
         return {
           playback: state.playback,
           observation: state.observation,
@@ -178,7 +177,6 @@ export const meta = {
   snapshots: [
     "shared/soldiers/action-replay/controller",
     "shared/soldiers/action-replay/equipment-handoff",
-    ...temporalSnapshots,
     ...disabledSnapshots,
     ...protectedSnapshots,
   ],
@@ -200,7 +198,7 @@ export async function run(ctx) {
         window.__battleModels.replay.seek(tick);
       }, tick);
       await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
-      await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+      await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
       return page.evaluate(() => window.__battleModels.stats());
     };
     await page.evaluate(() =>
@@ -354,7 +352,7 @@ export async function run(ctx) {
       ),
     );
     await page.waitForTimeout(250);
-    await page.evaluate(() => window.__battleModels.world.settlePresentedFrame());
+    await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
     await ctx.snap(page, "shared/soldiers/action-replay/controller", {
       threshold: 0,
       maxDiffRatio: 0,
@@ -402,18 +400,8 @@ export async function run(ctx) {
       matrix.ok() && Object.keys((await matrix.json()).appearances).length > 0,
     );
     await page.evaluate(() => window.__battleModels.reload());
-    await verifyTemporalReplay(ctx, page);
     await verifyDisabledGait(ctx, page);
     await verifyProtectedGait(ctx, page);
-    await page.goto(
-      `${ctx.target}/renderer/battle-models?ref=1&catalog=/assets/soldiers/candidates/blender-reference/catalog.json`,
-    );
-    await page.waitForFunction(() => window.__battleModels?.stats().frame >= 3, undefined, {
-      timeout: 60000,
-    });
-    await page.evaluate(() => window.__battleModels.freeze());
-    await page.waitForFunction(() => !window.__battleModels.stats().pendingDraw);
-    await verifyTemporalReplay(ctx, page, [41]);
   } finally {
     await page.close();
   }

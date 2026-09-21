@@ -1,33 +1,33 @@
 import {
   buildCrowdInstances,
   type CrowdInstance,
-} from '../../../packages/crowd-runtime/src/instanceData';
-import type { AppearanceBundle } from '../../../packages/soldier-assets/src/appearanceBundle';
-import type { createRawBattleScene } from '../../../packages/battle-renderer/src/battleScene';
-import type { BattleReplayAssets, BattleReplayFrame, BattleReplaySettings } from './fixture';
+} from "../../../packages/crowd-runtime/src/instanceData";
+import type { AppearanceBundle } from "../../../packages/soldier-assets/src/appearanceBundle";
+import type { createRawBattleScene } from "./raw/battleScene";
+import type { BattleReplayAssets, BattleReplayFrame, BattleReplaySettings } from "./fixture";
 import {
   queueGrassPublications,
   assertGrassPublicationsConsumed,
   type GrassPublication,
-} from './CaptureGrassResidency';
+} from "./CaptureGrassResidency";
 
 type SceneMethods = Pick<
   Awaited<ReturnType<typeof createRawBattleScene>>,
-  | 'resize'
-  | 'setVisibility'
-  | 'seatingHeightAt'
-  | 'uploadCrowd'
-  | 'uploadReadouts'
-  | 'uploadTriangles'
-  | 'uploadTacticalLines'
-  | 'prepare'
-  | 'settleGrass'
+  | "resize"
+  | "setVisibility"
+  | "seatingHeightAt"
+  | "uploadCrowd"
+  | "uploadReadouts"
+  | "uploadTriangles"
+  | "uploadTacticalLines"
+  | "prepare"
+  | "settleGrass"
 >;
 
 export type ReplayScene = {
   stats(): unknown;
 } & {
-  [K in keyof SceneMethods]: K extends 'seatingHeightAt'
+  [K in keyof SceneMethods]: K extends "seatingHeightAt"
     ? SceneMethods[K]
     : (
         ...args: Parameters<SceneMethods[K]>
@@ -54,10 +54,10 @@ export async function createReplayControl({
   settings: BattleReplaySettings;
   appearances: Readonly<Record<number, AppearanceBundle>>;
 }) {
-  if (settings.shadows === 'csm')
-    throw Error('Native replay requires the recorded single/off shadow mode');
+  if (settings.shadows === "csm")
+    throw Error("Native replay requires the recorded single/off shadow mode");
   const soldierUnit = new Uint32Array(assets.soldierUnit);
-  const teams = assets.teams.map(team => (team === 1 ? 1 : 0));
+  const teams = assets.teams.map((team) => (team === 1 ? 1 : 0));
   const mountedClasses = Object.entries(appearances)
     .filter(([, a]) => a.manifest.mounted)
     .map(([id]) => Number(id));
@@ -73,7 +73,7 @@ export async function createReplayControl({
     busy = false,
     failed = false,
     time = 0;
-  let camera: BattleReplayFrame['camera'] | null = null;
+  let camera: BattleReplayFrame["camera"] | null = null;
   const pool: CrowdInstance[] = [];
   const counts = {
     commands: 0,
@@ -85,13 +85,13 @@ export async function createReplayControl({
     settles: 0,
   };
   const check = () => {
-    if (disposed) throw Error('Native replay control disposed');
-    if (failed) throw Error('Native replay must restart its scene after a failed command batch');
+    if (disposed) throw Error("Native replay control disposed");
+    if (failed) throw Error("Native replay must restart its scene after a failed command batch");
   };
   const present = async (onPresentation?: () => void) => {
     // Captured menu history initializes camera with draw/drawTris/tactical lines.
     // Do not substitute the frame's terminal camera for an earlier render.
-    if (!camera) throw Error('Replay render precedes a captured camera command');
+    if (!camera) throw Error("Replay render precedes a captured camera command");
     await scene.prepare({ camera, time });
     check();
     const submitted = submitPresentation();
@@ -110,15 +110,15 @@ export async function createReplayControl({
       onPresentation?: () => void,
     ) {
       check();
-      if (busy) throw Error('Native replay submission already in flight');
+      if (busy) throw Error("Native replay submission already in flight");
       busy = true;
       try {
         queueGrassPublications(publications);
         const lastPresentation = frame.commands.reduce(
           (last, command, index) =>
-            command.method === 'render' ||
-            command.method === 'drawTacticalLines' ||
-            command.method === 'settlePresentedFrame'
+            command.method === "render" ||
+            command.method === "drawTacticalLines" ||
+            command.method === "settlePresentedFrame"
               ? index
               : last,
           -1,
@@ -127,10 +127,10 @@ export async function createReplayControl({
           const capture = index === lastPresentation ? onPresentation : undefined;
           check();
           switch (command.method) {
-            case 'setTime':
+            case "setTime":
               time = command.args[0];
               break;
-            case 'draw': {
+            case "draw": {
               const [positions, facings, playback, alive, count, nextCamera] = command.args;
               // Source frameDt currently only assigns an otherwise unused frame uniform;
               // pose timing comes from the complete recorded playback, not that delta.
@@ -153,26 +153,26 @@ export async function createReplayControl({
               counts.crowdUploads++;
               break;
             }
-            case 'uploadUnitReadouts':
+            case "uploadUnitReadouts":
               await scene.uploadReadouts(...command.args);
               check();
               counts.readoutUploads++;
               break;
-            case 'drawTris':
+            case "drawTris":
               await scene.uploadTriangles(command.args[0]);
               camera = command.args[1];
               counts.triangleUploads++;
               break;
-            case 'drawTacticalLines':
+            case "drawTacticalLines":
               await scene.uploadTacticalLines(command.args[0]);
               camera = command.args[1];
               counts.tacticalUploads++;
               await present(capture);
               break;
-            case 'render':
+            case "render":
               await present(capture);
               break;
-            case 'settlePresentedFrame':
+            case "settlePresentedFrame":
               await scene.settleGrass(camera ?? undefined);
               check();
               if (camera) await present(capture);

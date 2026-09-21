@@ -1,186 +1,236 @@
-import { readoutCamera } from "../readoutCamera";
+import { battleDepthBypass } from "../worldDepth";
+import { tgpu, d, type TgpuRenderPass } from "typegpu";
 import {
   QUAD,
   QUAD_INDEX,
-  layoutReadout,
-  buildChipAtlas,
-  packReadoutChips,
   type BattleReadoutInstance,
-  type ChipInstance,
-  type AtlasEntry,
 } from "../../../game-renderer/src/battle/readoutData";
-import {
-  GrowableBuffer,
-  makeVertexBuffer,
-  makeIndexBuffer,
-} from "../../../renderer-core/src/gpuBuffers";
-import { readoutWgsl } from "../shaders/readout";
-import { battleDepthBypass } from "../worldDepth";
-/** Source-equivalent cutout UI billboards: no depth test/write, lighting, fog or local tone map. */
-export function createRawReadout(device: GPUDevice, samples: 1 | 4, withDepth = true) {
-  const owned: ({ destroy(): void } | { dispose(): void })[] = [];
-  let disposed = false;
-  const own = <T extends { destroy(): void } | { dispose(): void }>(r: T) => {
+import { readoutVertexBodyWgsl, readoutFragmentBodyWgsl } from "../shaders/readout";
+import { readoutCamera } from "../readoutCamera";
+import { prepareReadouts } from "../readoutPreparation";
+import { beginGpuAdmission } from "../gpuAdmission";
+const Camera = d.struct({
+  vp: d.mat4x4f,
+  right: d.vec4f,
+  up: d.vec4f,
+  eye: d.vec4f,
+  forward: d.vec4f,
+});
+const cameraLayout = tgpu.bindGroupLayout({ camera: { uniform: Camera } }).$idx(0);
+const atlasLayout = tgpu
+  .bindGroupLayout({ atlas: { texture: d.texture2d() }, linear: { sampler: "filtering" } })
+  .$idx(1);
+const quadLayout = tgpu.vertexLayout(d.disarrayOf(d.vec3f));
+const instanceLayout = tgpu.vertexLayout(d.disarrayOf(d.vec4f), "instance");
+const cellLayout = tgpu.vertexLayout(d.disarrayOf(d.vec4f), "instance");
+const sizeLayout = tgpu.vertexLayout(d.disarrayOf(d.vec4f), "instance");
+const V = d.struct({ clip: d.vec4f, uv: d.vec2f });
+/** Borrowed device; typed resources and admission precede each published replacement. */
+export async function createTypegpuReadout(device: GPUDevice, samples: 1 | 4) {
+  const root = tgpu.initFromDevice({ device }),
+    owned: { destroy(): void }[] = [],
+    pending = new Set<{ destroy(): void }>();
+  let disposed = false,
+    busy = false;
+  const own = <T extends { destroy(): void }>(r: T) => {
     owned.push(r);
     return r;
   };
-  let atlas: GPUTexture | undefined;
-  let atlasUploads = 0,
-    atlasUploadBytes = 0,
-    instanceUploadBytes = 0;
   const dispose = () => {
     if (disposed) return;
     disposed = true;
-    atlas?.destroy();
-    for (const r of owned.reverse()) {
-      if ("destroy" in r) r.destroy();
-      else r.dispose();
-    }
+    for (const r of pending) r.destroy();
+    pending.clear();
+    for (const r of owned.reverse()) r.destroy();
+    root.destroy();
   };
+  const initial = beginGpuAdmission(device);
   try {
-    const canvas = document.createElement("canvas");
-    canvas.width = canvas.height = 1;
-    if (!canvas.getContext("2d")) throw Error("2D canvas unavailable for readout atlas");
-    let atlasKey = "",
-      entries = new Map<string, AtlasEntry>(),
-      count = 0,
-      readouts = 0;
-    const camera = own(
-      device.createBuffer({ size: 128, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }),
-    );
-    const vertices = own(makeVertexBuffer(device, "readout quad", QUAD)),
-      indices = own(makeIndexBuffer(device, "readout indices", new Uint16Array(QUAD_INDEX)));
-    const chip0 = own(
-        new GrowableBuffer(device, "readout anchors", GPUBufferUsage.VERTEX, 128 * 16),
-      ),
-      chip1 = own(
-        new GrowableBuffer(device, "readout dimensions", GPUBufferUsage.VERTEX, 128 * 16),
-      ),
-      chipUv = own(
-        new GrowableBuffer(device, "readout atlas cells", GPUBufferUsage.VERTEX, 128 * 16),
-      );
-    const cameraLayout = device.createBindGroupLayout({
-      entries: [{ binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: "uniform" } }],
-    });
-    const atlasLayout = device.createBindGroupLayout({
-      entries: [
-        { binding: 0, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: "float" } },
-        { binding: 1, visibility: GPUShaderStage.FRAGMENT, sampler: { type: "filtering" } },
-      ],
-    });
-    const cameraGroup = device.createBindGroup({
-      layout: cameraLayout,
-      entries: [{ binding: 0, resource: { buffer: camera } }],
-    });
-    const linear = device.createSampler({ minFilter: "linear", magFilter: "linear" });
-    let atlasGroup: GPUBindGroup;
-    const replaceAtlas = () => {
-      const next = device.createTexture({
-        size: [canvas.width, canvas.height],
-        format: "rgba8unorm-srgb",
-        usage:
-          GPUTextureUsage.COPY_DST |
-          GPUTextureUsage.TEXTURE_BINDING |
-          GPUTextureUsage.RENDER_ATTACHMENT,
+    const camera = own(root.createBuffer(Camera).$usage("uniform")),
+      cameraGroup = root.createBindGroup(cameraLayout, { camera });
+    const quad = own(root.createBuffer(quadLayout.schemaForCount(4)).$usage("vertex"));
+    quad.write(QUAD.slice().buffer);
+    const index = own(root.createBuffer(d.arrayOf(d.u32, 6), QUAD_INDEX).$usage("index"));
+    const linear = root.createSampler({ minFilter: "linear", magFilter: "linear" });
+    const algorithm = tgpu
+      .fn(
+        [d.vec3f, d.vec4f, d.vec4f, d.vec4f],
+        V,
+      )(`(quad:vec3f,chip0:vec4f,chip1:vec4f,cell:vec4f)->V{${readoutVertexBodyWgsl}}`)
+      .$uses({
+        V,
+        get camera() {
+          return cameraLayout.$.camera;
+        },
       });
-      try {
-        device.queue.copyExternalImageToTexture(
-          { source: canvas, flipY: false },
-          { texture: next, premultipliedAlpha: false, colorSpace: "srgb" },
-          [canvas.width, canvas.height],
-        );
-        const group = device.createBindGroup({
-          layout: atlasLayout,
-          entries: [
-            { binding: 0, resource: next.createView() },
-            { binding: 1, resource: linear },
-          ],
-        });
-        atlas?.destroy();
-        atlas = next;
-        atlasUploads++;
-        atlasUploadBytes += canvas.width * canvas.height * 4;
-        atlasGroup = group;
-      } catch (error) {
-        next.destroy();
-        throw error;
-      }
-    };
-    replaceAtlas();
-    const module = device.createShaderModule({ code: readoutWgsl });
-    const pipeline = device.createRenderPipeline({
-      layout: device.createPipelineLayout({ bindGroupLayouts: [cameraLayout, atlasLayout] }),
-      vertex: {
-        module,
-        entryPoint: "vertex",
-        buffers: [
-          { arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }] },
-          ...[1, 2, 3].map((shaderLocation) => ({
-            arrayStride: 16,
-            stepMode: "instance" as const,
-            attributes: [{ shaderLocation, offset: 0, format: "float32x4" as const }],
-          })),
-        ],
+    const shade = tgpu
+      .fn(
+        [V],
+        d.vec4f,
+      )(`(v:V)->vec4f{${readoutFragmentBodyWgsl}}`)
+      .$uses({
+        V,
+        get atlas() {
+          return atlasLayout.$.atlas;
+        },
+        get linear() {
+          return atlasLayout.$.linear;
+        },
+      });
+    const pipeline = root.createRenderPipeline({
+      attribs: {
+        quad: quadLayout.attrib,
+        chip0: instanceLayout.attrib,
+        chip1: sizeLayout.attrib,
+        cell: cellLayout.attrib,
       },
-      fragment: { module, entryPoint: "fragment", targets: [{ format: "rgba16float" }] },
+      vertex: tgpu.vertexFn({
+        in: { quad: d.vec3f, chip0: d.vec4f, chip1: d.vec4f, cell: d.vec4f },
+        out: { clip: d.builtin.position, uv: d.vec2f },
+      })((v) => {
+        "use gpu";
+        const r = algorithm(v.quad, v.chip0, v.chip1, v.cell);
+        return { clip: r.clip, uv: r.uv };
+      }),
+      fragment: tgpu.fragmentFn({ in: { clip: d.builtin.position, uv: d.vec2f }, out: d.vec4f })(
+        (v) => {
+          "use gpu";
+          return shade(V({ clip: v.clip, uv: v.uv }));
+        },
+      ),
+      targets: { format: "rgba16float" },
       primitive: { cullMode: "none" },
+      depthStencil: battleDepthBypass(),
       multisample: { count: samples },
-      ...(withDepth ? { depthStencil: battleDepthBypass() } : {}),
     });
-    const live = () => {
-      if (disposed) throw Error("Readout disposed");
+    root.unwrap(camera);
+    root.unwrap(cameraGroup);
+    root.unwrap(linear);
+    root.unwrap(quad);
+    root.unwrap(index);
+    const compiled = pipeline.initAsync();
+    await Promise.all([compiled, initial()]);
+    let current: ReturnType<typeof prepareReadouts> | undefined,
+      atlas: ReturnType<typeof makeAtlas> | undefined,
+      buffers: ReturnType<typeof makeBuffers> | undefined,
+      spare: { value: ReturnType<typeof makeBuffers>; capacity: number } | undefined,
+      capacity = 0,
+      count = 0,
+      atlasUploads = 0,
+      atlasUploadBytes = 0,
+      instanceUploadBytes = 0;
+    function makeAtlas(canvas: HTMLCanvasElement) {
+      const t = root
+        .createTexture({ size: [canvas.width, canvas.height], format: "rgba8unorm-srgb" })
+        .$usage("sampled", "render");
+      pending.add(t);
+      root.unwrap(t);
+      t.write(canvas);
+      const group = root.createBindGroup(atlasLayout, { atlas: t.createView(), linear });
+      root.unwrap(group);
+      return { texture: t, group };
+    }
+    function makeBuffers(n: number) {
+      const a = root.createBuffer(instanceLayout.schemaForCount(n)).$usage("vertex"),
+        b = root.createBuffer(sizeLayout.schemaForCount(n)).$usage("vertex"),
+        c = root.createBuffer(cellLayout.schemaForCount(n)).$usage("vertex");
+      for (const x of [a, b, c]) {
+        pending.add(x);
+        root.unwrap(x);
+      }
+      return { a, b, c };
+    }
+    const releaseBuffers = (b: ReturnType<typeof makeBuffers> | undefined) => {
+      if (b) for (const x of [b.a, b.b, b.c]) x.destroy();
     };
     return {
-      upload(instances: readonly BattleReadoutInstance[]) {
-        live();
-        const chips: ChipInstance[] = [];
-        for (const r of instances) layoutReadout(r, chips);
-        const keys = [...new Set(chips.map((c) => c.key))].sort(),
-          key = keys.join("|");
-        if (key !== atlasKey) {
-          entries = buildChipAtlas(keys, canvas);
-          replaceAtlas();
-          atlasKey = key;
+      async upload(instances: readonly BattleReadoutInstance[]) {
+        if (disposed || busy) throw Error("Readout disposed or upload already pending");
+        const next = prepareReadouts(instances, current);
+        busy = true;
+        const finish = beginGpuAdmission(device);
+        let nextAtlas: typeof atlas, nextBuffers: typeof buffers;
+        try {
+          if (!atlas || next.key !== current?.key) nextAtlas = makeAtlas(next.canvas);
+          let nextCapacity = Math.max(128, 2 ** Math.ceil(Math.log2(Math.max(1, next.count))));
+          if (spare && spare.capacity >= nextCapacity) {
+            nextBuffers = spare.value;
+            nextCapacity = spare.capacity;
+            spare = undefined;
+            for (const x of [nextBuffers.a, nextBuffers.b, nextBuffers.c]) pending.add(x);
+          } else nextBuffers = makeBuffers(nextCapacity);
+          if (next.count) {
+            nextBuffers.a.write(next.chip0.buffer);
+            nextBuffers.b.write(next.chip1.buffer);
+            nextBuffers.c.write(next.chipUv.buffer);
+          }
+          await finish();
+          if (disposed) throw Error("Readout disposed during admission");
+          if (nextAtlas) {
+            atlas?.texture.destroy();
+            atlas = nextAtlas;
+            pending.delete(atlas.texture);
+            atlasUploads++;
+            atlasUploadBytes += next.canvas.width * next.canvas.height * 4;
+          }
+          if (nextBuffers) {
+            releaseBuffers(spare?.value);
+            spare = buffers ? { value: buffers, capacity } : undefined;
+            buffers = nextBuffers;
+            capacity = nextCapacity;
+            for (const x of [buffers.a, buffers.b, buffers.c]) pending.delete(x);
+          }
+          current = next;
+          count = next.count;
+          instanceUploadBytes += count * 48;
+        } catch (error) {
+          for (const r of pending) r.destroy();
+          pending.clear();
+          await finish();
+          throw error;
+        } finally {
+          busy = false;
         }
-        const packed = packReadoutChips(chips, entries);
-        chip0.write(packed.chip0);
-        chip1.write(packed.chip1);
-        chipUv.write(packed.chipUv);
-        instanceUploadBytes += chips.length * 48;
-        count = chips.length;
-        readouts = instances.length;
       },
-      setCamera(vp: ArrayLike<number>, matrixWorld: ArrayLike<number>) {
-        live();
-        const values = readoutCamera(vp, matrixWorld);
-        device.queue.writeBuffer(camera, 0, values);
+      setCamera(vp: ArrayLike<number>, world: ArrayLike<number>) {
+        if (disposed) throw Error("Readout disposed");
+        camera.write(readoutCamera(vp, world).buffer);
       },
-      draw(pass: GPURenderPassEncoder) {
-        live();
-        if (!count) return;
-        pass.setPipeline(pipeline);
-        pass.setBindGroup(0, cameraGroup);
-        pass.setBindGroup(1, atlasGroup);
-        pass.setVertexBuffer(0, vertices);
-        pass.setVertexBuffer(1, chip0.buffer);
-        pass.setVertexBuffer(2, chip1.buffer);
-        pass.setVertexBuffer(3, chipUv.buffer);
-        pass.setIndexBuffer(indices, "uint16");
-        pass.drawIndexed(QUAD_INDEX.length, count);
+      draw(pass: TgpuRenderPass) {
+        if (disposed || busy) throw Error("Readout unavailable");
+        if (count)
+          pipeline
+            .with(cameraGroup)
+            .with(atlas!.group)
+            .with(quadLayout, quad)
+            .with(instanceLayout, buffers!.a)
+            .with(sizeLayout, buffers!.b)
+            .with(cellLayout, buffers!.c)
+            .withIndexBuffer(index)
+            .with(pass)
+            .drawIndexed(6, count);
       },
       stats: () => ({
-        readouts,
+        readouts: current?.readouts ?? 0,
         chips: count,
+        atlasWidth: current?.canvas.width ?? 1,
+        atlasHeight: current?.canvas.height ?? 1,
         atlasUploads,
         atlasUploadBytes,
         instanceUploadBytes,
-        atlasWidth: canvas.width,
-        atlasHeight: canvas.height,
+        instanceBufferBytes: (capacity + (spare?.capacity ?? 0)) * 48,
       }),
-      dispose,
+      dispose() {
+        if (disposed) return;
+        atlas?.texture.destroy();
+        releaseBuffers(buffers);
+        releaseBuffers(spare?.value);
+        dispose();
+      },
     };
   } catch (error) {
     dispose();
+    await initial();
     throw error;
   }
 }

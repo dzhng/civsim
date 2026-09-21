@@ -1,6 +1,11 @@
 # Source timestamp ranges
 
-This lab configuration observes the timestamp pairs Three already reads. It adds
+The Three source timing build belongs to pinned revision
+`16ad724514eeb840f241917c8fedb437a52ac1e3`; rebuild it only in that isolated historical
+checkout. Applying a source timing configuration to today's production renderer
+would mislabel a native run as a Three comparison.
+
+The retained, CPU-tested timestamp transform observes the pairs Three already reads. It adds
 no queries, command buffers, submissions, buffer maps or polling. The existing
 source inspector remains the sole owner of submission identity, pass labels,
 retention and completion. Ordinary source builds do not enable the tap: their

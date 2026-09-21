@@ -77,19 +77,34 @@ export async function run(ctx) {
       JSON.stringify(ringStats),
     );
 
+    await page.mouse.move(400, 300); // outside HUD controls and the edge-scroll band
     await page.evaluate(() => window.__game.freezeAtTick(72));
     await page.waitForTimeout(120);
     const canvas = page.locator("#battlefield");
-    const frozenA = PNG.sync.read(await canvas.screenshot());
+    // A locator screenshot composites overlapping DOM too: toolbar SVG raster
+    // changes produced 3,168 differing bytes despite an unchanged framebuffer.
+    // Export the actual canvas; HUD appearance remains covered by the UI scenes.
+    const captureFramebuffer = async () =>
+      PNG.sync.read(
+        Buffer.from(
+          await canvas.evaluate((node) => node.toDataURL("image/png").split(",")[1]),
+          "base64",
+        ),
+      );
+    const frozenA = await captureFramebuffer();
     await page.evaluate(() => window.__game.freezeAtTick(72));
     await page.waitForTimeout(120);
-    const frozenB = PNG.sync.read(await canvas.screenshot());
+    const frozenB = await captureFramebuffer();
+    const hasImage = (png) =>
+      png.data.some((value, index) => index % 4 < 3 && value !== png.data[index % 4]);
     const frozenStats = await page.evaluate(() => window.__game.stats());
     const frozenDiff = pixelByteDiff(frozenA, frozenB);
     ctx.check(
       `dpr${dpr}: freezeAtTick keeps WebGPU canvas pixels stable`,
       frozenStats.renderer === "gpu" &&
         hasBattleWorldDepthContract(frozenStats.renderStats) &&
+        hasImage(frozenA) &&
+        hasImage(frozenB) &&
         frozenDiff === 0,
       JSON.stringify({
         renderer: frozenStats.renderer,

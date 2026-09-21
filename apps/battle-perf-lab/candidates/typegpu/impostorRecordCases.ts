@@ -5,7 +5,7 @@ import {
   type ImpostorView,
 } from "../../../../packages/battle-renderer/src/impostorData";
 import { hemiOctTileDirections } from "../../../../packages/soldier-assets/src/impostorTile";
-import { tanHalfFov } from "./impostorDerivation";
+import { tanHalfFov } from "../../../../packages/battle-renderer/src/world/impostorDerivation";
 
 /** The fixture and the verdict every check of the derived billboard record shares: the CPU
  * suite, which runs the typed bodies directly, the hardware readback, which runs them

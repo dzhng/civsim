@@ -1,96 +1,137 @@
-import { BACKDROP_INDICES, backdropVertices } from "../backdropData";
-import {
-  makeIndexBuffer,
-  makeVertexBuffer,
-} from "../../../renderer-core/src/gpuBuffers";
-import { backdropShader, type BackdropKind } from "../shaders/backdrop";
-import { beginGpuAdmission } from "../gpuAdmission";
-import type { RawEnvironment } from "./environment";
 import { battleDepthBypass } from "../worldDepth";
-
-/** Backdrop plus one terrain style, in the original depth-disabled background band. */
-export async function createRawBackdrop(
+import { tgpu, d, std, type TgpuRenderPass } from "typegpu";
+import { Camera, typegpuCameraLayout } from "./camera";
+import type { TypegpuEnvironment } from "./environment";
+import { terrainHash, terrainNoise, terrainRidge, terrainLinear } from "./terrainFunctions";
+import { terrainMaterialFunctions } from "../shaders/terrainMaterial";
+import { backdropSurfaceWgsl, quadGroundHeightWgsl, type BackdropKind } from "../shaders/backdrop";
+import { BACKDROP_INDICES, backdropVertices, type BackdropRect } from "../backdropData";
+import { beginGpuAdmission } from "../gpuAdmission";
+const vertices = tgpu.vertexLayout(d.disarrayOf(d.vec3f));
+const Surface = d.struct({ albedo: d.vec3f, normal: d.vec3f });
+const turfCanopy = tgpu.fn([d.f32, d.f32, d.f32], d.vec3f)(terrainMaterialFunctions({}).turfCanopy);
+const quadGroundHeight = tgpu
+  .fn(
+    [d.vec2f],
+    d.f32,
+  )(quadGroundHeightWgsl)
+  .$uses({ terrainNoise, terrainRidge });
+/** Borrowed camera/environment; depth-disabled opaque background band, not a shadow receiver. */
+export async function createTypegpuBackdrop(
   device: GPUDevice,
-  cameraLayout: GPUBindGroupLayout,
-  environment: RawEnvironment,
+  cameraBuffer: GPUBuffer,
+  environment: TypegpuEnvironment,
   samples: 1 | 4,
 ) {
-  const release: (() => void)[] = [];
+  const root = tgpu.initFromDevice({ device }),
+    owned: { destroy(): void }[] = [];
   let disposed = false;
-  const own = <T extends { destroy(): void }>(r: T): T => {
-    release.push(() => r.destroy());
+  const own = <T extends { destroy(): void }>(r: T) => {
+    owned.push(r);
     return r;
-  };
-  const dispose = () => {
-    if (disposed) return;
-    disposed = true;
-    for (const f of release.reverse()) f();
   };
   const check = () => {
     if (disposed) throw Error("Backdrop disposed");
   };
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    for (const r of owned) r.destroy();
+    root.destroy();
+  };
   const finish = beginGpuAdmission(device);
   try {
-    const backdrop = own(makeVertexBuffer(device, "backdrop rectangle", new Float32Array(12)));
-    const terrain = own(
-      makeVertexBuffer(device, "terrain underlay rectangle", new Float32Array(12)),
+    const camera = own(root.createBuffer(Camera, cameraBuffer).$usage("uniform"));
+    const cameraGroup = root.createBindGroup(typegpuCameraLayout, { cam: camera });
+    const backdrop = own(root.createBuffer(vertices.schemaForCount(4)).$usage("vertex"));
+    const terrain = own(root.createBuffer(vertices.schemaForCount(4)).$usage("vertex"));
+    const indices = own(
+      root.createBuffer(d.arrayOf(d.u32, 6), Uint32Array.from(BACKDROP_INDICES)).$usage("index"),
     );
-    const indices = own(makeIndexBuffer(device, "backdrop indices", BACKDROP_INDICES));
-    const empty = device.createBindGroupLayout({ entries: [] }),
-      emptyGroup = device.createBindGroup({ layout: empty, entries: [] });
-    const layout = device.createPipelineLayout({
-      bindGroupLayouts: [cameraLayout, empty, empty, environment.layout],
-    });
-    const pipelines = {} as Record<BackdropKind, GPURenderPipeline>;
-    const compilation = (["backdrop", "default", "wide-detail"] as const).map(async (kind) => {
-      const module = device.createShaderModule({ code: backdropShader(environment.shader, kind) });
-      pipelines[kind] = await device.createRenderPipelineAsync({
-        layout,
-        vertex: {
-          module,
-          entryPoint: "vertex",
-          buffers: [
-            {
-              arrayStride: 12,
-              attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }],
-            },
-          ],
-        },
-        fragment: { module, entryPoint: "fragment", targets: [{ format: "rgba16float" }] },
+    const shade = environment.shade;
+    const pipelines = (["backdrop", "default", "wide-detail"] as const).map((kind) => {
+      const surface = tgpu
+        .fn(
+          [d.vec2f, d.f32],
+          Surface,
+        )(
+          `(world:vec2f,distance:f32)->Surface{${backdropSurfaceWgsl(kind)} return Surface(albedo,normal);}`,
+        )
+        .$uses({
+          Surface,
+          terrainHash,
+          terrainNoise,
+          terrainRidge,
+          terrainLinear,
+          turfCanopy,
+          quadGroundHeight,
+        });
+      const roughness = kind === "backdrop" ? 0.98 : 0.96;
+      return root.createRenderPipeline({
+        attribs: { p: vertices.attrib },
+        vertex: tgpu.vertexFn({
+          in: { p: d.vec3f },
+          out: { clip: d.builtin.position, world: d.vec3f, distance: d.f32 },
+        })((v) => {
+          "use gpu";
+          return {
+            clip: std.mul(typegpuCameraLayout.$.cam.viewProj, d.vec4f(v.p, 1)),
+            world: v.p,
+            distance: std.length(std.sub(v.p.xy, typegpuCameraLayout.$.cam.focus)),
+          };
+        }),
+        fragment: tgpu.fragmentFn({
+          in: { clip: d.builtin.position, world: d.vec3f, distance: d.f32 },
+          out: d.vec4f,
+        })((v) => {
+          "use gpu";
+          const s = surface(v.world.xy, v.distance);
+          return shade(
+            s.albedo,
+            d.vec3f(0),
+            roughness,
+            0,
+            0,
+            1,
+            s.normal,
+            v.world,
+            1,
+            typegpuCameraLayout.$.cam.eye,
+          );
+        }),
+        targets: { format: "rgba16float" },
         primitive: { cullMode: "back" },
         depthStencil: battleDepthBypass(),
         multisample: { count: samples },
       });
     });
-    await Promise.all([finish(), ...compilation]);
+    for (const r of [camera, backdrop, terrain, indices]) root.unwrap(r);
+    root.unwrap(cameraGroup);
+    root.unwrap(environment.group);
+    const compilation = Promise.all(pipelines.map((p) => p.initAsync()));
+    await Promise.all([finish(), compilation]);
     let style: "default" | "wide-detail" = "default";
     return {
-      setRects(
-        terrainRect: readonly [number, number, number, number],
-        backdropRect: readonly [number, number, number, number],
-      ) {
+      setRects(terrainRect: BackdropRect, backdropRect: BackdropRect) {
         check();
-        for (const [buffer, [x, y, w, h]] of [
-          [terrain, terrainRect],
-          [backdrop, backdropRect],
-        ] as const)
-          device.queue.writeBuffer(buffer, 0, backdropVertices([x, y, w, h]));
+        terrain.write(backdropVertices(terrainRect).buffer);
+        backdrop.write(backdropVertices(backdropRect).buffer);
       },
       setStyle(value: "default" | "wide-detail") {
         check();
         style = value;
       },
-      encode(pass: GPURenderPassEncoder, camera: GPUBindGroup, only?: BackdropKind) {
+      draw(pass: TgpuRenderPass, only?: BackdropKind) {
         check();
-        pass.setBindGroup(0, camera);
-        pass.setBindGroup(1, emptyGroup);
-        pass.setBindGroup(2, emptyGroup);
-        pass.setBindGroup(3, environment.bindGroup);
-        pass.setIndexBuffer(indices, "uint16");
         for (const kind of only ? [only] : (["backdrop", style] as const)) {
-          pass.setPipeline(pipelines[kind]);
-          pass.setVertexBuffer(0, kind === "backdrop" ? backdrop : terrain);
-          pass.drawIndexed(6);
+          const i = kind === "backdrop" ? 0 : kind === "default" ? 1 : 2;
+          pipelines[i]
+            .with(cameraGroup)
+            .with(environment.group)
+            .with(vertices, kind === "backdrop" ? backdrop : terrain)
+            .withIndexBuffer(indices)
+            .with(pass)
+            .drawIndexed(6);
         }
       },
       dispose,

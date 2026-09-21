@@ -1,7 +1,10 @@
 import { nativeGpuScope } from "../../../../packages/battle-renderer/src/gpuScope";
 import type { Gpu, Target } from "vgpu";
-import type { BattleSceneOptions, BattleTerrainInput } from "../../../../packages/battle-renderer/src/sceneTypes";
-import { createSceneLifecycle } from "../sceneLifecycle";
+import type {
+  BattleSceneOptions,
+  BattleTerrainInput,
+} from "../../../../packages/battle-renderer/src/sceneTypes";
+import { createSceneLifecycle } from "../../../../packages/battle-renderer/src/sceneLifecycle";
 import { createVgpuEnvironment } from "./environment";
 import { VgpuBattleFrame } from "./frame";
 import { createVgpuSunShadow } from "./shadow";

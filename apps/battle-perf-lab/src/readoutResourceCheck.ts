@@ -1,5 +1,5 @@
-import { trackBufferLifetime } from "./bufferLifetimeCheck";
-import { trackTextureLifetime } from "./textureLifetimeCheck";
+import { trackBufferLifetime } from "../../../packages/battle-renderer/src/bufferLifetimeCheck";
+import { trackTextureLifetime } from "../../../packages/battle-renderer/src/textureLifetimeCheck";
 import type { BattleReadoutInstance } from "../../../packages/game-renderer/src/battle/readoutData";
 /** Real resource boundaries with injected allocation failure, not a mock renderer. */
 export async function checkReadoutResources(

@@ -4,7 +4,7 @@ import {
   NativeGpuTelemetry,
   type NativeGpuBackend,
   type NativeGpuEvent,
-} from "../../src/nativeGpuTelemetry";
+} from "../../../../packages/battle-renderer/src/nativeGpuTelemetry";
 import { CIVSIM_ENVIRONMENTS } from "../../../../packages/game-renderer/src/environment/environment";
 import {
   BLOOM_LEVELS,

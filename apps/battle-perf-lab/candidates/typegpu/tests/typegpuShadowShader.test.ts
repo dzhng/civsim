@@ -7,7 +7,7 @@
 // shading math: that stays the shared owner's, asserted against its own text.
 import { expect, test } from "vitest";
 import { tgpu } from "typegpu";
-import { typegpuSunShadowSample } from "../environment";
+import { typegpuSunShadowSample } from "../../../../../packages/battle-renderer/src/world/environment";
 import { CSM_CASCADES } from "../../../../../packages/game-renderer/src/battle/shadowPolicy";
 
 const resolved = (mode: "single" | "csm") => tgpu.resolve([typegpuSunShadowSample(mode)]);

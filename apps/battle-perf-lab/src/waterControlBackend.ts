@@ -6,10 +6,10 @@ import type { BattlePostGradeUniforms } from "../../../packages/game-renderer/sr
 import type { FrameCameraSnapshot } from "../../../packages/battle-renderer/src/frameCamera";
 import type { BattleWaterInput } from "../../../packages/battle-renderer/src/waterData";
 import { checkWaterLifetime } from "./waterLifetimeCheck";
-import { createTypegpuWater } from "../candidates/typegpu/water";
-import { createTypegpuEnvironment } from "../candidates/typegpu/environment";
-import { createTypegpuTerrain } from "../candidates/typegpu/terrain";
-import { TypegpuBattleFrame } from "../candidates/typegpu/frame";
+import { createTypegpuWater } from "../../../packages/battle-renderer/src/world/water";
+import { createTypegpuEnvironment } from "../../../packages/battle-renderer/src/world/environment";
+import { createTypegpuTerrain } from "../../../packages/battle-renderer/src/world/terrain";
+import { TypegpuBattleFrame } from "../../../packages/battle-renderer/src/world/frame";
 import { createVgpuWater } from "./vgpu/water";
 import { createVgpuEnvironment } from "./vgpu/environment";
 import { createVgpuTerrain } from "./vgpu/terrain";

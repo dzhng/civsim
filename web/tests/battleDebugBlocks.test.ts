@@ -1,7 +1,7 @@
 // @vitest-environment node
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import { battleDebugBlockTriangles } from "@packages/game-renderer/src/battle/debugBlockData";
-import { BattleRenderer } from "../src/battle/renderer";
+import { presentationRenderer } from "./support/battleRendererPresentation";
 import { captureBattleRenderCamera } from "../src/battle/battlePresentation";
 
 const camera = () =>
@@ -98,36 +98,44 @@ test("soldiers beyond the live count never widen a block", () => {
   expect(blocks(verts)[0]).toMatchObject({ x: [-2.4, 2.4], y: [-2.4, 2.4] });
 });
 
-test("the source renderer prepares blocks from the association it was handed", () => {
-  const renderer = Object.create(BattleRenderer.prototype) as BattleRenderer;
-  const uploads: Float32Array[] = [];
-  const world = {
-    setStatic: vi.fn(),
-    setTime: vi.fn(),
-    draw: vi.fn(),
-    uploadDebugBlocks: (verts: Float32Array) => uploads.push(verts),
-  };
-  Object.assign(renderer, {
-    world,
-    blockMode: true,
-    fixedTime: null,
-    benchmarkSeconds: null,
-    staticData: { soldierUnit: new Uint32Array(), teams: [], classes: [] },
-  });
+test("the renderer presents blocks from the association it was handed", async () => {
+  const { renderer, debugBlocks } = presentationRenderer();
+  Object.assign(renderer, { blockMode: true });
   renderer.setStatic(new Uint32Array([0, 1]), [1, 0], [0, 0]);
-  expect(world.setStatic).toHaveBeenCalledOnce();
-  renderer.draw(
-    new Float32Array([0, 0, 40, 40]),
-    new Float32Array([0, 0]),
-    [],
-    new Float32Array([1, 0]),
-    2,
-    camera(),
-    7,
-  );
+  await renderer.present({
+    camera: camera(),
+    timeSeconds: 1,
+    clock: "wall",
+    fixedTime: null,
+    preserveFrozenEffects: false,
+    tacticalLines: {
+      groundCues: new Float32Array(),
+      rings: new Float32Array(),
+      effects: new Float32Array(),
+    },
+    crowd: {
+      positions: new Float32Array([0, 0, 40, 40]),
+      facings: new Float32Array([0, 0]),
+      playback: [0, 1].map(() => ({
+        appearanceId: 0,
+        base: {
+          source: { kind: "clip" as const, sample: { clip: "idle", phase: 0 } },
+          destination: { clip: "idle", phase: 0 },
+          weight: 1,
+        },
+      })),
+      alive: new Float32Array([1, 0]),
+      count: 2,
+      observationTick: 7,
+      frameDt: 0,
+      standards: [],
+      readouts: [],
+      triangles: new Float32Array(),
+    },
+  });
   // Only the living team-one soldier, so one red rectangle around it.
-  expect(uploads).toHaveLength(1);
-  expect(blocks(uploads[0])).toEqual([
+  expect(debugBlocks).toHaveLength(1);
+  expect(blocks(debugBlocks[0])).toEqual([
     { x: [-2.4, 2.4], y: [-2.4, 2.4], color: [0.88, 0.2, 0.16, 0.88] },
   ]);
 });

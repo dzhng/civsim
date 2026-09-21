@@ -5,7 +5,7 @@ import {
   terrainPickingMeshes,
   battleGroundInputs,
 } from "../../../../packages/battle-renderer/src/terrainScenePreparation";
-import { createSceneLifecycle } from "../sceneLifecycle";
+import { createSceneLifecycle } from "../../../../packages/battle-renderer/src/sceneLifecycle";
 import {
   battleTerrainHeightAt,
   expandedBattleTerrainRect,

@@ -1,3 +1,4 @@
+import { battleRendererReady } from "../worlds.mjs";
 import { unitScreen } from "../_battle-unit-info.mjs";
 
 export const meta = {
@@ -14,7 +15,7 @@ export async function run(ctx) {
     const page = await ctx.newPage({ deviceScaleFactor: dpr, errorPrefix: `dpr${dpr}` });
     await page.goto(`${ctx.target}?battle=5v5&ai=off&debug=blocks`);
     await page.waitForFunction(() => window.__ready === true, undefined, { timeout: 20000 });
-    await page.waitForTimeout(400);
+    await battleRendererReady(page);
 
     await page.evaluate(() => {
       const a = window.__game.unitInfo(4);

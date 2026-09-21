@@ -11,7 +11,7 @@ import {
   snapshotBank,
   snapshotBankFloatOffset,
 } from "../../../../packages/renderer-core/src/posePaletteStorage";
-import { PoseUpload } from "../poseUpload";
+import { PoseUpload } from "../../../../packages/battle-renderer/src/poseUpload";
 /** Public vgpu dispatch owns a separate submission per rig; callers order it before render Frames. */
 export async function createVgpuPosePalette(
   device: GPUDevice,

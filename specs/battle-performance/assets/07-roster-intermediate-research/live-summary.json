@@ -1,0 +1,107 @@
+{
+  "arm": {
+    "label": "C1",
+    "head": "ad8c218a+sharedCPU38324003+scratchdrawhooks+20intermediate2kassetoverrides",
+    "build": "/Users/david/dev/game-battle-performance-spec/throwaway/lod-coverage-probe/build/menu"
+  },
+  "checks": [
+    {
+      "name": "entire live window completed",
+      "pass": true
+    },
+    {
+      "name": "timing starts at the canonical tick",
+      "pass": true
+    },
+    {
+      "name": "canonical contact state",
+      "pass": true
+    },
+    {
+      "name": "simulation remained live",
+      "pass": true
+    },
+    {
+      "name": "all camera phases recorded",
+      "pass": true
+    },
+    {
+      "name": "camera reached near wide and horizon views",
+      "pass": true
+    },
+    {
+      "name": "every recorded callback submitted a new primary frame",
+      "pass": true
+    },
+    {
+      "name": "recorded interval total agrees with run clock",
+      "pass": true
+    },
+    {
+      "name": "result actions remain inside the initial viewport",
+      "pass": true
+    },
+    {
+      "name": "export retains the full raw recording",
+      "pass": true
+    },
+    {
+      "name": "Actual TypeGPU world installed",
+      "pass": true
+    },
+    {
+      "name": "Compiled build files unchanged during run",
+      "pass": true
+    },
+    {
+      "name": "Live authority rather than a held lab build",
+      "pass": true
+    },
+    {
+      "name": "No GPU or browser errors",
+      "pass": true,
+      "detail": []
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "firstReadyAtMs": 3852.615000002086,
+  "status": {
+    "phase": "complete",
+    "scenario": {
+      "id": "generated-seven-heavy-combat",
+      "version": 1,
+      "simSeed": 1592639710,
+      "mapSeed": "7",
+      "armySource": "generated-default",
+      "orders": "player-nearest-enemy-at-tick-zero",
+      "startTick": 9000,
+      "durationMs": 300000,
+      "cameraScript": "contact-9000-v2"
+    },
+    "preparationMs": 66550.3949999991,
+    "elapsedMs": 300038,
+    "startTick": 9000,
+    "tick": 16226,
+    "reason": "Timed window complete"
+  },
+  "summary": {
+    "validCount": 7025,
+    "invalidCount": 0,
+    "durationMs": 300038.00000000006,
+    "averageFps": 23.413700931215374,
+    "low1PercentFps": 8.64131192154177,
+    "low01PercentFps": 6.666833337499936,
+    "minFps": 6.000060000598665,
+    "maxFps": 60.02400960393381,
+    "p50FrameMs": 33.3350000000064,
+    "p95FrameMs": 66.66500000000815,
+    "p99FrameMs": 99.99499999999534,
+    "maxFrameMs": 166.66500000003725,
+    "spikes": {
+      "over25Ms": 6737,
+      "over33_33Ms": 5907,
+      "over50Ms": 906
+    }
+  }
+}

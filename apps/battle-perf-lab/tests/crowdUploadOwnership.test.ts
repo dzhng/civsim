@@ -12,7 +12,7 @@ vi.mock("../src/vgpu/posePalette", () => ({
     precompute() {},
   }),
 }));
-vi.mock("../candidates/typegpu/posePalette", () => ({
+vi.mock("../../../packages/battle-renderer/src/world/posePalette", () => ({
   createTypegpuPosePalette: async () => ({
     upload: state.upload,
     dispose: state.dispose,
@@ -25,7 +25,7 @@ vi.mock("typegpu", async () => {
   );
   return { ...mod, tgpu: { ...mod.tgpu, initFromDevice: () => ({ destroy() {} }) } };
 });
-import { createTypegpuCrowd } from "../candidates/typegpu/crowd";
+import { createTypegpuCrowd } from "../../../packages/battle-renderer/src/world/crowd";
 import { createVgpuCrowd } from "../src/vgpu/crowd";
 const device = { pushErrorScope() {}, popErrorScope: async () => null };
 const soldier = (classId: number) => ({

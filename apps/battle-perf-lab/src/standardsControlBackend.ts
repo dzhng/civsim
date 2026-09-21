@@ -1,13 +1,13 @@
 import { tgpu } from "typegpu";
 import { initFromDevice, frame, target } from "vgpu";
 import type { CivsimEnvironment } from "../../../packages/game-renderer/src/environment/environment";
-import { createRawEnvironment } from "../../../packages/battle-renderer/src/world/environment";
-import { createTypegpuEnvironment } from "../candidates/typegpu/environment";
+import { createRawEnvironment } from "./raw/world/environment";
+import { createTypegpuEnvironment } from "../../../packages/battle-renderer/src/world/environment";
 import { createVgpuEnvironment } from "./vgpu/environment";
-import { createRawStandards } from "../../../packages/battle-renderer/src/world/standards";
-import { createTypegpuStandards } from "../candidates/typegpu/standards";
+import { createRawStandards } from "./raw/world/standards";
+import { createTypegpuStandards } from "../../../packages/battle-renderer/src/world/standards";
 import { createVgpuStandards } from "./vgpu/standards";
-import { Camera, typegpuCameraLayout } from "../candidates/typegpu/camera";
+import { Camera, typegpuCameraLayout } from "../../../packages/battle-renderer/src/world/camera";
 import { destroyVgpuTarget } from "./vgpu/targetLifetime";
 import { nativeTarget } from "./controlTarget";
 /** Test-only lifetime/attachment plumbing; each runtime owns encoding. */

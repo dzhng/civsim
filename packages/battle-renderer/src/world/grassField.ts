@@ -1,42 +1,32 @@
 import { grassGeometries } from "../grassData";
+import type { TgpuCommandEncoder, TgpuRenderCommands, TgpuBindGroup } from "typegpu";
 import type { BladeFieldProfile } from "../../../game-renderer/src/battle/battleGrassResidency";
 import { createGrassField } from "../grassField";
-import { createRawGrass } from "./grass";
-import type { RawEnvironment } from "./environment";
-export async function createRawGrassField(
+import { createTypegpuGrass } from "./grass";
+import type { TypegpuEnvironment } from "./environment";
+export async function createTypegpuGrassField(
   device: GPUDevice,
-  cameraLayout: GPUBindGroupLayout,
-  environment: RawEnvironment,
+  environment: TypegpuEnvironment,
   profile: BladeFieldProfile,
-  sampleCount: 1 | 4 = 1,
+  samples: 1 | 4 = 1,
 ) {
   const tiers = grassGeometries(profile);
-  const layers: Awaited<ReturnType<typeof createRawGrass>>[] = [];
+  const layers: Awaited<ReturnType<typeof createTypegpuGrass>>[] = [];
   try {
     for (let i = 0; i < 2; i++)
-      layers.push(
-        await createRawGrass(
-          device,
-          cameraLayout,
-          environment,
-          new Float32Array(),
-          tiers,
-          "rgba16float",
-          sampleCount,
-        ),
-      );
+      layers.push(await createTypegpuGrass(device, environment, tiers, samples));
     return {
       ...createGrassField<
-        GPUCommandEncoder,
-        GPURenderPassEncoder,
-        GPUBindGroup,
+        TgpuCommandEncoder,
+        TgpuRenderCommands,
+        TgpuBindGroup,
         (typeof layers)[number]
       >(profile, [layers[0], layers[1]]),
-      routingBuffers: () =>
-        layers.map((layer) => ({ commands: layer.commands, visible: layer.visible, records: layer.recordBuffer, recordCount: layer.stats().recordCount })),
+      readDiagnostics: () => Promise.all(layers.map((l) => l.readDiagnostics())),
+      readRouting: () => Promise.all(layers.map((l) => l.readRouting())),
     };
   } catch (error) {
-    for (const layer of layers) layer.dispose();
+    for (const l of layers) l.dispose();
     throw error;
   }
 }

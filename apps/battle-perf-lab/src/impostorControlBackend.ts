@@ -8,7 +8,7 @@ import { viewMatrix, type Camera3DParams } from "../../../packages/renderer-core
 import { GPU_DEPTH_FORMAT } from "../../../packages/renderer-core/src/depthContract";
 import type { ImpostorView } from "../../../packages/battle-renderer/src/impostorData";
 import type { ImpostorAtlasLayout } from "../../../packages/soldier-assets/src/impostorAtlas";
-import { impostorRecordFloats } from "../candidates/typegpu/impostorDerivation";
+import { impostorRecordFloats } from "../../../packages/battle-renderer/src/world/impostorDerivation";
 import {
   SHADER_F32,
   compareImpostorRecords,
@@ -16,14 +16,11 @@ import {
   type RecordVerdict,
 } from "../candidates/typegpu/impostorRecordCases";
 import type { WorldSurfaceDiagnostic } from "../../../packages/battle-renderer/src/shaders/environment";
-import {
-  createRawEnvironment,
-  rawEnvironmentWgsl,
-} from "../../../packages/battle-renderer/src/world/environment";
-import { createRawImpostors } from "../../../packages/battle-renderer/src/world/impostor";
-import { createTypegpuEnvironment } from "../candidates/typegpu/environment";
-import { createTypegpuImpostors } from "../candidates/typegpu/impostor";
-import { Camera, typegpuCameraLayout } from "../candidates/typegpu/camera";
+import { createRawEnvironment, rawEnvironmentWgsl } from "./raw/world/environment";
+import { createRawImpostors } from "./raw/world/impostor";
+import { createTypegpuEnvironment } from "../../../packages/battle-renderer/src/world/environment";
+import { createTypegpuImpostors } from "../../../packages/battle-renderer/src/world/impostor";
+import { Camera, typegpuCameraLayout } from "../../../packages/battle-renderer/src/world/camera";
 import { createVgpuEnvironment } from "./vgpu/environment";
 import { createVgpuImpostors } from "./vgpu/impostor";
 import { destroyVgpuTarget } from "./vgpu/targetLifetime";

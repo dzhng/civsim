@@ -7,9 +7,9 @@ import {
   SKY_LUT_HEIGHT,
 } from "../../../../packages/game-renderer/src/environment/skyParameters";
 import { decodeFloat16, readHdrTexture, compareHdr } from "../numericalReadback";
-import { createRawPmrem } from "../../../../packages/battle-renderer/src/world/pmrem";
+import { createRawPmrem } from "./world/pmrem";
 import { createVgpuPmrem } from "../vgpu/pmrem";
-import { createTypegpuPmrem } from "../../candidates/typegpu/pmrem";
+import { createTypegpuPmrem } from "../../../../packages/battle-renderer/src/world/pmrem";
 const backend = new URLSearchParams(location.search).get("backend") ?? "raw";
 if (!["raw", "typegpu", "vgpu"].includes(backend)) throw new Error("Unknown PMREM backend");
 const createPmrem =

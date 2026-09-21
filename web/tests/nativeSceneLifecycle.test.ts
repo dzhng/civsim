@@ -37,10 +37,10 @@ function layer<T extends object>(extra: T = {} as T) {
   state.owners.push(value);
   return value;
 }
-vi.mock("../../packages/battle-renderer/src/world/environment", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/environment", () => ({
   createRawEnvironment: async () => layer(),
 }));
-vi.mock("../../packages/battle-renderer/src/world/frame", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/frame", () => ({
   RawBattleFrame: class {
     width = 1440;
     height = 900;
@@ -72,7 +72,7 @@ vi.mock("../../packages/battle-renderer/src/world/frame", () => ({
     }
   },
 }));
-vi.mock("../../packages/battle-renderer/src/world/terrainScene", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/terrainScene", () => ({
   createRawBattleTerrainScene: async () =>
     layer({
       replace: state.replace,
@@ -90,7 +90,7 @@ vi.mock("../../packages/battle-renderer/src/world/terrainScene", () => ({
         state.terrainStats.installed ? state.terrainStats.generation : null,
     }),
 }));
-vi.mock("../../packages/battle-renderer/src/world/crowdAudience", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/crowdAudience", () => ({
   // Prepare reuses the upload camera, so the audience reports unchanged views.
   createRawCrowdAudience: async () => {
     if (state.crowdFailure) throw state.crowdFailure;
@@ -118,7 +118,7 @@ vi.mock("../../packages/battle-renderer/src/world/crowdAudience", () => ({
     return value;
   },
 }));
-vi.mock("../../packages/battle-renderer/src/world/grassField", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/grassField", () => ({
   createRawGrassField: async () =>
     layer({
       setTerrain: state.setTerrain,
@@ -131,10 +131,10 @@ vi.mock("../../packages/battle-renderer/src/world/grassField", () => ({
       snapshot: () => ({ terrainDetailStrength: 1 }),
     }),
 }));
-vi.mock("../../packages/battle-renderer/src/world/standards", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/standards", () => ({
   createRawStandards: async () => layer({ upload: state.standardsUpload, setView: vi.fn() }),
 }));
-vi.mock("../../packages/battle-renderer/src/world/readout", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/readout", () => ({
   createRawReadout: () => layer({ upload: state.readoutUpload, setCamera: vi.fn() }),
 }));
 /** Overlay layers report the content they were last handed, so the scene's
@@ -148,7 +148,7 @@ function overlayLayer() {
     stats: () => ({ count }),
   });
 }
-vi.mock("../../packages/battle-renderer/src/world/overlay", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/overlay", () => ({
   createRawLineLayer: async () => overlayLayer(),
   createRawRingLayer: async () => overlayLayer(),
   createRawTriangleLayer: async () => {
@@ -158,7 +158,7 @@ vi.mock("../../packages/battle-renderer/src/world/overlay", () => ({
     return value;
   },
 }));
-import { createRawBattleScene } from "../../packages/battle-renderer/src/battleScene";
+import { createRawBattleScene } from "../../apps/battle-perf-lab/src/raw/battleScene";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { productionBladeFieldProfile } from "@packages/game-renderer/src/battle/battleGrassResidency";
 const camera = {

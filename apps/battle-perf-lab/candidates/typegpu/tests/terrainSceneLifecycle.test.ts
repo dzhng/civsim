@@ -6,6 +6,7 @@ const state = vi.hoisted(() => ({
    *  published report has to follow what was actually installed rather than a
    *  fixed shape. */
   scenery: 0,
+  groundIndices: 36,
   vistaMeshes: [] as { name: string; mesh: object }[],
   waterDraws: 1,
 }));
@@ -18,21 +19,22 @@ function layer(extra: object = {}) {
     setState: vi.fn(),
     draw: vi.fn(),
     drawHorizonShadow: vi.fn(),
+    stats: () => ({ groundTriangles: 0 }),
     ...extra,
   };
   state.resources.push(v);
   return v;
 }
-vi.mock("../terrain", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/terrain", () => ({
   createTypegpuTerrain: (...args: unknown[]) => state.factory(...args),
 }));
-vi.mock("../water", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/water", () => ({
   createTypegpuWater: async () =>
     layer({ stats: () => ({ draws: state.waterDraws, triangles: state.waterDraws * 2 }) }),
 }));
 // Counts what it was uploaded, exactly as the real scenery owner does, so a
 // generation cannot publish an instance count nothing was handed.
-vi.mock("../scenery", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/scenery", () => ({
   createTypegpuScenery: async () => {
     let count = 0;
     return layer({
@@ -43,26 +45,34 @@ vi.mock("../scenery", () => ({
     });
   },
 }));
-vi.mock("../backdrop", () => ({ createTypegpuBackdrop: async () => layer() }));
+vi.mock("../../../../../packages/battle-renderer/src/world/backdrop", () => ({
+  createTypegpuBackdrop: async () => layer(),
+}));
 vi.mock("../../../../../packages/battle-renderer/src/terrainScenePreparation", () => ({
-  prepareBattleTerrain: (input: { grid: object; cover: string }) => ({
+  prepareBattleTerrain: (input: {
+    grid: object;
+    cover: string;
+    slopeBands?: object;
+    vista?: object;
+  }) => ({
     ...input,
     grid: { ...input.grid },
-    slopeBands: null,
+    slopeBands: input.slopeBands ? { ...input.slopeBands } : null,
     waterInputs: [],
     data: {
-      ground: { earthDistance: null },
+      ground: { earthDistance: null, indices: new Uint32Array(state.groundIndices) },
       horizon: null,
       vistaMeshes: state.vistaMeshes,
+      vista: input.vista,
       scenery: Array.from({ length: state.scenery }, () => ({})),
       rect: [0, 0, 10, 10],
       field: {},
     },
   }),
 }));
-import { createTypegpuBattleTerrainScene } from "../terrainScene";
+import { createTypegpuBattleTerrainScene } from "../../../../../packages/battle-renderer/src/world/terrainScene";
 import type { BattleTerrainInput } from "../../../../../packages/battle-renderer/src/sceneTypes";
-import type { TypegpuEnvironment } from "../environment";
+import type { TypegpuEnvironment } from "../../../../../packages/battle-renderer/src/world/environment";
 import type { TgpuBindGroup, TgpuRenderPass } from "typegpu";
 const input = {
   grid: {},
@@ -82,9 +92,13 @@ const create = () =>
 beforeEach(() => {
   state.resources.length = 0;
   state.scenery = 0;
+  state.groundIndices = 36;
   state.vistaMeshes = [];
   state.waterDraws = 1;
-  state.factory.mockReset().mockImplementation(async () => layer());
+  state.factory.mockReset().mockImplementation(async (_device, _camera, _environment, ground) => {
+    const groundTriangles = (ground.indices?.length ?? 0) / 3;
+    return layer({ stats: () => ({ groundTriangles }) });
+  });
 });
 test("a failed staged generation retains the previous complete terrain and disposes staged resources", async () => {
   const owner = await create(),
@@ -129,13 +143,19 @@ test("committed terrain content is read from the generation's own owners", async
     installed: true,
     generation: 1,
     replacing: false,
+    groundTriangles: 12,
     scenery: 3,
     vistaBands: 3,
+    groundCover: "green-grass",
+    groundStyle: "beauty",
+    slopeBands: null,
+    vista: null,
     water: { draws: 1, triangles: 2 },
   });
   // A committed replacement publishes the content IT installed, not the first
   // generation's, and counts both vista lists rather than one.
   state.scenery = 5;
+  state.groundIndices = 75;
   state.vistaMeshes = [{ name: "farFog", mesh: {} }];
   state.waterDraws = 2;
   await owner.replace(input);
@@ -143,16 +163,27 @@ test("committed terrain content is read from the generation's own owners", async
     installed: true,
     generation: 2,
     replacing: false,
+    groundTriangles: 25,
     scenery: 5,
     vistaBands: 1,
+    groundCover: "green-grass",
+    groundStyle: "beauty",
+    slopeBands: null,
+    vista: null,
     water: { draws: 2, triangles: 4 },
   });
   // A failed staged generation leaves the installed report standing: its content
   // was never handed to an owner.
   state.scenery = 99;
+  state.groundIndices = 900;
   state.factory.mockRejectedValueOnce(Error("terrain admission failed"));
   await expect(owner.replace(input)).rejects.toThrow("terrain admission failed");
-  expect(owner.stats()).toMatchObject({ generation: 2, scenery: 5, replacing: false });
+  expect(owner.stats()).toMatchObject({
+    generation: 2,
+    groundTriangles: 25,
+    scenery: 5,
+    replacing: false,
+  });
   // A disposed scene reports no installed map rather than zeros that read as an
   // empty one.
   owner.dispose();
@@ -160,8 +191,13 @@ test("committed terrain content is read from the generation's own owners", async
     installed: false,
     generation: 2,
     replacing: false,
+    groundTriangles: null,
     scenery: null,
     vistaBands: null,
+    groundCover: null,
+    groundStyle: null,
+    slopeBands: null,
+    vista: null,
     water: null,
   });
 });
@@ -186,5 +222,77 @@ test("a staged generation in flight is reported as replacing the installed one",
   resume(layer());
   await pending;
   expect(owner.stats()).toMatchObject({ generation: 2, replacing: false, scenery: 6 });
+  owner.dispose();
+});
+
+test("isolated model review keeps its ground while suppressing scenery and its shadow", async () => {
+  const owner = await create();
+  const [ground, water, scenery, backdrop] = state.resources as ReturnType<typeof layer>[];
+  const visible = { ground: true, vista: false, water: false, scenery: false, crowd: true };
+  owner.drawOpaque({} as TgpuRenderPass, visible);
+  owner.drawShadow({} as TgpuRenderPass, {} as TgpuBindGroup, visible);
+  expect(ground.draw).toHaveBeenCalledExactlyOnceWith({}, { ground: true, horizon: false });
+  expect(ground.drawHorizonShadow).not.toHaveBeenCalled();
+  expect(water.draw).not.toHaveBeenCalled();
+  expect(scenery.draw).not.toHaveBeenCalled();
+  expect(backdrop.draw).not.toHaveBeenCalled();
+  owner.dispose();
+});
+
+test("terrain metadata follows the committed generation and returned descriptors cannot mutate it", async () => {
+  const owner = await create();
+  const slopeBands = {
+    flatMax: 0.07,
+    rollingMax: 0.115,
+    slowMin: 0.135,
+    cliffMin: 0.32,
+    cliffDilateCells: 2,
+    highlandCapMinM: 150,
+  };
+  const band = {
+    name: "farFog",
+    w: 2,
+    h: 2,
+    cell: 10,
+    ox: -10,
+    oy: -10,
+    innerHalfW: 2,
+    innerHalfH: 2,
+    outerHalfW: 10,
+    outerHalfH: 10,
+    height: new Float32Array(4),
+    water: new Float32Array(4),
+  };
+  state.vistaMeshes = [{ name: "farFog", mesh: {} }];
+  await owner.replace({ ...input, slopeBands, vista: { shape: "test-apron", bands: [band] } });
+  const report = owner.stats();
+  expect(report.vista).toEqual({
+    shape: "test-apron",
+    bands: [
+      {
+        name: "farFog",
+        w: 2,
+        h: 2,
+        cell: 10,
+        ox: -10,
+        oy: -10,
+        innerHalfW: 2,
+        innerHalfH: 2,
+        outerHalfW: 10,
+        outerHalfH: 10,
+      },
+    ],
+  });
+  expect(report.slopeBands).toEqual(slopeBands);
+  report.vista!.bands[0].outerHalfW = 999;
+  report.slopeBands!.cliffMin = 999;
+  expect(owner.stats().vista!.bands[0].outerHalfW).toBe(10);
+  expect(owner.stats().slopeBands!.cliffMin).toBe(0.32);
+  state.factory.mockRejectedValueOnce(Error("terrain admission failed"));
+  await expect(owner.replace(input)).rejects.toThrow("terrain admission failed");
+  expect(owner.stats().vista!.bands[0].name).toBe("farFog");
+  expect(owner.stats().slopeBands!.cliffMin).toBe(0.32);
+  await owner.replace(input);
+  expect(owner.stats()).toMatchObject({ vista: null, slopeBands: null });
   owner.dispose();
 });

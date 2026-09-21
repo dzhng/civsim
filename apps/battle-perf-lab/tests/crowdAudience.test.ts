@@ -34,7 +34,7 @@ const atlasFactory = vi.hoisted(() => async () => {
   state.layers.push(layer);
   return layer;
 });
-vi.mock("../candidates/typegpu/crowd", () => ({
+vi.mock("../../../packages/battle-renderer/src/world/crowd", () => ({
   createTypegpuCrowd: async () => {
     state.createMesh();
     return state.mesh;
@@ -46,20 +46,20 @@ vi.mock("../src/vgpu/crowd", () => ({
     return state.mesh;
   },
 }));
-vi.mock("../candidates/typegpu/impostor", () => ({
+vi.mock("../../../packages/battle-renderer/src/world/impostor", () => ({
   createTypegpuImpostors: atlasFactory,
 }));
 vi.mock("../src/vgpu/impostor", () => ({
   createVgpuImpostors: atlasFactory,
 }));
-vi.mock("../../../packages/battle-renderer/src/world/crowd", () => ({
+vi.mock("../src/raw/world/crowd", () => ({
   createRawCrowd: async () => state.mesh,
 }));
-vi.mock("../../../packages/battle-renderer/src/world/impostor", () => ({
+vi.mock("../src/raw/world/impostor", () => ({
   createRawImpostors: atlasFactory,
 }));
-import { createRawCrowdAudience } from "../../../packages/battle-renderer/src/world/crowdAudience";
-import { createTypegpuCrowdAudience } from "../candidates/typegpu/crowdAudience";
+import { createRawCrowdAudience } from "../src/raw/world/crowdAudience";
+import { createTypegpuCrowdAudience } from "../../../packages/battle-renderer/src/world/crowdAudience";
 import { createVgpuCrowdAudience } from "../src/vgpu/crowdAudience";
 import type { CrowdProjectionView } from "../../../packages/crowd-runtime/src/visibility";
 import { IMPOSTOR_LEVEL } from "../../../packages/crowd-runtime/src/lod";

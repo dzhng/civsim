@@ -1,8 +1,8 @@
 import { tgpu } from "typegpu";
-import { createTypegpuImageTexture } from "../../candidates/typegpu/imageTexture";
+import { createTypegpuImageTexture } from "../../../../packages/battle-renderer/src/world/imageTexture";
 import { createVgpuImageTexture } from "../vgpu/imageTexture";
 import { uploadImageTexture } from "../../../../packages/renderer-core/src/imageTexture";
-import { trackTextureLifetime } from "../textureLifetimeCheck";
+import { trackTextureLifetime } from "../../../../packages/battle-renderer/src/textureLifetimeCheck";
 async function run() {
   const adapter = await navigator.gpu.requestAdapter();
   if (!adapter) throw new Error("No adapter");

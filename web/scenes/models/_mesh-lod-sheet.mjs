@@ -7,15 +7,15 @@ import { APPEARANCE_MESH_TIERS } from "../../../packages/soldier-assets/src/appe
 const ADMISSION_DISTANCES = [null, 66, 120, 260];
 
 export const meshLodSnapshots = (folder) =>
-  ["mesh-lod-context", "mesh-lod-diagnostic"].map((name) => `shared/soldiers/${folder}/${name}`);
+  ["mesh-lod-context"].map((name) => `shared/soldiers/${folder}/${name}`);
 
-/** Inspect real admitted tiers, then magnify without a second crowd upload. */
+/** Inspect each mesh tier at the production projection that admits it. */
 export async function captureMeshLods(ctx, page, { folder, classId, ready, attack, zoom }) {
   const names = meshLodSnapshots(folder);
   if (!names.some((name) => snapshotSelected(name))) return;
   const crop = { x: 320, y: 96, width: 640, height: 640 };
   const tiers = APPEARANCE_MESH_TIERS.length;
-  const sheets = [0, 1].map(() => new PNG({ width: 640 * tiers, height: 1920 }));
+  const sheets = [0].map(() => new PNG({ width: 640 * tiers, height: 1920 }));
   const poses = [
     [ready, 0, true],
     [attack, 0.4, true],
@@ -40,15 +40,12 @@ export async function captureMeshLods(ctx, page, { folder, classId, ready, attac
             target: [0, 0, 0.9],
           });
           while (h.stats().pendingDraw) await new Promise(requestAnimationFrame);
-          // Three caches camera uniforms within its browser frame. Admission
-          // must render after the workbench's close-pose frame has completed.
-          await new Promise(requestAnimationFrame);
           const world = h.world;
-          const inspection = structuredClone(world.stats().camera);
+          const inspection = structuredClone(world.stats().preparedCamera);
           const admission = structuredClone(inspection);
           // Actual perspective distance, not the chart's screen-scale hint.
           if (distance !== null) Object.assign(admission.camera3d, { distance, fovY: 0.85 });
-          world.drawInstances(
+          await world.drawInstances(
             [
               {
                 x: 0,
@@ -70,30 +67,19 @@ export async function captureMeshLods(ctx, page, { folder, classId, ready, attac
           );
           document.querySelector("#candidate-caption").textContent =
             `${clip} ${phase} · tier ${tier}\nActual production projection`;
-          world.render();
-          await world.settlePresentedFrame();
+          await world.render();
+
           return { inspection, stats: world.stats() };
         },
         { classId, clip, phase, alive, zoom, tier, distance: ADMISSION_DISTANCES[tier] },
       );
       ctx.check(
         `${folder}/${clip}/tier${tier}: actual main tier admitted`,
-        result.stats.crowd.visibleTierHistogram[`l${tier}`] === 1 && result.stats.lod.skinned === 1,
+        result.stats.crowd.visibleTierHistogram[`l${tier}`] === 1 &&
+          result.stats.crowd.mainVisible - result.stats.crowd.visibleTierHistogram.l4 === 1,
         JSON.stringify(result.stats.crowd.visibleTierHistogram),
       );
-      for (let view = 0; view < 2; view++) {
-        if (view === 1)
-          await page.evaluate(
-            async ({ camera, clip, phase, tier }) => {
-              const world = window.__battleModels.world;
-              world.setCamera(camera);
-              document.querySelector("#candidate-caption").textContent =
-                `${clip} ${phase} · tier ${tier}\nMagnified geometry diagnostic`;
-              world.render();
-              await world.settlePresentedFrame();
-            },
-            { camera: result.inspection, clip, phase, tier },
-          );
+      for (let view = 0; view < 1; view++) {
         const shot = await page.screenshot({ clip: crop });
         ctx.check(
           `${folder}/${clip}/tier${tier}/view${view}: frozen pixels exact`,
@@ -126,7 +112,7 @@ export async function captureMeshLods(ctx, page, { folder, classId, ready, attac
       }
     }
   }
-  for (let view = 0; view < 2; view++)
+  for (let view = 0; view < 1; view++)
     if (snapshotSelected(names[view]))
       await ctx.snap(page, names[view], {
         shot: PNG.sync.write(sheets[view]),

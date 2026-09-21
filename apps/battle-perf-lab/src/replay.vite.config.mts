@@ -1,20 +1,22 @@
-import { fileURLToPath } from 'node:url';
-import base from './raw/crowd.vite.config.mts';
+import { fileURLToPath } from "node:url";
+import base from "./raw/pmrem.vite.config.mts";
 
-const field = fileURLToPath(new URL('../../../packages/battle-renderer/src/grassField.ts', import.meta.url));
-const provider = fileURLToPath(new URL('./CaptureGrassResidency.ts', import.meta.url));
+const field = fileURLToPath(
+  new URL("../../../packages/battle-renderer/src/grassField.ts", import.meta.url),
+);
+const provider = fileURLToPath(new URL("./CaptureGrassResidency.ts", import.meta.url));
 // Matched by module name rather than one spelled-out relative depth, so moving
 // either side cannot silently drop the substitution and replay the wrong owner.
-const residency = 'battle/battleGrassResidency';
+const residency = "battle/battleGrassResidency";
 
 /** Only the world's grass field consumes resolved publications; the provider's
  * own production import and all ordinary battle imports remain untouched. */
 export function nativeReplayResidencyPlugin() {
   return {
-    name: 'native-replay-grass-publications',
-    enforce: 'pre' as const,
+    name: "native-replay-grass-publications",
+    enforce: "pre" as const,
     resolveId(source: string, importer?: string) {
-      return importer?.split('?')[0] === field &&
+      return importer?.split("?")[0] === field &&
         (source.endsWith(`/${residency}`) || source.endsWith(`/${residency}.ts`))
         ? provider
         : null;
@@ -29,19 +31,21 @@ export default {
   root: fileURLToPath(new URL(".", import.meta.url)),
   plugins: [...(base.plugins ?? []), nativeReplayResidencyPlugin()],
   build: {
-    outDir: fileURLToPath(new URL('../../../throwaway/native-replay/dist', import.meta.url)),
+    outDir: fileURLToPath(new URL("../../../throwaway/native-replay/dist", import.meta.url)),
     emptyOutDir: true,
     copyPublicDir: false,
     lib: {
       entry: {
-        spool: fileURLToPath(new URL('./nativeSpoolReplay.ts', import.meta.url)),
-        control: fileURLToPath(new URL('./replayControl.ts', import.meta.url)),
-        scene: fileURLToPath(new URL('../../../packages/battle-renderer/src/battleScene.ts', import.meta.url)),
-        typegpuScene: fileURLToPath(new URL('../candidates/typegpu/battleScene.ts', import.meta.url)),
-        vgpuScene: fileURLToPath(new URL('./vgpu/battleScene.ts', import.meta.url)),
+        spool: fileURLToPath(new URL("./nativeSpoolReplay.ts", import.meta.url)),
+        control: fileURLToPath(new URL("./replayControl.ts", import.meta.url)),
+        scene: fileURLToPath(new URL("./raw/battleScene.ts", import.meta.url)),
+        typegpuScene: fileURLToPath(
+          new URL("../../../packages/battle-renderer/src/battleScene.ts", import.meta.url),
+        ),
+        vgpuScene: fileURLToPath(new URL("./vgpu/battleScene.ts", import.meta.url)),
         publications: provider,
       },
-      formats: ['es' as const],
+      formats: ["es" as const],
       fileName: (_format: string, entryName: string) => `${entryName}.mjs`,
     },
   },

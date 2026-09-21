@@ -1,4 +1,4 @@
-import { RawSunShadow } from "../../../../packages/battle-renderer/src/world/shadow";
+import { RawSunShadow } from "./world/shadow";
 import {
   shadowPcfWgsl,
   shadowVisibilityWgsl,

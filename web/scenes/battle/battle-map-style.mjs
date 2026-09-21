@@ -239,14 +239,14 @@ async function loadProfile(ctx, page, profile) {
       window.__rendererLabStats?.ok === true &&
       window.__rendererLabStats?.route === "photoreal-battle" &&
       window.__rendererLabStats?.stats?.renderStats?.terrain &&
-      window.__rendererLabStats?.stats?.renderStats?.camera?.camera3d,
+      window.__rendererLabStats?.stats?.renderStats?.preparedCamera?.camera3d,
     undefined,
     { timeout: 180000 },
   );
   await page.waitForTimeout(400);
   await page.evaluate(() => window.__photorealBattleWorld?.settlePresentedFrame?.());
   const stats = await page.evaluate(() => window.__rendererLabStats?.stats?.renderStats ?? null);
-  return { stats, camera3d: stats?.camera?.camera3d ?? null };
+  return { stats, camera3d: stats?.preparedCamera?.camera3d ?? null };
 }
 
 function cameraSummary(camera3d) {
@@ -293,25 +293,25 @@ function assertPhotorealRoute(ctx, stats) {
   const terrain = stats?.terrain;
   ctx.check(
     "vista boots Highland Vale on the photoreal battle route with terrain, scenery, and grass",
-    stats?.renderer === "gpu" &&
+    stats?.substrate === "typegpu" &&
       stats?.projection === "camera3d" &&
-      terrain?.environment?.id === "overcast-foggy" &&
-      terrain?.fixture === "sim-tint" &&
+      stats?.environment === "overcast-highland" &&
+      terrain?.installed === true &&
       terrain?.groundCover === "green-grass" &&
       // Generated maps seal E/W with the vista apron, not per-edge blocker meshes.
-      terrain?.sealedEdges?.includes("generated:vista") &&
+      terrain?.vista?.bands?.some((band) => band.name === "vista") &&
+      terrain?.vista?.bands?.some((band) => band.name === "farFog") &&
       terrain?.groundTriangles > 100000 &&
       terrain?.scenery > 0 &&
-      terrain?.grass?.layer === "photoreal-blade-field" &&
-      terrain?.grass?.recordCount > 0 &&
-      terrain?.grass?.packedStrideFloats === 16 &&
-      terrain?.grass?.sourceStorageCore?.runtimeComputeRoute === "active" &&
+      stats?.grass?.layers?.some((layer) => layer.recordCount > 0) &&
+      stats?.grass?.packedStrideFloats === 16 &&
+      stats?.grass?.layers?.every((layer) => layer.drawIndirect === true) &&
       // Tint/slope rejection counts are focus-dependent (a mid-plain 64 m
       // window has nothing to reject) - eligibility is the data owner's
       // contract, not this boot check's.
-      terrain?.grass?.sample?.acceptedRecords > 0,
+      stats?.grass?.residency?.sample?.acceptedRecords > 0,
     JSON.stringify({
-      renderer: stats?.renderer,
+      substrate: stats?.substrate,
       projection: stats?.projection,
       environment: stats?.environment,
       terrain,
@@ -334,11 +334,12 @@ function assertProductionMidGrassStructure(ctx, crop, stats) {
   ctx.check(
     "production mid-zoom grass keeps the close-gate structure family with looser battle-camera floors",
     Object.values(verdict).every(Boolean) &&
-      stats?.terrain?.grass?.productionSamplingProfile?.fieldCellSize <= 0.42 &&
-      stats?.terrain?.grass?.productionSamplingProfile?.baseWidth >= 0.06 &&
-      stats?.terrain?.grass?.productionSamplingProfile?.baseWidth <= 0.085 &&
-      stats?.terrain?.grass?.tiers?.mid?.segments === 8 &&
-      stats?.terrain?.grass?.transition?.farSoftWidthScale <= 1.6,
+      stats?.grass?.residency?.productionSamplingProfile?.fieldCellSize <= 0.42 &&
+      stats?.grass?.residency?.productionSamplingProfile?.baseWidth >= 0.06 &&
+      stats?.grass?.residency?.productionSamplingProfile?.baseWidth <= 0.085 &&
+      stats?.grass?.residency?.productionSamplingProfile?.tiers?.find((tier) => tier.id === "mid")
+        ?.segments === 8 &&
+      stats?.grass?.residency?.activeTransition?.farSoftWidthScale <= 1.6,
     JSON.stringify({
       verdict,
       // Raw full-resolution edge energy is diagnostic only here: it combines
@@ -350,7 +351,7 @@ function assertProductionMidGrassStructure(ctx, crop, stats) {
       },
       metric,
       oracle: ORACLE,
-      profile: stats?.terrain?.grass?.productionSamplingProfile,
+      profile: stats?.grass?.residency?.productionSamplingProfile,
     }),
   );
 }
@@ -385,8 +386,9 @@ async function assertGrassCoverageAcrossZoomBands(ctx, page) {
       zoom: profile.zoom,
       band,
       transition,
-      activeRecordBudget: loaded.stats?.terrain?.grass?.rebuild?.activeRecordBudget ?? null,
-      recordCount: loaded.stats?.terrain?.grass?.recordCount ?? null,
+      activeRecordBudget: loaded.stats?.grass?.residency?.rebuild?.activeRecordBudget ?? null,
+      recordCount:
+        loaded.stats?.grass?.layers?.reduce((sum, layer) => sum + layer.recordCount, 0) ?? null,
       crop: crop ? { width: crop.width, height: crop.height } : null,
       judgedBand,
       coverage,
@@ -445,7 +447,7 @@ function assertNoHardGrassRingEdge(ctx, image, camera3d, stats, options = {}) {
       maxJump <= 1.15 &&
       (!oldEdge || oldEdge.relative <= 0.72) &&
       (!activeEdge || activeEdge.relative <= 0.82) &&
-      stats?.terrain?.grass?.transitionOwner === "battleGrassField.update" &&
+      stats?.grass?.residency?.transitionOwner === "battleGrassResidency.update" &&
       inRange,
     JSON.stringify({
       bins,
@@ -455,9 +457,9 @@ function assertNoHardGrassRingEdge(ctx, image, camera3d, stats, options = {}) {
       maxJump: round3(maxJump),
       distances,
       expectedFarGrassEndRange: options.farGrassEndRange ?? null,
-      activeTransition: stats?.terrain?.grass?.activeTransition,
-      transition: stats?.terrain?.grass?.transition,
-      tiers: stats?.terrain?.grass?.tiers,
+      activeTransition: stats?.grass?.residency?.activeTransition,
+      transition: stats?.grass?.residency?.activeTransition,
+      tiers: stats?.grass?.residency?.productionSamplingProfile?.tiers,
     }),
   );
 }
@@ -610,7 +612,7 @@ function grassRingProbeDistances(transition) {
 }
 
 function activeGrassTransition(stats) {
-  return stats?.terrain?.grass?.activeTransition ?? stats?.terrain?.grass?.transition ?? null;
+  return stats?.grass?.residency?.activeTransition ?? null;
 }
 
 function distanceBandCrop(image, camera3d, nearM, farM) {

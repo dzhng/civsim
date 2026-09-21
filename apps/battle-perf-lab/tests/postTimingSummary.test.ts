@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { postPassNames, summarizePostSamples } from "../candidates/raw-post/timingSummary";
-import type { NativeGpuEvent } from "../src/nativeGpuTelemetry";
+import type { NativeGpuEvent } from "../../../packages/battle-renderer/src/nativeGpuTelemetry";
 const event = (values: (number | null)[]): NativeGpuEvent => ({
   backend: "raw",
   source: "render-only",

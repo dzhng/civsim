@@ -9,7 +9,7 @@ import { BENCHMARK_AUTHORITY } from "./benchmark/benchmarkAuthority";
 import { BenchmarkRecording } from "./benchmark/benchmarkRecording";
 import { createBenchmarkReport, type BenchmarkIdentity } from "./benchmark/benchmarkReport";
 import { lockBenchmarkInput } from "./benchmark/benchmarkInput";
-import { getGraphicsSettings } from "../shared/graphicsSettings";
+import { resolveGraphicsSettings } from "../shared/graphicsSettings";
 import { BenchmarkRun } from "./benchmark/benchmarkRun";
 import { mountBenchmarkPanel } from "./benchmark/benchmarkPanel";
 import { awaitRendererReady } from "../shared/rendererReady";
@@ -18,7 +18,7 @@ import { mountBattleHud, type BattleHudHandle, type BattleHudState } from "../ui
 import { createHudStore } from "../ui/hudStore";
 import { installBattleDebugApi, type BattleLoopFrameMetrics } from "./battleDebugApi";
 import { createBattleMinimap } from "./battleMinimap";
-import { BattleFreeze } from "./battleFreeze";
+import { BattleFreeze, BattlePresentationBarrier } from "./battleFreeze";
 import { BattleSimTime } from "./battleSimTime";
 import { createBattleHudBridge, mountBattleModals, type BattleHudBridge } from "./battleHudBridge";
 import { createBattleWorld, type BattleConfig } from "./battleWorld";
@@ -136,6 +136,9 @@ function buildBattleScene(
     battleAudio.setSuspended(document.hidden || time.frozen);
   };
   const freeze = new BattleFreeze(time, renderer, syncSuspension, signal);
+  const presentations = new BattlePresentationBarrier(signal);
+  void renderer.ready.catch((error) => presentations.fail(error));
+  cleanups.push(() => presentations.fail(new Error("Battle scene disposed")));
   document.addEventListener("visibilitychange", syncSuspension, { signal });
   syncSuspension();
 
@@ -230,6 +233,7 @@ function buildBattleScene(
   let presentationFailed = false;
   const failPresentation = (error: unknown) => {
     presentationFailed = true;
+    presentations.fail(error);
     const message = error instanceof Error ? error.message : String(error);
     if (benchmark) benchmark.fail(message, performance.now(), sim.tick());
     else showFatalErrorSurface(canvas, fatalSurfaceFor("submission", message));
@@ -307,11 +311,14 @@ function buildBattleScene(
     if (benchmark) {
       if (window.__gpuFatal) benchmark.fail(window.__gpuFatal.detail, now, sim.tick());
       if (!benchmark.active) {
+        presentations.fail(new Error("Benchmark stopped presenting"));
         battleAudio.setSuspended(true);
         return;
       }
       if (time.paused || time.frozen || time.timeScale !== 1) {
-        benchmark.fail("Interrupted — simulation speed or pause changed", now, sim.tick());
+        const interruption = new Error("Interrupted — simulation speed or pause changed");
+        presentations.fail(interruption);
+        benchmark.fail(interruption.message, now, sim.tick());
         return;
       }
     }
@@ -360,7 +367,7 @@ function buildBattleScene(
           dpr: devicePixelRatio,
           initialStateHash: sim.stateHash(),
           soldiers: sim.soldierCount(),
-          graphics: getGraphicsSettings(),
+          graphics: resolveGraphicsSettings(location.search),
         };
       }
     }
@@ -407,6 +414,7 @@ function buildBattleScene(
       camera: captureBattleRenderCamera(camera),
       tacticalLines: orders.tacticalLineFrame(controls.showPaths(), crowd.presented),
     };
+    const presentation = presentations.begin();
     return completeBattlePresentation(
       renderStartedAt,
       signal,
@@ -473,6 +481,7 @@ function buildBattleScene(
           renderWallMs,
           packet.camera,
         );
+        presentations.complete(presentation);
       },
     );
   };
@@ -485,7 +494,13 @@ function buildBattleScene(
     await sim.advanceTo(target);
   };
   const freezeAtTick = (target: number, options: { effects?: boolean } = {}) =>
-    freeze.freezeAtTick(target, advanceTo, orders.tickGroupAttacks, options);
+    freeze.freezeAtTick(
+      target,
+      advanceTo,
+      orders.tickGroupAttacks,
+      () => presentations.waitForNext(),
+      options,
+    );
   installBattleDebugApi({
     audio: battleAudio,
     camera,
@@ -520,7 +535,10 @@ function buildBattleScene(
       selected: () => input.selected.slice(),
       soldierStartOf: controls.soldierStartOf,
       terrainDebug: battleMinimap.terrainDebug,
-      disposeRenderer: world.disposeRenderer,
+      disposeRenderer: () => {
+        presentations.fail(new Error("Battle renderer disposed"));
+        world.disposeRenderer();
+      },
       benchmark: benchmark
         ? { status: () => benchmark.status(), cancel: cancelBenchmark, report: benchmarkReport }
         : undefined,

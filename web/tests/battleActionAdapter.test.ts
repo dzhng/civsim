@@ -1,4 +1,5 @@
-import type { BattleRenderer } from "../src/battle/renderer";
+import type { BattlePresentationReceipt } from "../src/battle/battleRendererApi";
+import type { BattlePresentation, BattleCrowdPresentation } from "../src/battle/battlePresentation";
 // @vitest-environment node
 import { readFile } from "node:fs/promises";
 import { beforeAll, expect, test } from "vitest";
@@ -136,7 +137,7 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
     game.set_move_order(0, 100, 0);
     game.advance_ticks(60);
     const views = createBattleViews(game, wasm.memory);
-    const submitted: Parameters<BattleRenderer["draw"]>[2][] = [];
+    const submitted: BattleCrowdPresentation["playback"][] = [];
     const sim = liveBattleSim(game, wasm.memory);
     const world = {
       sim,
@@ -145,7 +146,16 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
       camera: { zoom: 0 },
       renderer: {
         soldierAssets: { 0: bundle },
-        draw: (...args: Parameters<BattleRenderer["draw"]>) => submitted.push(args[2]),
+        present: (packet: BattlePresentation): BattlePresentationReceipt => {
+          submitted.push(structuredClone(packet.crowd!.playback));
+          return {
+            submitted: true,
+            renderedFrameId: submitted.length,
+            gpuSubmission: null,
+            submittedAtMs: 0,
+            cpuMs: 0,
+          };
+        },
       },
     } as unknown as BattleWorld;
     const presentation = {
@@ -159,16 +169,19 @@ test("production crowd submits distance-driven poses despite contrary ordered pa
       sim.setTick(tick);
       crowd.observeTick(tick);
       const f = crowd.prepare(tick - 1 + alpha, frozen, 0, [])!;
-      (world.renderer as unknown as Pick<BattleRenderer, "draw">).draw(
-        f.positions,
-        f.facings,
-        f.playback,
-        f.alive,
-        f.count,
-        world.camera,
-        f.observationTick,
-        f.frameDt,
-      );
+      world.renderer.present({
+        crowd: f,
+        camera: world.camera,
+        timeSeconds: tick / 30,
+        clock: "wall",
+        fixedTime: frozen ? tick / 30 : null,
+        preserveFrozenEffects: false,
+        tacticalLines: {
+          groundCues: new Float32Array(),
+          rings: new Float32Array(),
+          effects: new Float32Array(),
+        },
+      });
     };
     draw(60, true, 0);
     let measuredDistance = 0;
@@ -225,11 +238,19 @@ test("production crowd preserves delayed positions across append and resets play
     const submitted: { positions: number[]; phase: number }[] = [];
     const renderer = {
       soldierAssets: { 0: bundle },
-      draw: (...args: Parameters<BattleRenderer["draw"]>) =>
+      present: (packet: BattlePresentation): BattlePresentationReceipt => {
         submitted.push({
-          positions: Array.from(args[0]),
-          phase: args[2][0].base.destination.phase,
-        }),
+          positions: Array.from(packet.crowd!.positions),
+          phase: packet.crowd!.playback[0].base.destination.phase,
+        });
+        return {
+          submitted: true,
+          renderedFrameId: submitted.length,
+          gpuSubmission: null,
+          submittedAtMs: 0,
+          cpuMs: 0,
+        };
+      },
     };
     const sim = liveBattleSim(game, wasm.memory);
     const world = {
@@ -250,16 +271,19 @@ test("production crowd preserves delayed positions across append and resets play
       sim.setTick(tick);
       crowd.observeTick(tick);
       const f = crowd.prepare(tick - 1 + alpha, frozen, 0, [])!;
-      (world.renderer as unknown as Pick<BattleRenderer, "draw">).draw(
-        f.positions,
-        f.facings,
-        f.playback,
-        f.alive,
-        f.count,
-        world.camera,
-        f.observationTick,
-        f.frameDt,
-      );
+      world.renderer.present({
+        crowd: f,
+        camera: world.camera,
+        timeSeconds: tick / 30,
+        clock: "wall",
+        fixedTime: frozen ? tick / 30 : null,
+        preserveFrozenEffects: false,
+        tacticalLines: {
+          groundCues: new Float32Array(),
+          rings: new Float32Array(),
+          effects: new Float32Array(),
+        },
+      });
     };
     draw(0, false, 0);
     const initialX = views.positions()[0];

@@ -15,7 +15,7 @@ import {
 } from "../../../../packages/game-renderer/src/battle/readoutData";
 import { readoutWgsl } from "../../../../packages/battle-renderer/src/shaders/readout";
 import { readoutCamera } from "../../../../packages/battle-renderer/src/readoutCamera";
-import { prepareReadouts } from "../readoutPreparation";
+import { prepareReadouts } from "../../../../packages/battle-renderer/src/readoutPreparation";
 import { destroyVgpuTarget } from "./targetLifetime";
 import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 /** Public vgpu allocations/draw encoding; native queue only transfers authored canvas pixels. */

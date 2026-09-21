@@ -4,7 +4,7 @@ import type { BattleTerrainGrid } from "@packages/game-renderer/src/battle/terra
 import {
   coverEdgeCoverage,
   coverEdgeNoise,
-} from "@packages/photoreal-renderer/src/battle/groundDetail";
+} from "../../../packages/game-renderer/src/battle/groundEdgeTelemetry";
 
 export interface BattleGroundEdgeFixture {
   grid: BattleTerrainGrid;

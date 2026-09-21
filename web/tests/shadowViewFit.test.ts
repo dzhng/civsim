@@ -27,7 +27,7 @@ import {
   viewShadowFit,
   type ShadowViewFit,
 } from "@packages/game-renderer/src/battle/shadowPolicy";
-import { configureSunShadows } from "@packages/photoreal-renderer/src/battle/shadowRig";
+import { configureSunShadows } from "./reference/threeShadowRig";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { photorealEnvironment } from "@packages/game-renderer/src/environment/physicalEnvironment";
 import {

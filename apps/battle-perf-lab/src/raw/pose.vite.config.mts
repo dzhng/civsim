@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url";
-import base from "./impostor.vite.config.mts";
+import base from "./pmrem.vite.config.mts";
 export default {
   ...base,
   build: {

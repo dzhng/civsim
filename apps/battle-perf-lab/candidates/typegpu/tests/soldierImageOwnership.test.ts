@@ -3,9 +3,11 @@
 // suites measure is how many decodes and GPU images the owner actually asked
 // for, and that each one is destroyed exactly once. Real allocation on a device
 // is captured by the root's hardware run, not here.
-vi.mock("../imageTexture", () => ({ createTypegpuImageTexture: vi.fn() }));
-import { createTypegpuImageTexture } from "../imageTexture";
-import { createTypegpuSoldierImageOwner } from "../soldierImages";
+vi.mock("../../../../../packages/battle-renderer/src/world/imageTexture", () => ({
+  createTypegpuImageTexture: vi.fn(),
+}));
+import { createTypegpuImageTexture } from "../../../../../packages/battle-renderer/src/world/imageTexture";
+import { createTypegpuSoldierImageOwner } from "../../../../../packages/battle-renderer/src/world/soldierImages";
 import type {
   SoldierSampler,
   SoldierSurface,

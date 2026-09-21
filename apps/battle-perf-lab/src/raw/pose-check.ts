@@ -1,4 +1,4 @@
-import { createTypegpuPosePalette } from "../../candidates/typegpu/posePalette";
+import { createTypegpuPosePalette } from "../../../../packages/battle-renderer/src/world/posePalette";
 import { createVgpuPosePalette } from "../vgpu/posePalette";
 import { bakeLocalAnimation } from "../../../../packages/soldier-assets/src/localAnimation";
 import {

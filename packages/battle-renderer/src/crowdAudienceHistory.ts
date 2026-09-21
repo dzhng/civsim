@@ -9,11 +9,7 @@ import {
   planCrowdLods,
   type CrowdProjectionView,
 } from "../../crowd-runtime/src/visibility";
-import {
-  emptyLodCounts,
-  IMPOSTOR_LEVEL,
-  LOD_COUNT_KEYS,
-} from "../../crowd-runtime/src/lod";
+import { emptyLodCounts, IMPOSTOR_LEVEL, LOD_COUNT_KEYS } from "../../crowd-runtime/src/lod";
 
 /** The pose a history currently has admitted for drawing. `submission` counts
  * admitted poses rather than uploads, so every reader of an admitted crowd names
@@ -27,7 +23,7 @@ export interface AdmittedCrowdPose {
  * advance either LOD history, and no partially uploaded audience may draw. */
 export function createCrowdAudienceHistory(
   assets: Record<number, AppearanceBundle>,
-  atlases: Record<number, ImpostorAtlasData>,
+  atlases: Record<number, ImpostorAtlasData> | null,
 ) {
   const snapshot = new CrowdFrameSnapshot();
   const billboardView = new Float64Array(10);
@@ -54,7 +50,8 @@ export function createCrowdAudienceHistory(
     nextViews = new CrowdViewState();
   const ids = Object.keys(assets).map(Number);
   for (const id of ids)
-    if (!atlases[id]) throw Error(`Missing prepared impostor atlas for appearance ${id}`);
+    if (atlases !== null && !atlases[id])
+      throw Error(`Missing prepared impostor atlas for appearance ${id}`);
   let previous = createCrowdLodBuffers(0),
     next = createCrowdLodBuffers(0),
     previousCount = 0;
@@ -108,6 +105,19 @@ export function createCrowdAudienceHistory(
         previous.shadowLevels.subarray(0, previousCount),
         next,
       );
+      // Authoring catalogs deliberately omit atlases; preserve the planner's
+      // visibility/hysteresis and cap only the drawable mesh tier.
+      if (atlases === null) {
+        plan.counts = emptyLodCounts();
+        plan.shadowCounts = emptyLodCounts();
+        for (let i = 0; i < instances.length; i++) {
+          const lastMesh = assets[instances[i].classId].tiers.length - 1;
+          plan.levels[i] = Math.min(plan.levels[i], lastMesh);
+          plan.shadowLevels[i] = Math.min(plan.shadowLevels[i], lastMesh);
+          plan.counts[LOD_COUNT_KEYS[plan.levels[i]]]++;
+          if (plan.visibility[i] & 2) plan.shadowCounts[LOD_COUNT_KEYS[plan.shadowLevels[i]]]++;
+        }
+      }
       const groups = new Map(ids.map((id) => [id, [] as CrowdInstance[]]));
       for (let i = 0; i < instances.length; i++) {
         const instance = instances[i];

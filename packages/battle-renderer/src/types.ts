@@ -2,7 +2,24 @@
  * verification results it publishes about what it admitted. These belong to
  * no backend: the frontend builds them, and whichever world is installed consumes
  * them unchanged. Terrain, water and environment inputs keep their own owners. */
+import type {
+  BattleGroundCover,
+  BattleSlopeBands,
+} from "../../game-renderer/src/battle/terrainFeatures";
+import type { BattleVistaBand } from "../../game-renderer/src/battle/vistaSurface";
 import type { Camera3DParams } from "../../renderer-core/src/camera3d";
+
+export interface BattleWaterContent {
+  draws: number;
+  triangles: number;
+  /** Surfaces with admitted vertex/index buffers; omitted geometries never appear. */
+  surfaces: readonly {
+    kind: "lake" | "ocean";
+    level: number;
+    surfaceLevel: number;
+    triangles: number;
+  }[];
+}
 
 /** Immutable per-frame battle camera: chart zoom plus the canonical 3D params. */
 export interface BattleCameraSnapshot {
@@ -33,10 +50,16 @@ export interface BattleTerrainSceneContent {
   generation: number;
   /** A staged generation is in flight over the one described here. */
   replacing: boolean;
+  /** Triangles in the installed playable ground index buffer, excluding the vista. */
+  groundTriangles: number | null;
   scenery: number | null;
   /** Opaque and transparent vista rings together. */
   vistaBands: number | null;
-  water: { draws: number; triangles: number } | null;
+  groundCover: BattleGroundCover | null;
+  groundStyle: "clay" | "beauty" | null;
+  slopeBands: BattleSlopeBands | null;
+  vista: { shape: string; bands: Omit<BattleVistaBand, "height" | "water">[] } | null;
+  water: BattleWaterContent | null;
 }
 
 /** What each tactical-cue owner reports about its own last upload. `debugBlocks`

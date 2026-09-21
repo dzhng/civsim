@@ -25,14 +25,14 @@ export interface BattleRendererDisposeHook {
   dispose(): void;
 }
 
-/** CPU-side object counts reported by the source three.js runtime: live Geometry
- * and Texture instances and compiled program records. These are not GPU buffer,
- * texture or pipeline counts, and a backend without those object tables reports
- * null rather than substituting a different measurement. */
+/** Requested WebGPU allocations; not a physical VRAM measurement. */
 export interface BattleRendererMemoryInfo {
-  geometries: number;
+  scope: "requested-webgpu-resources";
+  buffers: number;
   textures: number;
-  programs: number | null;
+  bufferBytes: number | null;
+  textureBytes: number | null;
+  totalBytes: number | null;
 }
 
 export interface BattleSubmissionIdentity {

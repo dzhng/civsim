@@ -1,11 +1,14 @@
 import { nativeGpuScope } from "../../../../packages/battle-renderer/src/gpuScope";
-import { createSceneLifecycle } from "../sceneLifecycle";
+import { createSceneLifecycle } from "../../../../packages/battle-renderer/src/sceneLifecycle";
 import { beginGpuAdmission } from "../../../../packages/battle-renderer/src/gpuAdmission";
 import { frame, target, type Gpu, type FramePass, type Frame, type Target } from "vgpu";
 import type { VgpuEnvironment } from "./environment";
 import { createVgpuPost } from "./post";
 import { destroyVgpuTarget } from "./targetLifetime";
-import { frameCamera, type FrameCameraSnapshot } from "../../../../packages/battle-renderer/src/frameCamera";
+import {
+  frameCamera,
+  type FrameCameraSnapshot,
+} from "../../../../packages/battle-renderer/src/frameCamera";
 import type { BattlePostGradeUniforms } from "../../../../packages/game-renderer/src/environment/postParameters";
 /** Frame/Target own scene/post encoding; pose dispatches precede this frame through vgpu's public API. */
 export class VgpuBattleFrame {

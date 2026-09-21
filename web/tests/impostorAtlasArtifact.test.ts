@@ -115,7 +115,7 @@ test("cache identity follows posed geometry, authored properties and image bytes
 
 test("typed texture uploads isolate packed views while preserving exact buffer bytes", async () => {
   const { typegpuTextureBytes } =
-    await import("../../apps/battle-perf-lab/candidates/typegpu/textureUpload");
+    await import("../../packages/battle-renderer/src/world/textureUpload");
   const packed = new Uint8Array([9, 8, 7, 6, 5, 4]);
   const slice = typegpuTextureBytes(packed.subarray(2, 5));
   expect([...new Uint8Array(slice.buffer)]).toEqual([7, 6, 5]);

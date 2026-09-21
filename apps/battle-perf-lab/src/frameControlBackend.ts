@@ -1,8 +1,8 @@
 import { checkSceneryGrowthLifetime } from "./sceneryLifetimeCheck";
-import { createTypegpuScenery } from "../candidates/typegpu/scenery";
+import { createTypegpuScenery } from "../../../packages/battle-renderer/src/world/scenery";
 import { createVgpuScenery } from "./vgpu/scenery";
 import type { CampaignSceneryInstance } from "../../../packages/game-renderer/src/campaign/sceneryPass";
-import { createTypegpuSunShadow } from "../candidates/typegpu/shadow";
+import { createTypegpuSunShadow } from "../../../packages/battle-renderer/src/world/shadow";
 import { createVgpuSunShadow } from "./vgpu/shadow";
 import { tgpu } from "typegpu";
 import { initFromDevice, target } from "vgpu";
@@ -13,10 +13,10 @@ import type { CrowdInstance } from "../../../packages/crowd-runtime/src/instance
 import type { CrowdAudiencePlan } from "../../../packages/battle-renderer/src/crowdData";
 import type { PhotorealBattleGroundMesh } from "../../../packages/game-renderer/src/battle/groundPass";
 import type { FrameCameraSnapshot } from "../../../packages/battle-renderer/src/frameCamera";
-import { createTypegpuEnvironment } from "../candidates/typegpu/environment";
-import { createTypegpuCrowd } from "../candidates/typegpu/crowd";
-import { createTypegpuTerrain } from "../candidates/typegpu/terrain";
-import { TypegpuBattleFrame } from "../candidates/typegpu/frame";
+import { createTypegpuEnvironment } from "../../../packages/battle-renderer/src/world/environment";
+import { createTypegpuCrowd } from "../../../packages/battle-renderer/src/world/crowd";
+import { createTypegpuTerrain } from "../../../packages/battle-renderer/src/world/terrain";
+import { TypegpuBattleFrame } from "../../../packages/battle-renderer/src/world/frame";
 import { createVgpuEnvironment } from "./vgpu/environment";
 import { createVgpuCrowd } from "./vgpu/crowd";
 import { createVgpuTerrain } from "./vgpu/terrain";

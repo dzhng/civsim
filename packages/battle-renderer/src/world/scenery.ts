@@ -1,199 +1,307 @@
+import { battleWorldDepth } from "../worldDepth";
 import { beginGpuAdmission } from "../gpuAdmission";
+import { tgpu, d, type TgpuRenderPass, type TgpuBindGroup } from "typegpu";
 import {
   BATTLE_SCENERY_KINDS,
   packBattleScenery,
 } from "../../../game-renderer/src/battle/sceneryData";
-import {
-  SCENERY_PROP_MODELS,
-  type SceneryPropId,
-} from "../../../game-renderer/src/models/shared/sceneryPropRegistry";
+import { SCENERY_PROP_MODELS } from "../../../game-renderer/src/models/shared/sceneryPropRegistry";
 import { buildLeafAtlas } from "../../../game-renderer/src/models/shared/leafAtlas";
 import type { CampaignSceneryInstance } from "../../../game-renderer/src/campaign/sceneryPass";
-import { uploadImageTexture } from "../../../renderer-core/src/imageTexture";
-import {
-  GrowableBuffer,
-  makeVertexBuffer,
-  makeIndexBuffer,
-} from "../../../renderer-core/src/gpuBuffers";
-import { sceneryShader } from "../shaders/scenery";
-import type { RawEnvironment } from "./environment";
-import { battleWorldDepth } from "../worldDepth";
-
-/** Battle trees and rocks use the shared authored opaque mesh for beauty and
- * source-equivalent directional casting. Devices/camera/environment remain borrowed. */
-export async function createRawScenery(
+import { sceneryVertexBodyWgsl, sceneryLeafBodyWgsl } from "../shaders/scenery";
+import { createTypegpuImageTexture } from "./imageTexture";
+import { typegpuCameraLayout } from "./camera";
+import type { TypegpuEnvironment } from "./environment";
+const leafLayout = tgpu
+  .bindGroupLayout({ leaf: { texture: d.texture2d() }, leafSampler: { sampler: "filtering" } })
+  .$idx(1);
+const meshLayout = tgpu.vertexLayout(
+  d.disarrayOf(d.unstruct({ p: d.vec3f, n: d.vec3f, color: d.vec4f })),
+);
+const uvLayout = tgpu.vertexLayout(d.disarrayOf(d.vec2f));
+const poseLayout = tgpu.vertexLayout(d.disarrayOf(d.vec4f), "instance"),
+  styleLayout = tgpu.vertexLayout(d.disarrayOf(d.vec4f), "instance");
+const V = d.struct({
+  clip: d.vec4f,
+  world: d.vec3f,
+  normal: d.vec3f,
+  color: d.vec4f,
+  uv: d.vec2f,
+  shade: d.f32,
+  geometryNormalView: d.vec3f,
+});
+const varying = { ...V.propTypes, clip: d.builtin.position };
+/** Typed geometry, mip preparation and beauty/caster pipelines; frame resources are borrowed. */
+export async function createTypegpuScenery(
   device: GPUDevice,
-  cameraLayout: GPUBindGroupLayout,
-  environment: RawEnvironment,
+  camera: TgpuBindGroup,
+  environment: TypegpuEnvironment,
   samples: 1 | 4,
 ) {
+  const root = tgpu.initFromDevice({ device });
   const releases: (() => void)[] = [];
+  const pending = new Set<{ destroy(): void }>();
   let disposed = false;
-  const own = <T extends { dispose(): void } | { destroy(): void }>(r: T): T => {
-    releases.push(() => ("dispose" in r ? r.dispose() : r.destroy()));
-    return r;
-  };
-  const assertLive = () => {
-    if (disposed) throw Error("Scenery is disposed");
-  };
   const dispose = () => {
     if (disposed) return;
     disposed = true;
-    for (const release of releases.reverse()) release();
+    for (const resource of pending) resource.destroy();
+    pending.clear();
+    for (const f of releases.reverse()) f();
+    root.destroy();
   };
-  let finish: ReturnType<typeof beginGpuAdmission> | undefined;
-  let pipelinesReady: Promise<[GPURenderPipeline, GPURenderPipeline]> | undefined;
+  const own = <T extends { destroy(): void }>(r: T) => {
+    releases.push(() => r.destroy());
+    return r;
+  };
   try {
     const atlas = buildLeafAtlas();
-    const leaf = own(
-      await uploadImageTexture(
-        device,
-        { width: atlas.width, height: atlas.height, data: atlas.rgba },
-        { colorSpace: "linear", generateMipmaps: true },
-      ),
+    const leaf = await createTypegpuImageTexture(
+      device,
+      { width: atlas.width, height: atlas.height, data: atlas.rgba },
+      { colorSpace: "linear", generateMipmaps: true },
     );
-    finish = beginGpuAdmission(device);
-    const leafSampler = device.createSampler({
+    releases.push(leaf.dispose);
+    const leafSampler = root.createSampler({
       magFilter: "linear",
       minFilter: "linear",
       mipmapFilter: "linear",
     });
-    const leafLayout = device.createBindGroupLayout({
-      entries: [
-        { binding: 0, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: "float" } },
-        { binding: 1, visibility: GPUShaderStage.FRAGMENT, sampler: { type: "filtering" } },
-      ],
+    const leafGroup = root.createBindGroup(leafLayout, {
+      leaf: leaf.texture.createView(),
+      leafSampler,
     });
-    const leafGroup = device.createBindGroup({
-      layout: leafLayout,
-      entries: [
-        { binding: 0, resource: leaf.createView() },
-        { binding: 1, resource: leafSampler },
-      ],
-    });
-    const emptyLayout = device.createBindGroupLayout({ entries: [] }),
-      emptyGroup = device.createBindGroup({ layout: emptyLayout, entries: [] });
-    const layout = (light: GPUBindGroupLayout) =>
-      device.createPipelineLayout({
-        bindGroupLayouts: [cameraLayout, leafLayout, emptyLayout, light],
+    const projectWorld = tgpu
+      .fn(
+        [d.vec3f],
+        d.vec4f,
+      )("(world:vec3f)->vec4f{return cam.viewProj*vec4f(world,1);}")
+      .$uses({
+        get cam() {
+          return typegpuCameraLayout.$.cam;
+        },
       });
-    const module = device.createShaderModule({
-      code: sceneryShader(environment.shader, environment.shadows),
-    });
-    const vertex: GPUVertexState = {
-      module,
-      entryPoint: "vertex",
-      buffers: [
-        {
-          arrayStride: 40,
-          attributes: [
-            { shaderLocation: 0, offset: 0, format: "float32x3" },
-            { shaderLocation: 1, offset: 12, format: "float32x3" },
-            { shaderLocation: 2, offset: 24, format: "float32x4" },
-          ],
-        },
-        { arrayStride: 8, attributes: [{ shaderLocation: 3, offset: 0, format: "float32x2" }] },
-        {
-          arrayStride: 16,
-          stepMode: "instance",
-          attributes: [{ shaderLocation: 4, offset: 0, format: "float32x4" }],
-        },
-        {
-          arrayStride: 16,
-          stepMode: "instance",
-          attributes: [{ shaderLocation: 5, offset: 0, format: "float32x4" }],
-        },
-      ],
+    const vertexFor = (
+      layout: TypegpuEnvironment["layout"] | TypegpuEnvironment["casterLayout"],
+    ) => {
+      const algorithm = tgpu
+        .fn(
+          [d.vec3f, d.vec3f, d.vec4f, d.vec2f, d.vec4f, d.vec4f],
+          V,
+        )(
+          `(p:vec3f,n:vec3f,color:vec4f,uv:vec2f,pose:vec4f,style:vec4f)->V{${sceneryVertexBodyWgsl}}`,
+        )
+        .$uses({
+          V,
+          projectWorld,
+          get environment() {
+            return layout.$.data;
+          },
+        });
+      return tgpu.vertexFn({
+        in: { p: d.vec3f, n: d.vec3f, color: d.vec4f, uv: d.vec2f, pose: d.vec4f, style: d.vec4f },
+        out: varying,
+      })((v) => {
+        "use gpu";
+        const r = algorithm(v.p, v.n, v.color, v.uv, v.pose, v.style);
+        return {
+          clip: r.clip,
+          world: r.world,
+          normal: r.normal,
+          color: r.color,
+          uv: r.uv,
+          shade: r.shade,
+          geometryNormalView: r.geometryNormalView,
+        };
+      });
     };
-    const shared = {
-      vertex,
+    const leafColor = tgpu
+      .fn(
+        [V],
+        d.vec4f,
+      )(`(v:V)->vec4f{${sceneryLeafBodyWgsl}}`)
+      .$uses({
+        V,
+        get leaf() {
+          return leafLayout.$.leaf;
+        },
+        get leafSampler() {
+          return leafLayout.$.leafSampler;
+        },
+      });
+    const shade = tgpu
+      .fn(
+        [V],
+        d.vec4f,
+      )(
+        `(v:V)->vec4f{let color=leafColor(v);let lit=shadeWorldSurface(color.rgb,vec3f(0),0.9,geometryRoughnessFromView(v.geometryNormalView),0,1,normalize(v.normal),v.world,${environment.shadows ? "sampleSunShadow(v.world,normalize(v.normal),v.clip.xy)" : "1.0"},cam.eye);return vec4f(lit.rgb,1);}`,
+      )
+      .$uses({
+        V,
+        leafColor,
+        shadeWorldSurface: environment.shade,
+        geometryRoughnessFromView: environment.geometryRoughnessFromView,
+        sampleSunShadow: environment.sampleSunShadow,
+        get cam() {
+          return typegpuCameraLayout.$.cam;
+        },
+      });
+    const fragment = tgpu.fragmentFn({ in: varying, out: d.vec4f })((v) => {
+      "use gpu";
+      return shade(
+        V({
+          clip: v.clip,
+          world: v.world,
+          normal: v.normal,
+          color: v.color,
+          uv: v.uv,
+          shade: v.shade,
+          geometryNormalView: v.geometryNormalView,
+        }),
+      );
+    });
+    const casterAlgorithm = tgpu.fn(
+      [d.f32],
+      d.vec4f,
+    )("(alpha:f32)->vec4f{if(alpha<=0.5){discard;}return vec4f(0);}");
+    const state = {
+      attribs: {
+        ...meshLayout.attrib,
+        uv: uvLayout.attrib,
+        pose: poseLayout.attrib,
+        style: styleLayout.attrib,
+      },
       primitive: { cullMode: "none" as const },
       depthStencil: battleWorldDepth("read-write"),
     };
-    const beautyReady = device.createRenderPipelineAsync({
-      ...shared,
-      layout: layout(environment.layout),
+    const beauty = root.createRenderPipeline({
+      ...state,
+      vertex: vertexFor(environment.layout),
+      fragment,
+      targets: { format: "rgba16float" },
       multisample: { count: samples },
-      fragment: { module, entryPoint: "fragment", targets: [{ format: "rgba16float" }] },
     });
-    const shadowReady = device.createRenderPipelineAsync({
-      ...shared,
-      layout: layout(environment.casterLayout),
-      fragment: { module, entryPoint: "shadowFragment", targets: [] },
+    // Pinned TypeGPU cannot emit an empty fragment output. Forward rasterized depth
+    // through its public depth builtin while retaining source vertex-alpha discard.
+    const depthFragment = tgpu.fragmentFn({ in: varying, out: { depth: d.builtin.fragDepth } })((
+      v,
+    ) => {
+      "use gpu";
+      casterAlgorithm(v.color.a);
+      return { depth: v.clip.z };
     });
-    pipelinesReady = Promise.all([beautyReady, shadowReady]);
-    const buckets = new Map<
-      SceneryPropId,
-      {
-        vertices: GPUBuffer;
-        uvs: GPUBuffer;
-        indices: GPUBuffer;
-        indexCount: number;
-        pose: GrowableBuffer;
-        style: GrowableBuffer;
-        count: number;
-      }
-    >();
+    const shadow = root.createRenderPipeline({
+      ...state,
+      vertex: vertexFor(environment.casterLayout),
+      fragment: depthFragment,
+      targets: {},
+    });
+    await Promise.all([beauty.initAsync(), shadow.initAsync()]);
+    const buckets: {
+      upload(instances: readonly CampaignSceneryInstance[]): Promise<void>;
+      draw(pass: TgpuRenderPass, cam: TgpuBindGroup, audience: "main" | "shadow"): void;
+      readonly count: number;
+    }[] = [];
     for (const kind of BATTLE_SCENERY_KINDS) {
       const model = SCENERY_PROP_MODELS[kind].build().opaque;
-      buckets.set(kind, {
-        vertices: own(makeVertexBuffer(device, `scenery ${kind} vertices`, model.vertices)),
-        uvs: own(
-          makeVertexBuffer(
-            device,
-            `scenery ${kind} UV`,
-            model.uvs ?? new Float32Array((model.vertices.length / 10) * 2).fill(-1),
-          ),
-        ),
-        indices: own(makeIndexBuffer(device, `scenery ${kind} indices`, model.indices)),
-        indexCount: model.indices.length,
-        pose: own(new GrowableBuffer(device, `scenery ${kind} pose`, GPUBufferUsage.VERTEX, 16)),
-        style: own(new GrowableBuffer(device, `scenery ${kind} style`, GPUBufferUsage.VERTEX, 16)),
-        count: 0,
+      const vertices = own(
+        root.createBuffer(meshLayout.schemaForCount(model.vertices.length / 10)).$usage("vertex"),
+      );
+      vertices.write(model.vertices.slice().buffer);
+      const uvs = own(
+        root.createBuffer(uvLayout.schemaForCount(model.vertices.length / 10)).$usage("vertex"),
+      );
+      uvs.write(
+        (model.uvs ?? new Float32Array((model.vertices.length / 10) * 2).fill(-1)).slice().buffer,
+      );
+      const indices = own(
+        root.createBuffer(d.arrayOf(d.u32, model.indices.length)).$usage("index"),
+      );
+      indices.write(Uint32Array.from(model.indices).buffer);
+      let capacity = 1,
+        count = 0,
+        pose = root.createBuffer(poseLayout.schemaForCount(1)).$usage("vertex"),
+        style = root.createBuffer(styleLayout.schemaForCount(1)).$usage("vertex");
+      releases.push(() => {
+        pose.destroy();
+        style.destroy();
+      });
+      buckets.push({
+        async upload(instances: readonly CampaignSceneryInstance[]) {
+          const data = packBattleScenery(kind, instances);
+          if (data.count > capacity) {
+            const n = 2 ** Math.ceil(Math.log2(data.count));
+            const finish = beginGpuAdmission(device);
+            const nextPose = root.createBuffer(poseLayout.schemaForCount(n)).$usage("vertex");
+            const nextStyle = root.createBuffer(styleLayout.schemaForCount(n)).$usage("vertex");
+            pending.add(nextPose);
+            pending.add(nextStyle);
+            try {
+              root.unwrap(nextPose);
+              root.unwrap(nextStyle);
+              await finish();
+              if (disposed) throw Error("TypeGPU scenery disposed during growth");
+              pose.destroy();
+              style.destroy();
+              pose = nextPose;
+              style = nextStyle;
+              capacity = n;
+              pending.delete(nextPose);
+              pending.delete(nextStyle);
+            } catch (error) {
+              nextPose.destroy();
+              nextStyle.destroy();
+              pending.delete(nextPose);
+              pending.delete(nextStyle);
+              await finish();
+              throw error;
+            }
+          }
+          count = data.count;
+          if (count) {
+            pose.write(data.pose.buffer);
+            style.write(data.style.buffer);
+          }
+        },
+        draw(pass: TgpuRenderPass, cam: TgpuBindGroup, audience: "main" | "shadow") {
+          if (!count) return;
+          let pipe =
+            audience === "main"
+              ? beauty.with(leafGroup).with(environment.group)
+              : shadow.with(environment.casterGroup);
+          pipe
+            .with(cam)
+            .with(meshLayout, vertices)
+            .with(uvLayout, uvs)
+            .with(poseLayout, pose)
+            .with(styleLayout, style)
+            .withIndexBuffer(indices)
+            .with(pass)
+            .drawIndexed(model.indices.length, count);
+        },
+        get count() {
+          return count;
+        },
       });
     }
-    const [, [beauty, shadow]] = await Promise.all([finish(), pipelinesReady]);
-    let count = 0;
     return {
-      upload(instances: readonly CampaignSceneryInstance[]) {
-        assertLive();
-        count = 0;
-        for (const [kind, bucket] of buckets) {
-          const data = packBattleScenery(kind, instances);
-          bucket.pose.write(data.pose);
-          bucket.style.write(data.style);
-          bucket.count = data.count;
-          count += data.count;
-        }
+      async upload(instances: readonly CampaignSceneryInstance[]) {
+        if (disposed) throw Error("TypeGPU scenery disposed");
+        for (const b of buckets) await b.upload(instances);
       },
-      draw(pass: GPURenderPassEncoder, camera: GPUBindGroup, audience: "main" | "shadow" = "main") {
-        assertLive();
-        if (!count) return;
-        pass.setPipeline(audience === "main" ? beauty : shadow);
-        pass.setBindGroup(0, camera);
-        pass.setBindGroup(1, leafGroup);
-        pass.setBindGroup(2, emptyGroup);
-        pass.setBindGroup(
-          3,
-          audience === "main" ? environment.bindGroup : environment.casterBindGroup,
-        );
-        for (const bucket of buckets.values()) {
-          if (!bucket.count) continue;
-          pass.setVertexBuffer(0, bucket.vertices);
-          pass.setVertexBuffer(1, bucket.uvs);
-          pass.setVertexBuffer(2, bucket.pose.buffer);
-          pass.setVertexBuffer(3, bucket.style.buffer);
-          pass.setIndexBuffer(bucket.indices, "uint16");
-          pass.drawIndexed(bucket.indexCount, bucket.count);
-        }
+      draw(
+        pass: TgpuRenderPass,
+        cam: TgpuBindGroup = camera,
+        audience: "main" | "shadow" = "main",
+      ) {
+        if (disposed) throw Error("TypeGPU scenery disposed");
+        for (const b of buckets) b.draw(pass, cam, audience);
       },
-      stats: () => ({ scenery: count }),
+      stats: () => ({ scenery: buckets.reduce((n, b) => n + b.count, 0) }),
       dispose,
     };
-  } catch (error) {
-    const settled = Promise.allSettled([finish?.(), pipelinesReady]);
+  } catch (e) {
     dispose();
-    await settled;
-    throw error;
+    throw e;
   }
 }

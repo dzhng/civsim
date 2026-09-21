@@ -1,5 +1,5 @@
 import { decodeReplayPoses, decodeReplayText, hashReplayBlob } from "./replayArchive";
-import type { CapturedReplayFrame } from "./CaptureBattleRenderer";
+import type { CapturedReplayFrame } from "./captureData";
 import type { GrassRecordReference } from "./grassRecordChunks";
 
 /** One packet owns its decoded poses; callers finish presentation before decoding another. */

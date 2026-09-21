@@ -1,4 +1,4 @@
-import { createTypegpuSky } from "./sky";
+import { createTypegpuSky } from "../../../../packages/battle-renderer/src/world/sky";
 import { runSkyNumericalCheck, SKY_CHECK_SIZE } from "../../src/skyNumericalCheck";
 
 const report = await runSkyNumericalCheck(async (device, params) => {

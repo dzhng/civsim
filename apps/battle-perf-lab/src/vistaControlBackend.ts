@@ -4,9 +4,9 @@ import type { CivsimEnvironment } from "../../../packages/game-renderer/src/envi
 import type { BattlePostGradeUniforms } from "../../../packages/game-renderer/src/environment/postParameters";
 import type { buildBattleTerrainData } from "../../../packages/game-renderer/src/battle/terrainSceneData";
 import type { FrameCameraSnapshot } from "../../../packages/battle-renderer/src/frameCamera";
-import { createTypegpuEnvironment } from "../candidates/typegpu/environment";
-import { createTypegpuTerrain } from "../candidates/typegpu/terrain";
-import { TypegpuBattleFrame } from "../candidates/typegpu/frame";
+import { createTypegpuEnvironment } from "../../../packages/battle-renderer/src/world/environment";
+import { createTypegpuTerrain } from "../../../packages/battle-renderer/src/world/terrain";
+import { TypegpuBattleFrame } from "../../../packages/battle-renderer/src/world/frame";
 import { createVgpuEnvironment } from "./vgpu/environment";
 import { createVgpuTerrain } from "./vgpu/terrain";
 import { VgpuBattleFrame } from "./vgpu/frame";

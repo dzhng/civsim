@@ -1,253 +1,265 @@
-import {
-  grassUniformData,
-  GRASS_UNIFORM_BYTES,
-  type GrassFrame,
-  type GrassGeometry,
-} from "../grassData";
-import type { GrassRecordEdit } from "../../../game-renderer/src/battle/grassFocusTiles";
-import { grassRoutingShader, grassDrawShader } from "../shaders/grassPasses";
-import type { RawEnvironment } from "./environment";
 import { battleWorldDepth } from "../worldDepth";
-
-/** Published records and exact source geometry are inputs; no CPU placement/residency owner here.
- * Device/camera/environment/attachments are borrowed. GPU append order is never reordered. */
-export async function createRawGrass(
+import {
+  tgpu,
+  d,
+  std,
+  type TgpuCommandEncoder,
+  type TgpuRenderCommands,
+  type TgpuBindGroup,
+} from "typegpu";
+import { readU32Buffer } from "../bufferReadback";
+import { beginGpuAdmission } from "../gpuAdmission";
+import { grassUniformData, type GrassFrame, type GrassGeometry } from "../grassData";
+import type { GrassRecordEdit } from "../../../game-renderer/src/battle/grassFocusTiles";
+import {
+  GrassRecord,
+  GrassParams,
+  grassTier,
+  grassVertex,
+  grassLinear,
+  grassEmissive,
+} from "./grassFunctions";
+import { typegpuCameraLayout } from "./camera";
+import type { TypegpuEnvironment } from "./environment";
+const Command = d.struct({
+  indexCount: d.u32,
+  instanceCount: d.atomic(d.u32),
+  firstIndex: d.u32,
+  baseVertex: d.i32,
+  firstInstance: d.u32,
+});
+const routing = tgpu.bindGroupLayout({
+  records: { storage: d.arrayOf(GrassRecord) },
+  params: { uniform: GrassParams },
+  commands: { storage: d.arrayOf(Command, 3), access: "mutable" },
+  nearList: { storage: d.arrayOf(d.u32), access: "mutable" },
+  midList: { storage: d.arrayOf(d.u32), access: "mutable" },
+  farList: { storage: d.arrayOf(d.u32), access: "mutable" },
+  active: { uniform: d.vec4u },
+});
+const recordsLayout = tgpu
+  .bindGroupLayout({
+    records: { storage: d.arrayOf(GrassRecord), visibility: ["vertex"] },
+    visible: { storage: d.arrayOf(d.u32), visibility: ["vertex"] },
+  })
+  .$idx(1);
+const paramsLayout = tgpu
+  .bindGroupLayout({ grass: { uniform: GrassParams, visibility: ["vertex", "fragment"] } })
+  .$idx(2);
+const geometry = tgpu.vertexLayout(d.disarrayOf(d.vec3f));
+const fragmentIn = { world: d.vec3f, normal: d.vec3f, albedo: d.vec3f, weights: d.vec2f };
+const vertex = tgpu.vertexFn({
+  in: { local: d.vec3f, instance: d.builtin.instanceIndex },
+  out: {
+    // 0.12.5 exposes invariant(), but vertexFn omits its decorated builtin from the input union.
+    position: d.invariant(d.builtin.position) as d.Decorated<d.Vec4f> as typeof d.builtin.position,
+    ...fragmentIn,
+  },
+})((input) => {
+  "use gpu";
+  const v = grassVertex(
+    recordsLayout.$.records[recordsLayout.$.visible[input.instance]],
+    input.local,
+    paramsLayout.$.grass,
+    typegpuCameraLayout.$.cam.eye,
+    paramsLayout.$.grass.view,
+  );
+  return {
+    position: std.mul(typegpuCameraLayout.$.cam.viewProj, d.vec4f(v.world, 1)),
+    world: v.world,
+    normal: v.normal,
+    albedo: v.albedo,
+    weights: v.lightWeights,
+  };
+});
+function bytes(v: ArrayBufferView): ArrayBuffer {
+  if (v.buffer instanceof ArrayBuffer && v.byteOffset === 0 && v.byteLength === v.buffer.byteLength)
+    return v.buffer;
+  return new Uint8Array(v.buffer, v.byteOffset, v.byteLength).slice().buffer;
+}
+/** TypeGPU owns every allocation, pipeline and command; camera/environment/encoder are borrowed. */
+export async function createTypegpuGrass(
   device: GPUDevice,
-  cameraLayout: GPUBindGroupLayout,
-  environment: RawEnvironment,
-  records: Float32Array,
+  environment: TypegpuEnvironment,
   tiers: readonly GrassGeometry[],
-  format: GPUTextureFormat = "rgba16float",
   sampleCount: 1 | 4 = 1,
 ) {
-  if (records.length % 16 !== 0 || tiers.length !== 3)
-    throw new Error("Grass expects packed records and all three source tiers");
-  const owned = new Set<GPUBuffer>();
-  let disposed = false;
-  const buffer = (
-    size: number,
-    usage: GPUBufferUsageFlags,
-    data?: ArrayBufferView<ArrayBufferLike>,
-  ) => {
-    const b = device.createBuffer({ size, usage, mappedAtCreation: !!data });
-    try {
-      if (data) {
-        new Uint8Array(b.getMappedRange()).set(
-          new Uint8Array(data.buffer, data.byteOffset, data.byteLength),
-        );
-        b.unmap();
-      }
-    } catch (error) {
-      b.destroy();
-      throw error;
-    }
-    owned.add(b);
-    return b;
+  if (tiers.length !== 3) throw Error("Grass requires all three tiers");
+  const root = tgpu.initFromDevice({ device }),
+    owned = new Set<{ destroy(): void }>();
+  const own = <T extends { destroy(): void }>(r: T) => {
+    owned.add(r);
+    return r;
+  };
+  let disposed = false,
+    count = 0,
+    capacity = 1;
+  const check = () => {
+    if (disposed) throw Error("TypeGPU grass disposed");
   };
   const dispose = () => {
     if (disposed) return;
     disposed = true;
     for (const b of owned) b.destroy();
+    root.destroy();
   };
+  const admission = beginGpuAdmission(device);
   try {
-    let recordCount = records.length / 16;
-    let capacity = Math.max(1, recordCount);
-    let packed = buffer(
-      capacity * 64,
-      GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-      records.length ? records : undefined,
-    );
-    const activeCount = buffer(
-      16,
-      GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      new Uint32Array([recordCount, 0, 0, 0]),
-    );
-    const params = buffer(GRASS_UNIFORM_BYTES, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST);
-    const commands = buffer(
-      60,
-      GPUBufferUsage.STORAGE | GPUBufferUsage.INDIRECT | GPUBufferUsage.COPY_SRC,
-    );
-    let visible = tiers.map(() =>
-      buffer(capacity * 4, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC),
-    );
-    const vertices = tiers.map((t) =>
-      buffer(t.positions.byteLength, GPUBufferUsage.VERTEX, t.positions),
-    );
-    const indices = tiers.map((t) => buffer(t.indices.byteLength, GPUBufferUsage.INDEX, t.indices));
-    const routeModule = device.createShaderModule({
-      code: grassRoutingShader(tiers.map((t) => t.indices.length)),
-    });
-    const routeLayout = device.createBindGroupLayout({
-      entries: [
-        { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" } },
-        { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform" } },
-        { binding: 6, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform" } },
-        ...[2, 3, 4, 5].map((binding) => ({
-          binding,
-          visibility: GPUShaderStage.COMPUTE,
-          buffer: { type: "storage" as const },
-        })),
-      ],
-    });
-    const makeRoutingGroup = (source: GPUBuffer, lists: GPUBuffer[]) =>
-      device.createBindGroup({
-        layout: routeLayout,
-        entries: [source, params, commands, ...lists, activeCount].map((b, binding) => ({
-          binding,
-          resource: { buffer: b },
-        })),
-      });
-    let routingGroup = makeRoutingGroup(packed, visible);
-    const setLiveCount = (count: number) => {
-      recordCount = count;
-      device.queue.writeBuffer(activeCount, 0, new Uint32Array([count, 0, 0, 0]));
+    const params = own(root.createBuffer(GrassParams).$usage("uniform"));
+    const active = own(root.createBuffer(d.vec4u).$usage("uniform"));
+    active.write(d.vec4u(0));
+    const commands = own(root.createBuffer(d.arrayOf(Command, 3)).$usage("storage", "indirect"));
+    const paramsGroup = root.createBindGroup(paramsLayout, { grass: params });
+    const allocate = (n: number) => {
+      const added: { destroy(): void }[] = [];
+      try {
+        const records = own(root.createBuffer(d.arrayOf(GrassRecord, n)).$usage("storage"));
+        added.push(records);
+        const visible = Array.from({ length: 3 }, () => {
+          const b = own(root.createBuffer(d.arrayOf(d.u32, n)).$usage("storage"));
+          added.push(b);
+          return b;
+        });
+        return {
+          records,
+          visible,
+          added,
+          groups: visible.map((v) => root.createBindGroup(recordsLayout, { records, visible: v })),
+          routeGroup: root.createBindGroup(routing, {
+            records,
+            params,
+            commands,
+            nearList: visible[0],
+            midList: visible[1],
+            farList: visible[2],
+            active,
+          }),
+        };
+      } catch (error) {
+        for (const b of added) {
+          b.destroy();
+          owned.delete(b);
+        }
+        throw error;
+      }
     };
-    const routePipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [routeLayout] });
-    const [reset, route] = await Promise.all(
-      ["reset", "route"].map((entryPoint) =>
-        device.createComputePipelineAsync({
-          layout: routePipelineLayout,
-          compute: { module: routeModule, entryPoint },
-        }),
-      ),
-    );
-    const recordsLayout = device.createBindGroupLayout({
-      entries: [0, 1].map((binding) => ({
-        binding,
-        visibility: GPUShaderStage.VERTEX,
-        buffer: { type: "read-only-storage" as const },
-      })),
-    });
-    const paramsLayout = device.createBindGroupLayout({
-      entries: [
-        {
-          binding: 0,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-          buffer: { type: "uniform" },
-        },
-      ],
-    });
-    const makeDrawGroups = (source: GPUBuffer, lists: GPUBuffer[]) =>
-      lists.map((list) =>
-        device.createBindGroup({
-          layout: recordsLayout,
-          entries: [
-            { binding: 0, resource: { buffer: source } },
-            { binding: 1, resource: { buffer: list } },
-          ],
-        }),
+    let buffers = allocate(1);
+    const reset = tgpu
+      .computeFn({ workgroupSize: [1] })(
+        `{let counts=array<u32,3>(${tiers.map((t) => t.indices.length + "u").join(",")});for(var i=0u;i<3u;i++){r.commands[i].indexCount=counts[i];atomicStore(&r.commands[i].instanceCount,0u);r.commands[i].firstIndex=0u;r.commands[i].baseVertex=0;r.commands[i].firstInstance=0u;}}`,
+      )
+      .$uses({ r: routing.$ });
+    const route = tgpu
+      .computeFn({ workgroupSize: [64], in: { id: d.builtin.globalInvocationId } })(
+        `{if(in.id.x>=r.active.x){return;}let tier=grassTier(r.records[in.id.x],r.params);if(tier<0){return;}let slot=atomicAdd(&r.commands[u32(tier)].instanceCount,1u);if(tier==0){r.nearList[slot]=in.id.x;}else if(tier==1){r.midList[slot]=in.id.x;}else{r.farList[slot]=in.id.x;}}`,
+      )
+      .$uses({ r: routing.$, grassTier });
+    const resetPipeline = root.createComputePipeline({ compute: reset }),
+      routePipeline = root.createComputePipeline({ compute: route });
+    const shade = environment.shade;
+    const fragment = tgpu.fragmentFn({ in: fragmentIn, out: d.vec4f })((v) => {
+      "use gpu";
+      const normal = std.normalize(v.normal);
+      return shade(
+        grassLinear(v.albedo),
+        grassEmissive(
+          normal,
+          v.world,
+          v.weights,
+          paramsLayout.$.grass,
+          typegpuCameraLayout.$.cam.eye,
+        ),
+        0.96,
+        0,
+        0,
+        1,
+        normal,
+        v.world,
+        1,
+        typegpuCameraLayout.$.cam.eye,
       );
-    let groups = makeDrawGroups(packed, visible);
-    const paramsGroup = device.createBindGroup({
-      layout: paramsLayout,
-      entries: [{ binding: 0, resource: { buffer: params } }],
     });
-    const shader = grassDrawShader(environment.shader);
-    // Invariant clip positions keep optional depth and beauty passes bit-identical
-    // despite the driver's different dead-varying optimization of each pipeline.
-    const module = device.createShaderModule({ code: shader });
-    const layout = device.createPipelineLayout({
-      bindGroupLayouts: [cameraLayout, recordsLayout, paramsLayout, environment.layout],
+    const depth = tgpu.fragmentFn({ in: fragmentIn, out: d.vec4f })(() => {
+      "use gpu";
+      return d.vec4f(0, 0, 0, 1);
     });
-    const pipeline = (entryPoint: string, writeMask: number) =>
-      device.createRenderPipelineAsync({
-        layout,
-        vertex: {
-          module,
-          entryPoint: "vertex",
-          buffers: [
-            {
-              arrayStride: 12,
-              attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }],
-            },
-          ],
-        },
-        fragment: { module, entryPoint, targets: [{ format, writeMask }] },
-        primitive: { topology: "triangle-list", cullMode: "none" },
-        multisample: { count: sampleCount },
-        depthStencil: battleWorldDepth("read-write"),
-      });
-    const [beauty, prepass] = await Promise.all([
-      pipeline("beauty", GPUColorWrite.ALL),
-      pipeline("depth", 0),
+    const pipeline = (fragmentShader: typeof fragment, writeMask: number) =>
+      root
+        .createRenderPipeline({
+          vertex,
+          fragment: fragmentShader,
+          attribs: { local: geometry.attrib },
+          targets: { format: "rgba16float", writeMask },
+          primitive: { topology: "triangle-list", cullMode: "none" },
+          depthStencil: battleWorldDepth("read-write"),
+          multisample: { count: sampleCount },
+        })
+        .with(paramsGroup)
+        .with(environment.group);
+    const beauty = pipeline(fragment, GPUColorWrite.ALL),
+      prepass = pipeline(depth, 0);
+    const vertices = tiers.map((t) => {
+      const b = own(
+        root.createBuffer(geometry.schemaForCount(t.positions.length / 3)).$usage("vertex"),
+      );
+      b.write(bytes(t.positions));
+      return b;
+    });
+    const indices = tiers.map((t) => {
+      const b = own(root.createBuffer(d.disarrayOf(d.u16, t.indices.length)).$usage("index"));
+      b.write(bytes(t.indices));
+      return b;
+    });
+    await Promise.all([
+      resetPipeline.initAsync(),
+      routePipeline.initAsync(),
+      beauty.initAsync(),
+      prepass.initAsync(),
     ]);
+    await admission();
     const replaceRecords = async (next: Float32Array) => {
-      if (disposed) throw Error("Grass is disposed");
-      if (next.length % 16 !== 0) throw Error("Grass expects complete packed records");
+      check();
+      if (next.length % 16) throw Error("Grass expects complete records");
       if (
         next.byteLength > device.limits.maxStorageBufferBindingSize ||
         next.byteLength > device.limits.maxBufferSize
       )
-        throw Error("Grass records exceed device storage limits");
-      const count = next.length / 16;
-      if (count > capacity) {
-        device.pushErrorScope("out-of-memory");
-        device.pushErrorScope("internal");
-        device.pushErrorScope("validation");
-        const created: GPUBuffer[] = [];
-        let replacement: ReturnType<typeof makeDrawGroups> | undefined,
-          newRoute: GPUBindGroup | undefined;
-        let source: GPUBuffer | undefined;
-        const lists: GPUBuffer[] = [];
-        let failure: unknown;
+        throw Error("Grass storage limit");
+      const n = next.length / 16;
+      if (n > capacity) {
+        const admit = beginGpuAdmission(device);
+        let staged: ReturnType<typeof allocate> | undefined;
         try {
-          source = buffer(
-            next.byteLength,
-            GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-            next,
-          );
-          created.push(source);
-          for (let i = 0; i < 3; i++) {
-            const list = buffer(count * 4, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
-            lists.push(list);
-            created.push(list);
-          }
-          replacement = makeDrawGroups(source, lists);
-          newRoute = makeRoutingGroup(source, lists);
+          staged = allocate(n);
+          staged.records.write(bytes(next));
+          await admit();
+          check();
         } catch (error) {
-          failure = error;
-        }
-        const admission = await Promise.allSettled([
-          device.popErrorScope(),
-          device.popErrorScope(),
-          device.popErrorScope(),
-        ]);
-        const errors = admission.flatMap((r) =>
-          r.status === "rejected" ? [String(r.reason)] : r.value ? [r.value.message] : [],
-        );
-        if (failure || errors.length || disposed || !source || !replacement || !newRoute) {
-          for (const b of created) {
-            b.destroy();
-            owned.delete(b);
+          try {
+            await admit();
+          } finally {
+            if (staged)
+              for (const b of staged.added) {
+                b.destroy();
+                owned.delete(b);
+              }
           }
-          throw (
-            failure ??
-            Error(disposed ? "Grass is disposed" : `Grass upload admission: ${errors.join("; ")}`)
-          );
+          throw error;
         }
-        for (const b of [packed, ...visible]) {
+        for (const b of buffers.added) {
           b.destroy();
           owned.delete(b);
         }
-        packed = source;
-        visible = lists;
-        groups = replacement;
-        routingGroup = newRoute;
-        capacity = count;
-      } else if (count) device.queue.writeBuffer(packed, 0, next);
-      setLiveCount(count);
+        buffers = staged;
+        capacity = n;
+      } else if (n) buffers.records.write(bytes(next));
+      setLiveCount(n);
+    };
+    const setLiveCount = (n: number) => {
+      count = n;
+      active.write(d.vec4u(n, 0, 0, 0));
     };
     return {
-      commands,
-      get recordBuffer() {
-        return packed;
-      },
-      get visible() {
-        return visible;
-      },
-      stats() {
-        return { recordCount, capacity, pipelineBuilds: 4 };
-      },
       updateRecords: replaceRecords,
       async adoptRecordCapacity(next: Float32Array, live: number) {
         // Sizing from the whole capacity is what lets every later publication
@@ -256,13 +268,13 @@ export async function createRawGrass(
         setLiveCount(Math.min(live, capacity));
       },
       writeRecordRanges(source: Float32Array, edits: readonly GrassRecordEdit[], live: number) {
-        if (disposed) throw new Error("Grass is disposed");
+        check();
         for (const edit of edits) {
           if (edit.count <= 0) continue;
           if (edit.start < 0 || edit.start + edit.count > capacity)
-            throw new Error("Grass record range is outside the adopted capacity");
+            throw Error("Grass record range is outside the adopted capacity");
           device.queue.writeBuffer(
-            packed,
+            buffers.records.buffer,
             edit.start * 64,
             source,
             edit.start * 16,
@@ -271,53 +283,68 @@ export async function createRawGrass(
         }
         setLiveCount(Math.min(live, capacity));
       },
-      update(state: GrassFrame) {
-        if (disposed) throw new Error("Grass is disposed");
-        device.queue.writeBuffer(params, 0, grassUniformData(state));
+      update(frame: GrassFrame) {
+        check();
+        params.write(grassUniformData(frame).buffer);
       },
-      route(encoder: GPUCommandEncoder) {
-        if (disposed) throw new Error("Grass is disposed");
+      route(encoder: TgpuCommandEncoder) {
+        check();
         const pass = encoder.beginComputePass();
-        pass.setBindGroup(0, routingGroup);
-        pass.setPipeline(reset);
-        pass.dispatchWorkgroups(1);
-        pass.setPipeline(route);
-        if (recordCount) pass.dispatchWorkgroups(Math.ceil(recordCount / 64));
+        resetPipeline.with(buffers.routeGroup).with(pass).dispatchWorkgroups(1);
+        if (count)
+          routePipeline
+            .with(buffers.routeGroup)
+            .with(pass)
+            .dispatchWorkgroups(Math.ceil(count / 64));
         pass.end();
       },
       draw(
-        pass: GPURenderPassEncoder,
-        cameraGroup: GPUBindGroup,
+        pass: TgpuRenderCommands,
+        camera: TgpuBindGroup,
         depthPrepass = false,
         farVisible = true,
         stage: "combined" | "depth" | "beauty" = "combined",
         onlyTier?: number,
       ) {
-        if (disposed) throw new Error("Grass is disposed");
-        pass.setBindGroup(0, cameraGroup);
-        pass.setBindGroup(2, paramsGroup);
-        pass.setBindGroup(3, environment.bindGroup);
-        const drawTier = (tier: number) => {
-          pass.setBindGroup(1, groups[tier]);
-          pass.setVertexBuffer(0, vertices[tier]);
-          pass.setIndexBuffer(indices[tier], "uint16");
-          pass.drawIndexedIndirect(commands, tier * 20);
-        };
-        if (depthPrepass && stage !== "beauty") {
-          pass.setPipeline(prepass);
-          for (let tier = 0; tier < 2; tier++)
-            if (onlyTier === undefined || onlyTier === tier) drawTier(tier);
-        }
-        if (stage !== "depth") {
-          pass.setPipeline(beauty);
-          for (let tier = 0; tier < (farVisible ? 3 : 2); tier++)
-            if (onlyTier === undefined || onlyTier === tier) drawTier(tier);
-        }
+        check();
+        const render = (pipeline: typeof beauty, tier: number) =>
+          pipeline
+            .with(camera)
+            .with(buffers.groups[tier])
+            .with(geometry, vertices[tier])
+            .withIndexBuffer(indices[tier])
+            .with(pass)
+            .drawIndexedIndirect(commands, tier * 20);
+        if (depthPrepass && stage !== "beauty")
+          for (let i = 0; i < 2; i++)
+            if (onlyTier === undefined || onlyTier === i) render(prepass, i);
+        if (stage !== "depth")
+          for (let i = 0; i < (farVisible ? 3 : 2); i++)
+            if (onlyTier === undefined || onlyTier === i) render(beauty, i);
       },
+      // This owner encodes drawIndexedIndirect above. This describes that wiring,
+      // not the resolved GPU instance counts in the indirect argument buffer.
+      stats: () => ({ recordCount: count, capacity, pipelineBuilds: 4, drawIndirect: true }),
+      readDiagnostics: async () => {
+        const active = count;
+        const [routed, records] = await Promise.all([
+          readU32Buffer(device, commands.buffer),
+          readU32Buffer(device, buffers.records.buffer, active * 64),
+        ]);
+        return { commands: routed, records: new Float32Array(records.buffer), recordCount: active };
+      },
+      readRouting: async () => ({
+        commands: await commands.read(),
+        visible: await Promise.all(buffers.visible.map((b) => b.read())),
+      }),
       dispose,
     };
   } catch (error) {
-    dispose();
+    try {
+      await admission();
+    } finally {
+      dispose();
+    }
     throw error;
   }
 }

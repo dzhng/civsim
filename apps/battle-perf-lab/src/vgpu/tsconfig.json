@@ -9,7 +9,7 @@
       "three/examples/jsm/*": ["../../../../web/node_modules/@types/three/examples/jsm/*"],
       "vgpu": ["../../../../web/node_modules/vgpu/dist/index.d.ts"]
     },
-    "typeRoots": ["../../../../web/node_modules/@types"]
+    "typeRoots": ["../../../../web/node_modules/@types", "../../../../web/node_modules"]
   },
-  "include": ["./*.ts", "./*.mts", "../../../../web/src/renderer-globals.d.ts"]
+  "include": ["./*.ts", "./*.mts"]
 }

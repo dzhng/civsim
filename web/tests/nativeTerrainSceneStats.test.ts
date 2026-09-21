@@ -7,6 +7,7 @@ import type { BattleTerrainInput } from "../../packages/battle-renderer/src/scen
 // still building, and not zeros once it is gone.
 const state = vi.hoisted(() => ({
   scenery: 0,
+  groundIndices: 0,
   vistaRings: [] as string[],
   sceneryFailure: null as unknown,
   disposed: [] as string[],
@@ -29,7 +30,7 @@ vi.mock("../../packages/battle-renderer/src/terrainScenePreparation", () => ({
     grid: input.grid,
     cover: input.cover,
     data: {
-      ground: { earthDistance: {} },
+      ground: { earthDistance: {}, indices: new Uint32Array(state.groundIndices) },
       horizon: null,
       vistaMeshes: state.vistaRings.map((name) => ({ name, mesh: {} })),
       scenery: [],
@@ -44,34 +45,34 @@ vi.mock("../../packages/battle-renderer/src/terrainScenePreparation", () => ({
   terrainPickingMeshes: () => [],
   battleGroundInputs: () => ({}),
 }));
-vi.mock("../../packages/battle-renderer/src/world/terrain", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/terrain", () => ({
   RawBattleTerrain: class {
     constructor() {
       return owner("terrain");
     }
   },
 }));
-vi.mock("../../packages/battle-renderer/src/world/water", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/water", () => ({
   RawBattleWater: class {
     constructor() {
       return owner("water", { stats: () => ({ draws: 2, triangles: 8 }) });
     }
   },
 }));
-vi.mock("../../packages/battle-renderer/src/world/scenery", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/scenery", () => ({
   createRawScenery: async () => {
     if (state.sceneryFailure) throw state.sceneryFailure;
     const count = state.scenery;
     return owner("scenery", { upload: vi.fn(), stats: () => ({ scenery: count }) });
   },
 }));
-vi.mock("../../packages/battle-renderer/src/world/backdrop", () => ({
+vi.mock("../../apps/battle-perf-lab/src/raw/world/backdrop", () => ({
   createRawBackdrop: async () => owner("backdrop"),
 }));
 vi.mock("../../packages/battle-renderer/src/gpuAdmission", () => ({
   beginGpuAdmission: () => async () => {},
 }));
-import { createRawBattleTerrainScene } from "../../packages/battle-renderer/src/world/terrainScene";
+import { createRawBattleTerrainScene } from "../../apps/battle-perf-lab/src/raw/world/terrainScene";
 
 const input = () =>
   ({
@@ -87,6 +88,7 @@ const build = () =>
 
 beforeEach(() => {
   state.scenery = 4;
+  state.groundIndices = 36;
   state.vistaRings = ["near", "far", "farFog"];
   state.sceneryFailure = null;
   state.disposed = [];
@@ -98,14 +100,21 @@ test("published content is the committed generation's own", async () => {
     installed: true,
     generation: 1,
     replacing: false,
+    groundTriangles: 12,
     scenery: 4,
     vistaBands: 3,
     water: { draws: 2, triangles: 8 },
   });
   state.scenery = 11;
+  state.groundIndices = 75;
   state.vistaRings = ["near", "farFog"];
   await scene.replace(input());
-  expect(scene.stats()).toMatchObject({ generation: 2, scenery: 11, vistaBands: 2 });
+  expect(scene.stats()).toMatchObject({
+    generation: 2,
+    groundTriangles: 25,
+    scenery: 11,
+    vistaBands: 2,
+  });
   expect(scene.committedGeneration()).toBe(2);
   scene.dispose();
 });
@@ -113,9 +122,15 @@ test("published content is the committed generation's own", async () => {
 test("a failed replacement keeps reporting the generation still installed", async () => {
   const scene = await build();
   state.scenery = 99;
+  state.groundIndices = 900;
   state.sceneryFailure = Error("injected scenery failure");
   await expect(scene.replace(input())).rejects.toThrow("injected scenery failure");
-  expect(scene.stats()).toMatchObject({ installed: true, generation: 1, scenery: 4 });
+  expect(scene.stats()).toMatchObject({
+    installed: true,
+    generation: 1,
+    groundTriangles: 12,
+    scenery: 4,
+  });
   expect(scene.committedGeneration()).toBe(1);
   scene.dispose();
 });
@@ -128,6 +143,7 @@ test("a disposed scene reports no installed terrain rather than an empty map", a
     installed: false,
     generation: 1,
     replacing: false,
+    groundTriangles: null,
     scenery: null,
     vistaBands: null,
     water: null,

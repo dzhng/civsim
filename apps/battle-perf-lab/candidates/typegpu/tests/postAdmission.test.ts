@@ -41,7 +41,7 @@ vi.mock("typegpu", async (original) => {
     },
   };
 });
-import { createTypegpuPost } from "../post";
+import { createTypegpuPost } from "../../../../../packages/battle-renderer/src/world/post";
 const device = {
   pushErrorScope: vi.fn(),
   popErrorScope: vi.fn(async (): Promise<GPUError | null> => null),

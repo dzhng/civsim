@@ -21,7 +21,7 @@ import {
   SINGLE_MAP_SIZE,
   sunShadowRadius,
 } from "@packages/game-renderer/src/battle/shadowPolicy";
-import { configureSunShadows } from "@packages/photoreal-renderer/src/battle/shadowRig";
+import { configureSunShadows } from "./reference/threeShadowRig";
 import {
   FINITE_CAMERA_FAR_FALLBACK,
   type Camera3DParams,

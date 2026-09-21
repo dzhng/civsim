@@ -15,7 +15,7 @@
 import { expect, test } from "vitest";
 import { tgpu } from "typegpu";
 import { probeReceiverShader } from "../shadow-check";
-import { typegpuSunShadowSample } from "../environment";
+import { typegpuSunShadowSample } from "../../../../../packages/battle-renderer/src/world/environment";
 import {
   CHECK_NORMAL,
   CLEARED_DEPTHS,

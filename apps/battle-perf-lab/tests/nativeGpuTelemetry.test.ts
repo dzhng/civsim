@@ -1,5 +1,5 @@
 /// <reference path="../../../web/node_modules/vitest/globals.d.ts" />
-import { NativeGpuTelemetry } from "../src/nativeGpuTelemetry";
+import { NativeGpuTelemetry } from "../../../packages/battle-renderer/src/nativeGpuTelemetry";
 import { nativeGpuScope } from "../../../packages/battle-renderer/src/gpuScope";
 
 function deviceFixture(supported = true, timestampValues?: bigint[]) {
@@ -23,8 +23,9 @@ function deviceFixture(supported = true, timestampValues?: bigint[]) {
       resources.push(query);
       return query;
     }),
-    createBuffer: vi.fn(() => {
+    createBuffer: vi.fn((descriptor: GPUBufferDescriptor) => {
       const buffer = {
+        size: descriptor.size,
         destroy: vi.fn(),
         unmap: vi.fn(),
         mapAsync: vi.fn(() => new Promise<void>((resolve) => mappings.push(resolve))),
@@ -223,7 +224,16 @@ test("full ring reports missing measurements without fencing or corrupting pendi
     telemetry.eventsSince(0)?.events.filter((event) => event.status === "complete"),
   ).toHaveLength(8);
   expect(telemetry.stats().querySlots).toBe(8);
+  expect(telemetry.stats()).toMatchObject({
+    requestedBuffers: f.device.createBuffer.mock.results.length,
+    requestedBufferBytes: f.device.createBuffer.mock.results.reduce(
+      (bytes, result) => bytes + result.value.size,
+      0,
+    ),
+  });
   telemetry.dispose();
+  expect(telemetry.stats()).toMatchObject({ requestedBuffers: 0, requestedBufferBytes: 0 });
+  expect(f.resources.every((resource) => resource.destroy.mock.calls.length === 1)).toBe(true);
 });
 
 test("another timestamp owner is preserved and unavailable measurements stay null", () => {
@@ -433,6 +443,8 @@ test("the disabled lab control issues no query GPU work while actual submission 
     outsideSubmissionPasses: 0,
     querySlots: 0,
     busyQuerySlots: 0,
+    requestedBuffers: 0,
+    requestedBufferBytes: 0,
   });
   telemetry.dispose();
 });

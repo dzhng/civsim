@@ -22,7 +22,7 @@ function layer(extra = {}) {
     ...extra,
   };
 }
-vi.mock("../environment", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/environment", () => ({
   createTypegpuEnvironment: async (
     _device: unknown,
     _env: unknown,
@@ -34,7 +34,7 @@ vi.mock("../environment", () => ({
     return layer({ setView: vi.fn(), sky: { setRays: vi.fn() }, exposure: 1 });
   },
 }));
-vi.mock("../frame", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/frame", () => ({
   TypegpuBattleFrame: class {
     width = 1280;
     height = 800;
@@ -66,7 +66,7 @@ vi.mock("../frame", () => ({
     }
   },
 }));
-vi.mock("../terrainScene", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/terrainScene", () => ({
   createTypegpuBattleTerrainScene: async () =>
     layer({
       grid: () => ({}),
@@ -83,7 +83,7 @@ vi.mock("../terrainScene", () => ({
       drawShadow: vi.fn((_pass: unknown, camera: unknown) => state.terrainShadowDraws.push(camera)),
     }),
 }));
-vi.mock("../crowdAudience", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/crowdAudience", () => ({
   createTypegpuCrowdAudience: async () =>
     layer({
       upload: vi.fn(async (_instances: unknown, views: unknown[]) => {
@@ -104,7 +104,7 @@ vi.mock("../crowdAudience", () => ({
       ),
     }),
 }));
-vi.mock("../grassField", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/grassField", () => ({
   createTypegpuGrassField: async () =>
     layer({
       setTerrain: vi.fn(),
@@ -117,18 +117,20 @@ vi.mock("../grassField", () => ({
       snapshot: () => ({ terrainDetailStrength: 1 }),
     }),
 }));
-vi.mock("../standards", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/standards", () => ({
   createTypegpuStandards: async () => layer({ setView: vi.fn() }),
 }));
-vi.mock("../readout", () => ({ createTypegpuReadout: () => layer({ setCamera: vi.fn() }) }));
-vi.mock("../overlay", () => ({
+vi.mock("../../../../../packages/battle-renderer/src/world/readout", () => ({
+  createTypegpuReadout: () => layer({ setCamera: vi.fn() }),
+}));
+vi.mock("../../../../../packages/battle-renderer/src/world/overlay", () => ({
   createTypegpuLineLayer: async () => layer(),
   createTypegpuRingLayer: async () => layer(),
   createTypegpuTriangleLayer: async () => layer(),
 }));
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { recordingGpu, attachedLayer } from "./recordingDevice";
-import { createTypegpuBattleScene } from "../battleScene";
+import { createTypegpuBattleScene } from "../../../../../packages/battle-renderer/src/battleScene";
 import type { BattleSceneOptions } from "../../../../../packages/battle-renderer/src/sceneTypes";
 import { CIVSIM_ENVIRONMENTS } from "../../../../../packages/game-renderer/src/environment/environment";
 import { productionBladeFieldProfile } from "../../../../../packages/game-renderer/src/battle/battleGrassResidency";

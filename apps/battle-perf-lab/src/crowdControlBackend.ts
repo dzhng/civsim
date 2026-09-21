@@ -4,11 +4,9 @@ import type { AppearanceBundle } from "../../../packages/soldier-assets/src/appe
 import type { CivsimEnvironment } from "../../../packages/game-renderer/src/environment/environment";
 import { cameraUniformData } from "../../../packages/renderer-core/src/cameraUniform";
 import { viewMatrix, type Camera3DParams } from "../../../packages/renderer-core/src/camera3d";
-import type { CrowdInstance } from "../../../packages/crowd-runtime/src/instanceData";
-import type { CrowdAudiencePlan } from "../../../packages/battle-renderer/src/crowdData";
-import { createTypegpuCrowd } from "../candidates/typegpu/crowd";
-import { createTypegpuEnvironment } from "../candidates/typegpu/environment";
-import { Camera, typegpuCameraLayout } from "../candidates/typegpu/camera";
+import { createTypegpuCrowd } from "../../../packages/battle-renderer/src/world/crowd";
+import { createTypegpuEnvironment } from "../../../packages/battle-renderer/src/world/environment";
+import { Camera, typegpuCameraLayout } from "../../../packages/battle-renderer/src/world/camera";
 import { createVgpuCrowd } from "./vgpu/crowd";
 import { createVgpuEnvironment } from "./vgpu/environment";
 import { destroyVgpuTarget } from "./vgpu/targetLifetime";

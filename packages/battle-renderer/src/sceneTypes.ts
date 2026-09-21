@@ -40,6 +40,8 @@ export interface BattleSceneOptions extends BattleCrowdAssets {
   shadows: SunShadowMode;
   /** Allocate formation-debug resources only for the explicit debug route. */
   debugBlocks?: boolean;
+  /** Authoring landform review: neutral flat ground material, without aerial haze. */
+  reviewClay?: boolean;
   grass: boolean;
   farGrass: boolean;
   bloom: boolean;
@@ -47,3 +49,23 @@ export interface BattleSceneOptions extends BattleCrowdAssets {
   grade: BattlePostGradeUniforms;
   signal?: AbortSignal;
 }
+
+/** Explicit asset-authoring view: inspect meshes before offline atlases exist.
+ * Gameplay keeps the complete BattleSceneOptions contract. */
+export type BattleMeshPreviewOptions = Omit<BattleSceneOptions, "atlases"> & { atlases: null };
+
+export interface BattleReviewVisibility {
+  ground: boolean;
+  vista: boolean;
+  water: boolean;
+  scenery: boolean;
+  crowd: boolean;
+}
+
+export const BATTLE_REVIEW_VISIBILITY: Readonly<BattleReviewVisibility> = {
+  ground: true,
+  vista: true,
+  water: true,
+  scenery: true,
+  crowd: true,
+};

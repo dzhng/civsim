@@ -18,7 +18,11 @@ export async function run(ctx) {
     await page.locator("#qb-generated-seed").fill("7");
     await page.locator("#qb-launch").click();
     await battleRendererReady(page);
-    await page.evaluate(() => window.__game.freeze(true));
+    await page.evaluate(() => {
+      window.__cam.zoom = 0;
+      window.__cam.clampView();
+    });
+    await page.evaluate(() => window.__game.freezeAtTick(240));
     await page.mouse.move(800, 350);
     const distance = () =>
       page.evaluate(() => window.__game.stats().renderStats.camera.camera3d.distance);

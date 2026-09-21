@@ -13,7 +13,7 @@ export async function createSceneBackend(
   options: BattleSceneOptions,
 ) {
   if (backend === "raw") {
-    const { createRawBattleScene } = await import("../../../packages/battle-renderer/src/battleScene");
+    const { createRawBattleScene } = await import("./raw/battleScene");
     const scene = await createRawBattleScene(
       device,
       resolveDeviceCaps({
@@ -38,7 +38,8 @@ export async function createSceneBackend(
     };
   }
   if (backend === "typegpu") {
-    const { createTypegpuBattleScene } = await import("../candidates/typegpu/battleScene");
+    const { createTypegpuBattleScene } =
+      await import("../../../packages/battle-renderer/src/battleScene");
     const scene = await createTypegpuBattleScene(device, options);
     return {
       scene,

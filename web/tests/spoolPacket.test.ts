@@ -6,7 +6,7 @@ import {
   resolveSpoolGrassRecords,
 } from "../../apps/battle-perf-lab/src/spoolPacket";
 import { encodeReplayValue, hashReplayBlob } from "../../apps/battle-perf-lab/src/replayArchive";
-import type { CapturedReplayFrame } from "../../apps/battle-perf-lab/src/CaptureBattleRenderer";
+import type { CapturedReplayFrame } from "../../apps/battle-perf-lab/src/captureData";
 
 test("packet decoding preserves typed command arrays and verifies a shared binary resource before publishing it", async () => {
   const bytes = new Float32Array([1.25, -2, 3, 4]);

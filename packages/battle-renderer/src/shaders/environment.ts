@@ -1,6 +1,6 @@
 /** Pure environment composition; resource/binding ownership belongs to each backend. */
 export type WorldSurfaceDiagnostic = "albedo" | "normal" | "roughness" | "ao";
-export function environmentFunctions(diagnostic?: WorldSurfaceDiagnostic) {
+export function environmentFunctions(diagnostic?: WorldSurfaceDiagnostic, aerial = true) {
   const shade =
     diagnostic === "ao"
       ? "return vec4f(vec3f(ao),1);"
@@ -11,7 +11,7 @@ export function environmentFunctions(diagnostic?: WorldSurfaceDiagnostic) {
           : diagnostic === "roughness"
             ? "return vec4f(min(max(roughness,0.0525)+geomRoughness,1.0),geomRoughness,metal,1);"
             : `let lit=standardPbr(base,emissive,roughness,geomRoughness,metal,ao,normalize(normalWorld),normalize(eye-worldPosition),sunDirection,sunRadiance,shadow,environmentIntensity,pmrem,linear,maxMip,dfg,linear);
- return applyAerial(vec4f(lit,1),worldPosition,eye,observer,sky,linear);`;
+ return ${aerial ? "applyAerial(vec4f(lit,1),worldPosition,eye,observer,sky,linear)" : "vec4f(lit,1)"};`;
   return {
     geometryRoughnessFromView: `(normalView:vec3f)->f32 {
   let n=normalize(normalView);let d=max(abs(dpdx(n)),abs(dpdy(n)));return max(max(d.x,d.y),d.z);

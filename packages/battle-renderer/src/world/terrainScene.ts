@@ -1,28 +1,31 @@
+import { BATTLE_REVIEW_VISIBILITY } from "../sceneTypes";
 import {
   prepareBattleTerrain,
   terrainPickingMeshes,
   battleGroundInputs,
 } from "../terrainScenePreparation";
-import type { BattleTerrainInput } from "../sceneTypes";
+import type { BattleTerrainInput, BattleReviewVisibility } from "../sceneTypes";
 import {
   battleTerrainHeightAt,
   expandedBattleTerrainRect,
 } from "../../../game-renderer/src/battle/terrainSurfacePolicy";
 import { terrainBackdropStyleForZoom } from "../../../game-renderer/src/battle/terrainBackdropPolicy";
-import type { RawEnvironment } from "./environment";
-import { RawBattleTerrain } from "./terrain";
-import { RawBattleWater } from "./water";
-import { createRawScenery } from "./scenery";
-import { createRawBackdrop } from "./backdrop";
-import { beginGpuAdmission } from "../gpuAdmission";
+import type { TypegpuEnvironment } from "./environment";
+import type { TgpuRenderPass, TgpuBindGroup } from "typegpu";
+import { createTypegpuTerrain } from "./terrain";
+import { createTypegpuWater } from "./water";
+import { createTypegpuScenery } from "./scenery";
+import { createTypegpuBackdrop } from "./backdrop";
 type Disposable = { dispose(): void };
 /** One committed terrain presentation. Replacements never expose a partial scene. */
-export async function createRawBattleTerrainScene(
+export async function createTypegpuBattleTerrainScene(
   device: GPUDevice,
-  cameraLayout: GPUBindGroupLayout,
-  environment: RawEnvironment,
+  cameraBuffer: GPUBuffer,
+  cameraGroup: TgpuBindGroup,
+  environment: TypegpuEnvironment,
   samples: 1 | 4,
   initial: BattleTerrainInput,
+  clay = false,
 ) {
   let disposed = false,
     pending = false,
@@ -51,72 +54,48 @@ export async function createRawBattleTerrainScene(
       resources.push(r);
       return r;
     };
-    async function admitted<T extends Disposable>(create: () => T) {
-      const finish = beginGpuAdmission(device);
-      try {
-        const r = own(create());
-        await finish();
-        if (disposed || cancelled) throw Error("Terrain preparation cancelled");
-        return r;
-      } catch (error) {
-        await finish();
-        throw error;
-      }
-    }
     try {
       const { grid, cover, data, slopeBands, waterInputs } = prepareBattleTerrain(input);
       // These surfaces have no same-view equal-depth prepass; invariant clip output can
       // constrain upstream arithmetic and change grazing interpolants.
-      const ground = await admitted(
-        () =>
-          new RawBattleTerrain(
+      const ground = own(
+        await createTypegpuTerrain(
+          device,
+          cameraBuffer,
+          environment,
+          data.ground,
+          data.horizon,
+          { earthDistance: data.ground.earthDistance, slopeBands, farGrass: true },
+          clay ? "clay" : "beauty",
+          samples,
+        ),
+      );
+      const opaqueVista: Awaited<ReturnType<typeof createTypegpuTerrain>>[] = [],
+        transparentVista: Awaited<ReturnType<typeof createTypegpuTerrain>>[] = [];
+      for (const ring of data.vistaMeshes) {
+        const layer = own(
+          await createTypegpuTerrain(
             device,
-            cameraLayout,
+            cameraBuffer,
             environment,
-            data.ground,
-            data.horizon,
-            { earthDistance: data.ground.earthDistance, slopeBands, farGrass: true },
+            ring.mesh,
+            null,
+            { vistaBand: ring.name, slopeBands, farGrass: true },
             "beauty",
             samples,
-            false,
           ),
-      );
-      const opaqueVista: RawBattleTerrain[] = [],
-        transparentVista: RawBattleTerrain[] = [];
-      for (const ring of data.vistaMeshes) {
-        const layer = await admitted(
-          () =>
-            new RawBattleTerrain(
-              device,
-              cameraLayout,
-              environment,
-              ring.mesh,
-              null,
-              { vistaBand: ring.name, slopeBands, farGrass: true },
-              "beauty",
-              samples,
-              false,
-            ),
         );
         (ring.name === "farFog" ? transparentVista : opaqueVista).push(layer);
       }
-      const water = await admitted(
-        () => new RawBattleWater(device, cameraLayout, environment, waterInputs, samples),
+      const water = own(
+        await createTypegpuWater(device, cameraGroup, environment, waterInputs, samples),
       );
-      const scenery = own(await createRawScenery(device, cameraLayout, environment, samples));
-      const uploadAdmission = beginGpuAdmission(device);
-      try {
-        scenery.upload(data.scenery);
-      } finally {
-        await uploadAdmission();
-      }
-      const backdrop = own(await createRawBackdrop(device, cameraLayout, environment, samples));
-      const rectangleAdmission = beginGpuAdmission(device);
-      try {
-        backdrop.setRects(data.rect, expandedBattleTerrainRect(data.rect));
-      } finally {
-        await rectangleAdmission();
-      }
+      const scenery = own(await createTypegpuScenery(device, cameraGroup, environment, samples));
+      await scenery.upload(data.scenery);
+      check();
+      const backdrop = own(await createTypegpuBackdrop(device, cameraBuffer, environment, samples));
+      await backdrop.setRects(data.rect, expandedBattleTerrainRect(data.rect));
+      check();
       const setFrame = (nextZoom: number, nextStrength: number) => {
         backdrop.setStyle(terrainBackdropStyleForZoom(nextZoom));
         ground.setState(nextStrength);
@@ -127,6 +106,7 @@ export async function createRawBattleTerrainScene(
       return {
         grid,
         cover,
+        slopeBands,
         data,
         ground,
         opaqueVista,
@@ -160,6 +140,10 @@ export async function createRawBattleTerrainScene(
       throw error;
     } finally {
       pending = false;
+      if (disposed) {
+        staging?.dispose();
+        active?.dispose();
+      }
       staging = undefined;
     }
   }
@@ -188,23 +172,6 @@ export async function createRawBattleTerrainScene(
       return battleTerrainHeightAt(d.field, d.vista, d.rect, x, y);
     },
     rect: () => current().data.rect as readonly [number, number, number, number],
-    setFrame(nextZoom: number, terrainDetailStrength: number) {
-      check();
-      zoom = nextZoom;
-      strength = terrainDetailStrength;
-      current().setFrame(zoom, strength);
-    },
-    drawOpaque(pass: GPURenderPassEncoder, camera: GPUBindGroup) {
-      const s = current();
-      s.backdrop.encode(pass, camera);
-      s.ground.encode(pass, camera);
-      for (const layer of s.opaqueVista) layer.encode(pass, camera);
-      s.water.encode(pass, camera);
-      s.scenery.draw(pass, camera);
-    },
-    drawTransparent(pass: GPURenderPassEncoder, camera: GPUBindGroup) {
-      for (const layer of current().transparentVista) layer.encode(pass, camera);
-    },
     // Presentation records need only this identity, not aggregated water/scenery stats.
     committedGeneration: () => (disposed || !active ? null : generation),
     /** Content of the terrain generation currently committed. Every count is a
@@ -218,29 +185,75 @@ export async function createRawBattleTerrainScene(
           installed: false,
           generation,
           replacing: pending,
+          groundTriangles: null,
           scenery: null,
           vistaBands: null,
+          groundCover: null,
+          groundStyle: null,
+          slopeBands: null,
+          vista: null,
           water: null,
         };
       return {
         installed: true,
         generation,
         replacing: pending,
+        groundTriangles: committed.ground.stats().groundTriangles,
         scenery: committed.scenery.stats().scenery,
         vistaBands: committed.opaqueVista.length + committed.transparentVista.length,
+        groundCover: committed.cover,
+        groundStyle: clay ? ("clay" as const) : ("beauty" as const),
+        slopeBands: committed.slopeBands ? { ...committed.slopeBands } : null,
+        vista: committed.data.vista
+          ? {
+              shape: committed.data.vista.shape,
+              bands: committed.data.vista.bands
+                .filter((band) =>
+                  committed.data.vistaMeshes.some((mesh) => mesh.name === band.name),
+                )
+                .map(({ height: _height, water: _water, ...band }) => ({ ...band })),
+            }
+          : null,
         water: committed.water.stats(),
       };
     },
-    drawShadow(pass: GPURenderPassEncoder, shadowCamera: GPUBindGroup) {
+    setFrame(nextZoom: number, terrainDetailStrength: number) {
+      check();
+      zoom = nextZoom;
+      strength = terrainDetailStrength;
+      current().setFrame(zoom, strength);
+    },
+    drawOpaque(pass: TgpuRenderPass, visible: BattleReviewVisibility = BATTLE_REVIEW_VISIBILITY) {
       const s = current();
-      s.ground.encodeHorizonShadow(pass, shadowCamera);
-      s.scenery.draw(pass, shadowCamera, "shadow");
+      if (visible.vista) s.backdrop.draw(pass);
+      s.ground.draw(pass, { ground: visible.ground, horizon: visible.vista });
+      if (visible.vista) for (const layer of s.opaqueVista) layer.draw(pass);
+      if (visible.water) s.water.draw(pass);
+      if (visible.scenery) s.scenery.draw(pass);
+    },
+    drawTransparent(
+      pass: TgpuRenderPass,
+      visible: BattleReviewVisibility = BATTLE_REVIEW_VISIBILITY,
+    ) {
+      if (visible.vista) for (const layer of current().transparentVista) layer.draw(pass);
+    },
+    drawShadow(
+      pass: TgpuRenderPass,
+      shadowCamera: TgpuBindGroup,
+      visible: BattleReviewVisibility = BATTLE_REVIEW_VISIBILITY,
+    ) {
+      const s = current();
+      if (visible.vista) s.ground.drawHorizonShadow(pass, shadowCamera);
+      if (visible.scenery) s.scenery.draw(pass, shadowCamera, "shadow");
     },
     dispose() {
       if (disposed) return;
       disposed = true;
-      staging?.dispose();
-      active?.dispose();
+      // Let pending typed uploads settle before destroying the resources they use.
+      if (!pending) {
+        staging?.dispose();
+        active?.dispose();
+      }
     },
   };
 }

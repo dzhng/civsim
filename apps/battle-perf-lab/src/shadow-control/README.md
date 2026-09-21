@@ -48,17 +48,16 @@ user-facing switch would outlive the measurement.
 plugin at all, so the default production build, the default lab build and both
 existing lab wrappers are configured exactly as before. _(No two full bundles
 have been diffed; "unchanged" means the plugin list is, not that an output
-comparison was run.)_ Only the two measured entries read the variable — the
-capture lab configuration deliberately does not, since it records and replays
-rather than being timed. A caller needing the control unconditionally passes the
+comparison was run.)_ The production measurement build reads the variable; recorded replay does not
+alter its archived shadow inputs. A caller needing the control unconditionally passes the
 request to the plugin factory, as this directory's test configuration does.
 
 ```
 # B, and the same command without BATTLE_SHADOW_FIT for C:
-BATTLE_SHADOW_FIT=whole-map BATTLE_NATIVE_BACKEND=<raw|typegpu|vgpu> \
-BATTLE_NATIVE_ATLAS_CATALOG=<url> web/node_modules/.bin/vite build \
-  --config apps/battle-perf-lab/src/live/vite.config.mts --outDir <out>/live-whole-map
-# source arm: --config apps/battle-perf-lab/src/source/vite.config.mts
+BATTLE_SHADOW_FIT=whole-map web/node_modules/.bin/vite build \
+  --config apps/battle-perf-lab/benchmark.vite.config.mts --outDir <out>/live-whole-map
+# source arm only in pinned revision16ad724514eeb840f241917c8fedb437a52ac1e3 checkout:
+# --config apps/battle-perf-lab/src/source/vite.config.mts
 # needs web/src/wasm present: bun run --cwd web build:wasm
 ```
 

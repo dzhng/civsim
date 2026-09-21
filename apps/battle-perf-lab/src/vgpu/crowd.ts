@@ -17,7 +17,11 @@ import {
   type CrowdAudiencePlan,
   type CrowdAudience,
 } from "../../../../packages/battle-renderer/src/crowdData";
-import { crowdImage, crowdSampler, crowdTextureChannels } from "../crowdMaterial";
+import {
+  crowdImage,
+  crowdSampler,
+  crowdTextureChannels,
+} from "../../../../packages/battle-renderer/src/crowdMaterial";
 import { soldierShader } from "../../../../packages/battle-renderer/src/shaders/soldier";
 import { createVgpuPosePalette } from "./posePalette";
 import { createVgpuImageTexture } from "./imageTexture";

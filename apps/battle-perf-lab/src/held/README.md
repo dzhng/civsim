@@ -6,7 +6,7 @@ than on however far each run's simulation got. It is a renderer-only measurement
 and can never stand in for the live benchmark.
 
 Set `BATTLE_BENCHMARK_HELD_TICK=9000|12000` when building either the
-[source](../source/vite.config.mts) or the [native live](../live/vite.config.mts)
+[historical source](../source/README.md) or the [native live](../../benchmark.vite.config.mts)
 configuration. Unset keeps the live benchmark. The value substitutes only the battle
 loop's `benchmarkAuthority` import, and a build that never reaches that import fails;
 there is no menu setting, and ordinary builds keep their original import.
@@ -39,12 +39,13 @@ latest recorded frame saw; a terminal call does not resample it.
 
 From the repository root, one build per backend and tick, into a fresh directory:
 
+Source-arm commands run in the pinned historical checkout described above.
+
 ```sh
 BATTLE_BENCHMARK_HELD_TICK=9000 web/node_modules/.bin/vite build \
   --config apps/battle-perf-lab/src/source/vite.config.mts --outDir <out>/source-held-9000
-BATTLE_BENCHMARK_HELD_TICK=9000 BATTLE_NATIVE_BACKEND=raw \
-  BATTLE_NATIVE_ATLAS_CATALOG=<catalog-url> web/node_modules/.bin/vite build \
-  --config apps/battle-perf-lab/src/live/vite.config.mts --outDir <out>/raw-held-9000
+BATTLE_BENCHMARK_HELD_TICK=9000 web/node_modules/.bin/vite build \
+  --config apps/battle-perf-lab/benchmark.vite.config.mts --outDir <out>/typegpu-held-9000
 ```
 
 Serve and run them exactly like live fixed builds, through the

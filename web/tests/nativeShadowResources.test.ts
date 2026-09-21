@@ -3,8 +3,8 @@
 // encodes and against which layer, what the receiver shader it publishes may
 // read, and that a failed allocation or a disposal leaves nothing behind.
 import { afterEach, expect, test, vi } from "vitest";
-import { RawSunShadow } from "../../packages/battle-renderer/src/world/shadow";
-import { rawEnvironmentWgsl } from "../../packages/battle-renderer/src/world/environment";
+import { RawSunShadow } from "../../apps/battle-perf-lab/src/raw/world/shadow";
+import { rawEnvironmentWgsl } from "../../apps/battle-perf-lab/src/raw/world/environment";
 import {
   SUN_SHADOW_BLOCK_FLOATS,
   sunShadowSampleWgsl,

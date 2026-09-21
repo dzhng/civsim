@@ -1,0 +1,28 @@
+{
+  "cause": "Canvas locator screenshots include overlapping DOM toolbar; the repeated freeze framebuffer itself is stable. Pointer relocation and disabled CSS animations do not resolve composite changes.",
+  "before": {
+    "diffBytes": 3168,
+    "changedPixels": 1698,
+    "bounds": [
+      542,
+      750,
+      804,
+      767
+    ],
+    "evidence": "freeze-diagnostic.json"
+  },
+  "control": "freeze-diagnostic-pointer.json",
+  "after": {
+    "method": "canvas.toDataURL PNG export; visually inspected nonblank terrain and armies",
+    "successivePairDiffBytes": [
+      0,
+      0,
+      0
+    ],
+    "evidence": "freeze-diagnostic-export.json"
+  },
+  "regression": "battle-input-freeze-fixed.json",
+  "verification": "battle-input hardware DPR1 and DPR2 all checks pass; BattleFreeze and sceneFrames 10 tests pass",
+  "productionChanges": false,
+  "ownedProcessShutdown": "Vite dedicated port5186 PID24120 stopped; all Playwright diagnostics closed browsers in finally"
+}

@@ -9,7 +9,12 @@
 // cases deliberately never execute — each one would be a GPU validation error.
 import { expect, test, vi } from "vitest";
 import { tgpu, d } from "typegpu";
-import { SunCascade, SunShadow, shadowVisibility, sunSamplingLayout } from "../shadow";
+import {
+  SunCascade,
+  SunShadow,
+  shadowVisibility,
+  sunSamplingLayout,
+} from "../../../../../packages/battle-renderer/src/world/shadow";
 import { SUN_SHADOW_BLOCK_FLOATS } from "../../../../../packages/battle-renderer/src/shaders/shadow";
 
 const root = () =>

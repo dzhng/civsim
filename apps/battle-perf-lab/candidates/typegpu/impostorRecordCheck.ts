@@ -8,7 +8,7 @@ import {
   impostorRecordFloats,
   impostorViewBlock,
   writeImpostorState,
-} from "./impostorDerivation";
+} from "../../../../packages/battle-renderer/src/world/impostorDerivation";
 import {
   SHADER_F32,
   compareImpostorRecords,

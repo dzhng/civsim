@@ -47,8 +47,8 @@ vi.mock("typegpu", async (original) => {
     },
   };
 });
-import { createTypegpuTerrain } from "../terrain";
-import type { TypegpuEnvironment } from "../environment";
+import { createTypegpuTerrain } from "../../../../../packages/battle-renderer/src/world/terrain";
+import type { TypegpuEnvironment } from "../../../../../packages/battle-renderer/src/world/environment";
 const device = {
   pushErrorScope: vi.fn(),
   popErrorScope: vi.fn(async (): Promise<GPUError | null> => null),

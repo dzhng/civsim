@@ -146,3 +146,23 @@ removing the real-geography rock producer. All tree records remain exact; the
 three production views repeat exactly and fresh review prefers the continuity.
 Generic battle and authored-stage rocks remain. This does not resolve missing
 intermediate detail, terrain texture or final ecological composition.
+
+## Intermediate growth control
+
+Two understory prototypes remain rejected and unintegrated. An independent shrub
+pool exceeded the existing budgets. Relocating only existing bushes fit the
+budget but changed campaign views by only a few props, and battle fringe seats
+allowed bushes into grass-painted gameplay clearings. Exclusion assertions must
+continue to cover all props; filtering them to mature trees would weaken the
+contract.
+
+The next controlled variable is age/size mixture at existing eligible forest-edge
+positions. Keep the admission lattice, caps, source terrain and all-prop exclusions fixed;
+allow a measured subset of edge appearances to become smaller shrubs/young
+growth, retaining dense interiors. The prior mature-record freeze was a diagnostic
+constraint, not a product invariant, and preserving it did not address the
+missing intermediate detail. This should remain a small policy in each existing
+scatter owner, with no separate lattice, budget, tier schema or LoD switch.
+Battle preserves every site. Campaign can substitute sites because a smaller
+footprint passes existing coastal clearance; the measured prototype substitutes
+59 of32,000 candidates, so it must not claim exact campaign-position preservation.

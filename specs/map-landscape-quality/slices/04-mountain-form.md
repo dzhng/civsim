@@ -138,3 +138,20 @@ models use shared surface contact, but the candidate loses dominant regional
 relief and shows repetitive grooves. Tree occlusion prevents a city-contact
 acceptance claim. Production terrain and its loader remain unchanged; no further
 form/scale sweep follows this natural-composition diagnostic.
+
+## Accepted-field sampling diagnosis
+
+The [fixed-field CPU comparison](../assets/slice-04/accepted-field-sampling/README.md)
+measures the current field at2km and1km geometry spacing, separately from the
+rejected directional-filter experiment. Over262,144 common dry interior samples,
+p95 height interpolation error falls0.2904→0.07789 presentation km while mesh
+bytes rise304,817→1,207,601. The field/source is unchanged; differing coast scratch
+sentinels do not matter in this fully saturated interior. This justifies a bounded
+visual resolution control, not a global resolution change. It cannot repair the
+noise-contour topology or establish improved mountain character by itself.
+
+Production trials of global1km spacing and1km only for the nine-tile close view
+exceeded the unchanged128MiB allocation ceiling (134,711,391 and136,036,387
+bytes respectively). Neither shipped. Failure logs and the bounded trial patch
+remain in `throwaway/sampling-allocation-probes`. Use the existing lab's `cell`
+parameter to judge visual value before designing another residency change.

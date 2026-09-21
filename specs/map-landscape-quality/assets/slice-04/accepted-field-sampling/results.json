@@ -1,0 +1,223 @@
+{
+  "center": [
+    -450,
+    990
+  ],
+  "radius": 64,
+  "extent": {
+    "min": [
+      -514,
+      926
+    ],
+    "max": [
+      -386,
+      1054
+    ]
+  },
+  "units": "world kilometers; height values are exaggerated presentation kilometers",
+  "sourceBefore": {
+    "height": "7b475ed043f8ce229e96fea4782fc8255833b7bb74e402165ca44dd463ff41b4",
+    "biome": "16bdb849e872b9ebdb057e9141d5095d9d50a9cc870ccf815f46c5d173257488",
+    "mask": "0ae2ccd39260bfef1f139c5372e7176964d68324694f9d47af830d1de93bbe17"
+  },
+  "sourceAfter": {
+    "height": "7b475ed043f8ce229e96fea4782fc8255833b7bb74e402165ca44dd463ff41b4",
+    "biome": "16bdb849e872b9ebdb057e9141d5095d9d50a9cc870ccf815f46c5d173257488",
+    "mask": "0ae2ccd39260bfef1f139c5372e7176964d68324694f9d47af830d1de93bbe17"
+  },
+  "sourceUnchanged": true,
+  "sourceGrid": {
+    "w": 589,
+    "h": 486,
+    "cell": 8
+  },
+  "coastCell": 1.9990072307959197,
+  "sampleCount": 262144,
+  "excluded": 0,
+  "minInland": 347.8272705078125,
+  "maxInlandDifference": 7.996002197265625,
+  "maxAnalyticDifference": 0,
+  "highThreshold": 46.25438334435826,
+  "cases": [
+    {
+      "cell": 2,
+      "triangles": 8192,
+      "vertices": 4225,
+      "geometryBytes": 267304,
+      "finalMeshTypedBytes": 304817,
+      "generationBytes": 643410,
+      "buildMs": 214.13412500000004,
+      "checkedVertices": 4225,
+      "nonInteriorVertices": 0,
+      "vertexMaxError": 0.000003109660170252937,
+      "errors": {
+        "count": 262144,
+        "mean": 0.10035762419381233,
+        "rms": 0.14717192153346226,
+        "p50": 0.07126394462387253,
+        "p90": 0.2134017350159212,
+        "p95": 0.2904121120661216,
+        "p99": 0.5309875267221358,
+        "max": 1.784560207880439
+      },
+      "upperHeightQuartileErrors": {
+        "count": 65536,
+        "mean": 0.12273798219847934,
+        "rms": 0.18438456340507078,
+        "p50": 0.08044314618650361,
+        "p90": 0.27774232475443483,
+        "p95": 0.382352397952161,
+        "p99": 0.6857822991334146,
+        "max": 1.4455743608055442
+      },
+      "worstSamples": [
+        {
+          "x": -500.9075,
+          "y": 1023.1525,
+          "z": 44.507688502825225,
+          "errors": [
+            1.784560207880439,
+            0.19768600419853044
+          ]
+        },
+        {
+          "x": -501.1575,
+          "y": 1022.9025,
+          "z": 44.02700925939632,
+          "errors": [
+            1.7167451726729723,
+            0.14047001951290383
+          ]
+        },
+        {
+          "x": -500.9075,
+          "y": 1022.9025,
+          "z": 44.40781998293208,
+          "errors": [
+            1.6997830309134088,
+            0.12844210283562063
+          ]
+        },
+        {
+          "x": -501.1575,
+          "y": 1023.1525,
+          "z": 44.22759096196245,
+          "errors": [
+            1.6191257911021353,
+            0.23649433186607638
+          ]
+        },
+        {
+          "x": -500.6575,
+          "y": 1023.1525,
+          "z": 44.65511166297111,
+          "errors": [
+            1.5342105027309998,
+            0.25905718527948807
+          ]
+        }
+      ]
+    },
+    {
+      "cell": 1,
+      "triangles": 32768,
+      "vertices": 16641,
+      "geometryBytes": 1058856,
+      "finalMeshTypedBytes": 1207601,
+      "generationBytes": 2334578,
+      "buildMs": 547.8042499999999,
+      "checkedVertices": 16641,
+      "nonInteriorVertices": 0,
+      "vertexMaxError": 0.000003698961009490631,
+      "errors": {
+        "count": 262144,
+        "mean": 0.026739183105855987,
+        "rms": 0.040452184193249856,
+        "p50": 0.018734349312119036,
+        "p90": 0.05535758652396083,
+        "p95": 0.07789066084575325,
+        "p99": 0.15308601815713985,
+        "max": 0.6670040543222626
+      },
+      "upperHeightQuartileErrors": {
+        "count": 65536,
+        "mean": 0.03176246419424971,
+        "rms": 0.04938422184921508,
+        "p50": 0.020039955919472163,
+        "p90": 0.07234804051261534,
+        "p95": 0.10399705893038202,
+        "p99": 0.18609655421939664,
+        "max": 0.5261863254735815
+      },
+      "worstSamples": [
+        {
+          "x": -501.4075,
+          "y": 1023.6525,
+          "z": 44.088536818757085,
+          "errors": [
+            0.9983326037073184,
+            0.6670040543222626
+          ]
+        },
+        {
+          "x": -501.4075,
+          "y": 1023.4025,
+          "z": 44.03848877456778,
+          "errors": [
+            1.246485643654978,
+            0.6125319149792219
+          ]
+        },
+        {
+          "x": -501.6575,
+          "y": 1023.4025,
+          "z": 43.60725512226117,
+          "errors": [
+            0.9299151154328413,
+            0.6042728491593579
+          ]
+        },
+        {
+          "x": -502.6575,
+          "y": 1025.4025,
+          "z": 42.16122014971957,
+          "errors": [
+            1.3747845980762747,
+            0.5742272088168789
+          ]
+        },
+        {
+          "x": -503.4075,
+          "y": 1026.6525,
+          "z": 41.03754849545627,
+          "errors": [
+            1.2279469453540415,
+            0.564092074557891
+          ]
+        }
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "path": "web/src/campaign/terrain.ts",
+      "sha256": "c90a97ce19736ee28c7cfe29f2c9d6fed43e8e3e5f87ca032c6d732e04e3d1fe"
+    },
+    {
+      "path": "packages/game-renderer/src/terrain/campaignLandscape.ts",
+      "sha256": "709c2e8c56c1a0d8ae8d5f8375ff024306043203f688a026b734bbd10e8351d3"
+    },
+    {
+      "path": "packages/game-renderer/src/terrain/campaignRelief.ts",
+      "sha256": "43954fa0f0791e67b355fd61daf6269be6be57a69992ac5334416152f606014f"
+    },
+    {
+      "path": "packages/game-renderer/src/terrain/shorelineMesh.ts",
+      "sha256": "65326ad01432b484a12877764723ba58a67d944f581eacbe89613c36dbaa620b"
+    },
+    {
+      "path": "packages/photoreal-renderer/src/landscape/terrainMaterial.ts",
+      "sha256": "9684327aed5356ea770d9431db0f58dec246268a72f2d048fe804c546001e0b4"
+    }
+  ]
+}

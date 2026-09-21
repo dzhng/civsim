@@ -4,7 +4,7 @@ Status: adapter adopted; broader journey/lifecycle and hardware acceptance in pr
 
 ## Contract and owner
 
-Switch web/src/campaign/renderer.ts to the completed campaignWorld, preserving the application-facing semantics. Retire superseded owners following architecture.md, including lab-only copies.
+The production campaign adapter uses campaignWorld. Preserve its application-facing semantics and finish the retirement audit under architecture.md, including lab-only copies.
 
 Slice variable: **Complete production behavior on the new rendering owner.**
 
@@ -26,11 +26,18 @@ model/standard and battle consumers before deleting shared raw infrastructure;
 campaign cutover alone does not authorize breaking their active routes. No copied
 renderer adapter or permanent backend selector survives the cutover.
 
-## Runnable checkpoint
+## Acceptance state
 
-The normal campaign entry uses the shared world. Controlled pan/zoom, selection, fog/political views and save/load verification pass. Encounter handoff and return from battle remain required acceptance checks; current handoff diagnosis reaches full soldier upload but has not completed presented-frame settlement within the existing guard.
+| Accepted | Remaining | Evidence |
+| --- | --- | --- |
+| Production campaign adapter, entity preparation before cards, shared traversal/residency owner | Full production journey/interaction matrix and remaining owner-retirement audit | [Adapter](../assets/slice-14-production/README.md) |
+| Merged campaign→16,000-soldier TypeGPU battle→campaign, with no page errors | Broader save/load, conquest/reinforcement and final lifecycle coverage; rerun handoff when affected or in final integration | [Main integration](../assets/main-integration/verification.md) |
+| Shared aerial-ray correction and screen UI composition | Owner-aware label coverage, final DPR and hardware acceptance | [Ray correction](../assets/slice-14-production/aerial-ray/README.md), [UI proof](../assets/slice-14-production/remaining-acceptance/screen-ui-production-control/README.md) |
 
-Use the existing scene runner and snapshot primitive to verify the remaining journeys.
+Use the existing scene runner and snapshot primitive. [15](15-acceptance.md)
+owns the common journey, camera, lifetime and hardware matrix. The earlier
+handoff settlement limitation was superseded by the merged TypeGPU proof; do not
+carry it as a current blocker or reopen the accepted adapter to diagnose it.
 
 ## Verification and review
 
@@ -42,7 +49,7 @@ Apply [compare-screenshots](../../../.agents/skills/compare-screenshots/SKILL.md
 
 ## Delegated decisions and protected behavior
 
-Deletion grouping and adapter internal structure are delegated. One active production backend, unchanged save/command semantics and the no-compatibility end state are fixed.
+Deletion grouping and adapter internal structure are delegated. One active composition/backend per world, unchanged save/command semantics and the no-compatibility end state are fixed.
 
 Everything outside this slice's variable stays fixed; the relevant existing gameplay, water-color, surface and lifecycle tests stay green. Follow the [ownership contracts](../architecture.md). Record new implementation decisions and measured deviations in this slice before ending a pass.
 
@@ -50,7 +57,7 @@ Feedback that would change the slice: The user has authorized cutover work. Only
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
 
-## Production adapter checkpoint
+## Accepted integration boundaries
 
 The normal campaign entry consumes the shared world, with terrain and live entity
 preparation before card layout. The traversal route shares its residency owner;
@@ -71,5 +78,6 @@ full-frame repeat evidence is required before those baselines are adopted.
 
 The [shared verification-input ledger](../assets/slice-14-production/remaining-acceptance/verifier-inputs.md)
 records the real-map color-oracle transfer and the cart check's migration to
-seated physical anchors. Numeric floors remain fixed; browser acceptance and
-canonical image updates remain pending the actual label/card fixes.
+seated physical anchors. Numeric floors remain fixed; remaining label coverage and canonical image acceptance are tracked by12 and the
+common matrix in15. Completed card-placement and painted-label fixes keep their
+scoped acceptance; they are not new implementation pickups.

@@ -1,69 +1,56 @@
 # Shared landscape quality
 
-Status: implementation active; foundations01–03 complete; campaign crown/water accepted, merged battle consumers and final visual acceptance open. Updated: 2026-09-21.
+Status: implementation active; foundations01–03 complete; campaign crown/water accepted, merged battle consumers and final visual acceptance open. Updated: 2026-09-22.
 
 Make the campaign landscape meet the supplied reference's quality and bring the same character to battle: connected ridges and valleys, ground that becomes mountain, vegetation that belongs to its slopes, and coherent water and lighting. Battle matches the location's character; it does not reconstruct campaign geography.
 
 ## Next Agent Prompt
 
 Work in `/Users/david/dev/game/.worktrees/map-landscape-quality` on
-`codex/map-landscape-quality`. Keep this one worktree; do not retain alternate
-implementations or create sibling project folders. The integrated server uses5186.
-Inspect live processes and keep source edits out of the single GPU capture lane.
+`codex/map-landscape-quality`. Keep this one worktree and a single GPU capture
+lane; inspect live processes before starting captures or replacing their build.
 
-**Current pickup: port bitmap rock response.**
-Categorical rock/forest/scree weights now precede CPU joins and GPU interpolation
-in both adapters; TypeGPU leaf shadows share the visible atlas cutout. Six isolated
-production-world views repeat exactly, 1,066 tests/typecheck/build pass, and fresh
-review favors the bounded fixes. All three canonical character views preserve their intended layer coverage and repeat exactly.
-Evidence and remaining visual defects: `assets/slice-13/coverage-shadow/`.
-Do not mark06 or13 complete. Next, share the accepted rock bitmap/policy with
-TypeGPU using one terrain-scene texture lifetime; authored visual slope defaults
-must not fabricate gameplay metadata. Follow the resource plan in13.
+**Current pickup: finish the TypeGPU bitmap rock consumer in progress.** Follow
+[13](slices/13-battle-adoption.md) for asset lifetime, authored visual defaults and
+production verification. Do not treat uncommitted implementation as acceptance.
+Campaign keeps Three and battle keeps main's TypeGPU renderer: share neutral
+policy/data/assets, not backend wrappers or a restored battle backend.
 
-The road surface-width pass is complete: 1,064 frontend tests and typecheck pass;
-three production views repeat exactly on final code; both canonical geography
-views repeat exactly, restore their toggles exactly, and report no page errors.
-Fresh reviews accept the bounded width improvement. Evidence, CPU memory cost,
-test/readiness changes and older-baseline drift are in
-`assets/slice-11/road-surface-width/`. Bright road styling and sharp bends remain
-outside that pass. Only eight focused geographic tests were added/retained; do not
-mistake this for whole 11 acceptance.
+Finish through four acceptance passes. Slice numbers identify owners, not twelve
+separate projects or duplicate capture runs:
 
-**Main boundary:** merge `72177093` integrates `fa2e11bf`. Battle now uses TypeGPU
-and a simulation worker; campaign retains Three. Share neutral terrain, appearance,
-scenery, asset and environment policy. Do not restore the retired battle backend.
-The merged runtime passed1,060 frontend tests, typecheck, production build, release
-WASM build, independent review and campaign→16,000-soldier battle→campaign with no
-page errors; see `assets/main-integration/verification.md`. This proves integration,
-not final art or hardware performance.
+1. **Battle consumers (05–10/13):** finish rock and water response, stable tree
+   variants and projected detail; judge composed highland, wooded and coastal
+   production views. Leaf-mask consistency is already accepted.
+2. **Campaign reference quality (04/05/07/10):** test the bounded source-rock/slope
+   gate on fixed geometry, then judge actual mountain hierarchy, green foothills,
+   woods and lighting together. Recoloring alone cannot accept deficient form.
+   Do not repeat rejected geometry or size-only vegetation trials without new evidence.
+3. **Campaign presentation and shores (08/11/12/14):** complete owner-aware label
+   coverage, raised interaction/DPR checks, geographic overlays and the remaining
+   coast/channel verdicts. Preserve accepted source, residency and road fixes.
+4. **Integrated acceptance (15):** use its single matrix for full frames, motion,
+   gameplay journeys, current hardware and lifetime evidence; then whole-spec
+   review, choices consolidation and closeout. Reuse evidence across slice owners
+   when it proves the same requirement, without narrowing any gate.
 
-**Priority after roads:**
+Before relying on them, reconcile the traversal camera-readiness check and the
+battle shadow/turf scenes' retired stats/frame-settlement hooks with current
+production contracts. Replace the legacy whole-frame label brightness oracle
+only after missing-name and missing-card controls prove its owner-aware successor.
 
-1. Finish battle appearance adoption with common rock/water response. Dry beauty normals
-   already come from geometry. The current patch plan is in13.
-2. Restore battle tree variants, projected detail selection and a common visible/
-   shadow leaf mask in 06. Campaign crown work remains accepted; the new battle
-   consumer does not yet satisfy it. Battle water verification in09 belongs to13.
-3. Improve the reference gap: mountains still read as similar rounded ribs with
-   narrow grass streaks, dark hollows and isolated woods. Try the smallest isolated
-   source-rock/slope gate to reveal existing gentle shelves; require unchanged
-   clay/geometry and reject a mere recoloring of the same ribs. Do not repeat
-   rejected fine-mesh or raised-crest experiments without new evidence.
-4. Complete label-owner coverage, shore/water motion, whole-frame/camera coverage,
-   lifetime and hardware gates, then whole-spec review and closeout. The sibling
-   landscape-traversal scene has the same old-camera readiness pattern; correct
-   that before trusting its fresh timing or capture evidence.
+| Accepted checkpoint | Evidence | Acceptance still open |
+| --- | --- | --- |
+| Main renderer integration and campaign→16,000-soldier TypeGPU battle→campaign | [Main integration](assets/main-integration/verification.md) | Final art, current hardware and broader journeys |
+| Connected terrain foundations and bounded campaign residency | 01–03 and [architecture](architecture.md) | Whole-frame reference quality |
+| Downward saddles and crown design | [Saddles](assets/slice-04/downward-saddles/README.md), [crowns](assets/crowns/finish/README.md) | Broad foothills/composition; migrated battle variants/detail |
+| Road surface width, fog update compatibility and settled geographic captures | [Roads](assets/slice-11/road-surface-width/README.md) | Geographic styling and full fog/overview coverage |
+| Categorical terrain coverage and common leaf shadow cutout | [Coverage/shadows](assets/slice-13/coverage-shadow/README.md) | Other TypeGPU appearance consumers and composed acceptance |
 
-Accepted pre-merge terrain/label evidence is in
-`assets/slice-04/downward-saddles/`; earlier material and lifetime evidence remains
-in its slice assets. Those captures do not accept the migrated battle renderer.
-The old regional white-pixel label gate remains open; replace it only with direct
-positive/negative checks of the actual label owner. Earlier performance numbers
-are historical; run the current hardware gate for final acceptance.
-
-Claude previously reached its spending limit. Use Opus when available without
-changing billing; continue other authorized work when that service is unavailable.
+Earlier performance and retired Three battle captures retain their original
+scope; they do not accept the current TypeGPU renderer. Claude previously reached
+its spending limit: use Opus when available without changing billing, and continue
+other authorized work when unavailable.
 
 ### Global TODO
 

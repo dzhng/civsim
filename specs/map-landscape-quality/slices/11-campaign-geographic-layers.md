@@ -4,19 +4,25 @@ Status: in progress; live ownership/visibility checkpoint verified. Dependencies
 
 ## Contract and owner
 
-Extend the existing composition proof in the proposed campaignWorld with full real-map CPU road, territory and visibility inputs. Keep simulation and CPU geographic/layout builders as their current owners.
+The production campaignWorld consumes real-map CPU road, territory and visibility inputs. Keep simulation and CPU geographic/layout builders as their current owners.
 
 Slice variable: **Geographic overlay placement and depth in the new world.**
 
 ## Work
 
-Port road ribbons, sea lanes, borders, faction washes, fog and overview atmosphere to the shared three.js world. Every draped vertex uses the presented surface; coast clipping shares the new water boundary. Use explicit depth-tested decal/transparent ordering and keep fog/UI meanings intact. Do not convert the entire old raw pass API into wrappers. Implement full-region visibility/culling and re-drape only changed surface regions. The old production adapter remains active until the complete cutover slice.
+Road ribbons, sea lanes, borders, faction washes and fog belong to the production Three world. Every draped vertex uses the presented surface; coast clipping shares the new water boundary. Use explicit depth-tested decal/transparent ordering and keep fog/UI meanings intact. Do not convert the entire old raw pass API into wrappers. Implement full-region visibility/culling and re-drape only changed surface regions.
 
-## Runnable checkpoint
+## Acceptance state
 
-Extend /renderer/campaign-composition to real regions and live campaign frame input; planned campaign-landscape-overlays scene covers natural/political/fog variants.
+| Accepted | Remaining | Evidence |
+| --- | --- | --- |
+| Live ownership/visibility, geographic inputs, source clipping and changed-domain seating | Complete fog/overview coverage and entity/UI integration | [Lines](../assets/slice-11/lines/README.md) |
+| Regional frustum culling and bounded changed-region updates | Current final hardware acceptance; geographic allocations stay separate from terrain residency | [Grouping](../assets/slice-11/grouping/README.md) |
+| Road/junction surface width and fog upload compatibility; requested-camera readiness | Final road styling, endpoint/crossing and coast/depth verdicts across the required matrix | [Road width](../assets/slice-11/road-surface-width/README.md) |
 
-New routes/scenes named here are planned deliverables. Use the existing scene runner and snapshot primitive; do not claim they already exist.
+Use the existing production geographic and campaign scenes. The shared full-map,
+fog/political, camera and hardware matrix belongs to [15](15-acceptance.md); do
+not create a second overlay scene merely to repeat the same world and assertions.
 
 ## Verification and review
 
@@ -36,69 +42,17 @@ Feedback that would change the slice: A requested ownership/fog design change wo
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
 
-## Dynamic geography checkpoint
+## Ownership invariants
 
-The first vertical pass gives the physical world replaceable political ownership
-and visibility. Ownership uses the existing north-first RGBA raster contract,
-nearest faction boundaries and political wash strength; its material graph stays
-shared across tile admissions. Visibility updates both resident terrain/roads and
-entity/scenery membership, and subsequently admitted terrain samples the current
-query. Queries remain campaign policy, not a second world visibility algorithm.
+Campaign policy supplies political ownership, visibility and connectivity. The
+physical world consumes those inputs and seats their vertices on the presented
+surface revision; it does not derive a second visibility or road graph. Ownership
+updates apply to resident terrain and subsequent admissions alike. Surface changes
+re-seat only intersecting line regions; visibility updates must remain compatible
+with those partial position updates.
 
-This checkpoint supplies dynamic ownership and visibility. The later line and
-regional grouping checkpoints below supply live geometry and bounded updates. The old
-composition fixture's constant tint is retained until its consumers move to live
-ownership at production cutover; it is not the production faction model.
-
-## Next bounded pass: live geographic lines
-
-Reuse the existing [CPU geometry builder](../../../packages/game-renderer/src/campaign/roadGeometry.ts)
-and campaign border construction. The world receives their geometry and geographic
-identity; it does not recalculate connectivity or ownership. Replace resident line
-inputs when campaign state changes, and seat draped vertices on the same presented
-revision as terrain. Surface admission only re-drapes intersecting line regions;
-visibility changes retain the existing campaign query as policy.
-
-Freeze terrain, water response and entity art. The first artifact must include an
-actual road junction, coastal sea lane and ownership boundary, then replace both
-geographic inputs and an intersecting terrain tile. Check joins, clipping, depth,
-fog and disposal before expanding to full-map culling/performance. Keep this pass
-separate from label projection and city-foot grounding in 12.
-
-### Live geographic line checkpoint
-
-[The evidence](../assets/slice-11/lines/README.md) records shared CPU border
-ownership, live physical road/sea-lane/border input, changed-domain seating and
-disposal. Sparse borders were rejected after regional screenshots exposed holes
-through mountains; subdivision restores continuity, and source-mask clipping
-trims wet coastal tips. Both regional repeats are pixel-identical, all500 CPU tests and both typechecks
-pass, and the final unprimed critique accepts this contact/clipping checkpoint.
-
-Regional grouping below completes the line-culling contract. This contact
-checkpoint alone does not establish full11 or production acceptance.
-
-### Regional grouping checkpoint
-
-[Regional evidence](../assets/slice-11/grouping/README.md) proves offscreen frustum
-culling and pre-vertex rejection of distant updates with the same geographic
-triangles. Explicit crossing order removes dependence on transparent batch centers.
-Both regional repeats and prior composition/anchor controls pass exactly; all501
-CPU tests/typecheck and final code/visual reviews pass. Hardware warm traversal
-measures16.67ms p95 and33.33ms maximum admission frame across11admissions.
-
-Remaining11work: full geographic fog/overview-atmosphere behavior, input/lifecycle
-integration with complete entities/UI and final hardware acceptance. Geometry is
-still resident globally; its CPU/GPU allocations are reported separately from the
-bounded terrain budget. Do not call full11complete from this checkpoint alone.
-
-
-### Surface-width checkpoint
-
-[Road evidence](../assets/slice-11/road-surface-width/README.md) accepts the local
-surface-width correction on steep slopes and terrain replacement. Original route
-centers and widths remain the inputs; road/junction seating uses their local
-surface distance. Full fog uploads remain compatible with visibility updates.
-Three production frames and two settled geography frames repeat exactly. The
-geography scene now waits for the requested camera's frame before terrain
-readiness, rather than photographing an intermediate tile generation. This does
-not close the remaining geographic styling, fog/overview or hardware acceptance.
+Retain original road centers and lateral offsets for each re-seat so repeated
+terrain changes cannot progressively narrow the ribbon. Width is measured on the
+local surface, including junction caps. This approximation does not straighten
+sharp bends or make roads flat benches. Resource costs and its accepted limits
+are recorded in the road evidence above.

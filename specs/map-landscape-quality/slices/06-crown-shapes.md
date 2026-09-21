@@ -8,19 +8,19 @@ Both map pitches use the shared scenery registry and the same connected crown ge
 
 The accepted character is a solid, irregular canopy with readable lobes and connected trunks. Broad families use fewer main lobes; narrow aspen retains fuller coverage. Leaves intersect the crown instead of forming a loose fringe. Species dimensions and instance scale remain unchanged. Fixed geometry budgets and family/detail draw buckets are preserved.
 
-## Merged battle acceptance
+## Acceptance state
 
-The shared crown geometry survives the backend change, but battle currently uses a single default variant with full leaf detail and different visible/shadow cutouts. Restore stable variant selection, projected detail and matching cutout coverage in the TypeGPU consumer, then repeat both-pitch coverage and fresh visual review through production. The earlier battle images below prove the retired consumer only. This reopens consumer acceptance, not the accepted crown design or campaign planting policy.
+| Accepted | Remaining | Evidence |
+| --- | --- | --- |
+| Shared connected crown design and campaign consumer; family sheets and campaign regional review | Preserve these results unless asset changes require their scoped gates again | [Model evidence](../assets/crowns/finish/README.md), [regional evidence](../assets/crowns/finish/integration/README.md) |
+| TypeGPU visible/shadow leaf atlas and cutoff consistency | Stable variant selection and projected detail with hysteresis in the battle consumer | [Coverage/shadow checkpoint](../assets/slice-13/coverage-shadow/README.md) |
+| Historical battle crown appearance through the retired backend | Current TypeGPU both-pitch/detail/return coverage and fresh production review | [Battle adoption](13-battle-adoption.md), [integrated matrix](15-acceptance.md) |
 
-## Accepted pre-merge evidence
-
-The family sheets and both map-pitch zoom/return sequences pass unchanged coverage gates. All 14 distinct tree PNGs repeat exactly over 18 capture calls, with frozen clocks and SwiftShader. The final merged code passes 464 tests and TypeScript. Independent code reviews found no actionable regressions.
-
-Fresh native/crop comparison accepts the tree-form contract for simple matching character. The merged Alpine and Italian views also pass a separate unprimed review: coherent crowns, readable volume, no new holes or clear floating defects. Minor leaf fragments and scratchy conifer strokes remain acceptable simplifications at native size. Concealed trunks at campaign pitch do not prove detachment; visible battle trunks remain connected.
-
-The final merged regional images change 273,845 Alpine pixels and 150,947 Italian pixels from the preceding crown checkpoint; differences are confined to foliage and its shadows. Both updated baselines repeat with zero changed RGBA pixels. No non-tree baseline or tolerance was changed.
-
-[Final model evidence and ledger](../assets/crowns/finish/README.md) owns the family comparisons, rejected aspen trial and strict results. [Merged regional evidence](../assets/crowns/finish/integration/README.md) owns the final real-region verdict and changed-pixel ledger. Earlier comparison evidence remains under the crown report.
+Battle still builds the default variant at full leaf detail. Finish that consumer
+without redesigning the accepted crowns or changing placement policy. The common
+leaf cutout is complete; it is a regression guard, not another implementation task.
+Minor leaf fragments and scratchy conifer strokes were accepted at native campaign
+size. Concealed trunks do not by themselves prove detachment.
 
 ## Protected scope
 

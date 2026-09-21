@@ -4,7 +4,7 @@ The terrain must blend existing materials without introducing a third category b
 
 ## Evidence
 
-Control is commit `9e6d434f`; candidate replaces scalar render IDs with rock/forest/scree weights before CPU joins and GPU interpolation, and uses the visible leaf sampler/cutout in the shadow pass. Both use the same built TypeGPU production world through the renderer lab, frozen tick/time, 1280×800 DPR1 and zoom7.8. Exact URLs, camera and resource telemetry are in the JSON records. Immutable builds avoid dev-server hot reload during captures.
+Control is commit `9e6d434f`; candidate replaces scalar render IDs with rock/forest/scree weights before CPU joins and GPU interpolation, and uses the visible leaf sampler/cutout in the shadow pass. Both use the same built TypeGPU production world through the renderer lab, frozen tick/time, 1280×800 DPR1 and zoom7.8. Exact URLs, camera, terrain and shadow telemetry are in the JSON records. Disabled crowd/grass diagnostics are omitted. Immutable builds avoid dev-server hot reload during captures.
 
 All six candidate frames repeat at zero pixel differences, with no page errors or GPU validation warnings. Full frontend suite: 1,066 tests; typecheck and production build pass. Independent static review found no actionable regressions. These software-GPU captures make no hardware-performance claim.
 

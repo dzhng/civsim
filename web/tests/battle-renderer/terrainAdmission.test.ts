@@ -73,7 +73,14 @@ test("asynchronous terrain resource errors reject the staged layer and release a
     message: "terrain allocation failed",
   } as GPUError);
   await expect(
-    createTypegpuTerrain(device, {} as GPUBuffer, environment, ground, null),
+    createTypegpuTerrain(
+      device,
+      {} as GPUBuffer,
+      environment,
+      { texture: { createView: () => ({}) } } as never,
+      ground,
+      null,
+    ),
   ).rejects.toThrow("terrain allocation failed");
   expect(state.live.size).toBe(0);
 });

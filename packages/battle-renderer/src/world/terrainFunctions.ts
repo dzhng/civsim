@@ -29,6 +29,8 @@ export function createTerrainSurface(options: TerrainMaterialOptions) {
         d.f32,
         d.texture2d(),
         d.sampler(),
+        d.texture2d(),
+        d.sampler(),
       ],
       d.vec4f,
     )(bodies.terrainSurface)

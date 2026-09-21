@@ -10,10 +10,13 @@ import type { TerrainMaterialOptions } from "../shaders/terrainMaterial";
 import { createTerrainSurface, terrainLinear } from "./terrainFunctions";
 import { type TypegpuEnvironment } from "./environment";
 
+import type { TypegpuRockDetail } from "./rockDetail";
 import { Camera, typegpuCameraLayout as cameraLayout } from "./camera";
 const terrainLayout = tgpu
   .bindGroupLayout({
     state: { uniform: d.vec4f, visibility: ["fragment"] },
+    rock: { texture: d.texture2d(), visibility: ["fragment"] },
+    rockSampler: { sampler: "filtering", visibility: ["fragment"] },
     earth: { texture: d.texture2d(), visibility: ["fragment"] },
     linear: { sampler: "filtering", visibility: ["fragment"] },
   })
@@ -59,6 +62,7 @@ export async function createTypegpuTerrain(
   device: GPUDevice,
   cameraBuffer: GPUBuffer,
   environment: TypegpuEnvironment,
+  rockDetail: TypegpuRockDetail,
   ground: Omit<PhotorealBattleGroundMesh, "earthDistance">,
   horizon: BattleHorizonLayout | null,
   options: TerrainMaterialOptions = {},
@@ -89,7 +93,20 @@ export async function createTypegpuTerrain(
     owned.push(earth);
     earth.write(typegpuTextureBytes(sdf?.data ?? new Uint8Array([0, 0])));
     const linear = root.createSampler({ minFilter: "linear", magFilter: "linear" }),
-      group = root.createBindGroup(terrainLayout, { state, earth: earth.createView(), linear });
+      rockSampler = root.createSampler({
+        minFilter: "linear",
+        magFilter: "linear",
+        mipmapFilter: "linear",
+        addressModeU: "repeat",
+        addressModeV: "repeat",
+      }),
+      group = root.createBindGroup(terrainLayout, {
+        state,
+        earth: earth.createView(),
+        linear,
+        rock: rockDetail.texture.createView(),
+        rockSampler,
+      });
     const environmentLayout = environment.layout;
     const sampleSunShadow = environment.sampleSunShadow;
     const surface = createTerrainSurface(options);
@@ -140,6 +157,8 @@ export async function createTypegpuTerrain(
             terrainLayout.$.state.x,
             terrainLayout.$.earth,
             terrainLayout.$.linear,
+            terrainLayout.$.rock,
+            terrainLayout.$.rockSampler,
           );
       const face = std.normalize(std.cross(std.dpdx(v.position), std.dpdy(v.position)));
       const normal = clay

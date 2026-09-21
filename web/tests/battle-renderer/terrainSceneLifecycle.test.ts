@@ -3,6 +3,8 @@ import { vi, test, expect, beforeEach } from "vitest";
 const state = vi.hoisted(() => ({
   resources: [] as { dispose: ReturnType<typeof vi.fn> }[],
   factory: vi.fn(),
+  rock: { texture: {}, stats: { width: 2, height: 2, mipLevels: 2, bytes: 20 }, dispose: vi.fn() },
+  loadRock: vi.fn(),
   /** Source content the mocked preparation hands each generation's owners, so a
    *  published report has to follow what was actually installed rather than a
    *  fixed shape. */
@@ -10,6 +12,9 @@ const state = vi.hoisted(() => ({
   groundIndices: 36,
   vistaMeshes: [] as { name: string; mesh: object }[],
   waterDraws: 1,
+}));
+vi.mock("../../../packages/battle-renderer/src/world/rockDetail", () => ({
+  loadTypegpuRockDetail: (...args: unknown[]) => state.loadRock(...args),
 }));
 function layer(extra: object = {}) {
   const v = {
@@ -92,14 +97,18 @@ const create = () =>
   );
 beforeEach(() => {
   state.resources.length = 0;
+  state.rock.dispose.mockReset();
+  state.loadRock.mockReset().mockResolvedValue(state.rock);
   state.scenery = 0;
   state.groundIndices = 36;
   state.vistaMeshes = [];
   state.waterDraws = 1;
-  state.factory.mockReset().mockImplementation(async (_device, _camera, _environment, ground) => {
-    const groundTriangles = (ground.indices?.length ?? 0) / 3;
-    return layer({ stats: () => ({ groundTriangles }) });
-  });
+  state.factory
+    .mockReset()
+    .mockImplementation(async (_device, _camera, _environment, _rock, ground) => {
+      const groundTriangles = (ground.indices?.length ?? 0) / 3;
+      return layer({ stats: () => ({ groundTriangles }) });
+    });
 });
 test("a failed staged generation retains the previous complete terrain and disposes staged resources", async () => {
   const owner = await create(),
@@ -150,6 +159,7 @@ test("committed terrain content is read from the generation's own owners", async
     groundCover: "green-grass",
     groundStyle: "beauty",
     slopeBands: null,
+    rockDetail: state.rock.stats,
     vista: null,
     water: { draws: 1, triangles: 2 },
   });
@@ -170,6 +180,7 @@ test("committed terrain content is read from the generation's own owners", async
     groundCover: "green-grass",
     groundStyle: "beauty",
     slopeBands: null,
+    rockDetail: state.rock.stats,
     vista: null,
     water: { draws: 2, triangles: 4 },
   });
@@ -191,6 +202,7 @@ test("committed terrain content is read from the generation's own owners", async
   expect(owner.stats()).toEqual({
     installed: false,
     generation: 2,
+    rockDetail: null,
     replacing: false,
     groundTriangles: null,
     scenery: null,
@@ -295,5 +307,68 @@ test("terrain metadata follows the committed generation and returned descriptors
   expect(owner.stats().slopeBands!.cliffMin).toBe(0.32);
   await owner.replace(input);
   expect(owner.stats()).toMatchObject({ vista: null, slopeBands: null });
+  owner.dispose();
+});
+
+test("one scene-owned rock image serves every ground and vista across replacements", async () => {
+  state.vistaMeshes = [
+    { name: "far", mesh: {} },
+    { name: "farFog", mesh: {} },
+  ];
+  const owner = await create();
+  await owner.replace(input);
+  expect(state.loadRock).toHaveBeenCalledTimes(1);
+  expect(state.factory).toHaveBeenCalledTimes(6);
+  for (const args of state.factory.mock.calls) expect(args[3]).toBe(state.rock);
+  state.factory.mockRejectedValueOnce(Error("admission failed"));
+  await expect(owner.replace(input)).rejects.toThrow("admission failed");
+  expect(state.rock.dispose).not.toHaveBeenCalled();
+  owner.dispose();
+  owner.dispose();
+  expect(state.rock.dispose).toHaveBeenCalledTimes(1);
+});
+
+test("initial admission failure releases its scene-owned rock image", async () => {
+  state.factory.mockRejectedValueOnce(Error("admission failed"));
+  await expect(create()).rejects.toThrow("admission failed");
+  expect(state.rock.dispose).toHaveBeenCalledTimes(1);
+});
+
+test("scene disposal waits for a pending layer before releasing its borrowed rock image", async () => {
+  const owner = await create();
+  let resume!: (v: ReturnType<typeof layer>) => void;
+  state.factory.mockReturnValueOnce(
+    new Promise((r) => {
+      resume = r;
+    }),
+  );
+  const pending = owner.replace(input);
+  owner.dispose();
+  expect(state.rock.dispose).not.toHaveBeenCalled();
+  resume(layer());
+  await expect(pending).rejects.toThrow("cancelled");
+  expect(state.rock.dispose).toHaveBeenCalledTimes(1);
+});
+
+test("initial terrain input is snapshotted before rock image decoding can yield", async () => {
+  let resume!: (image: typeof state.rock) => void;
+  state.loadRock.mockReturnValueOnce(
+    new Promise((r) => {
+      resume = r;
+    }),
+  );
+  const grid = { marker: "original" };
+  const pending = createTypegpuBattleTerrainScene(
+    {} as GPUDevice,
+    {} as GPUBuffer,
+    {} as TgpuBindGroup,
+    {} as TypegpuEnvironment,
+    1,
+    { ...input, grid } as unknown as BattleTerrainInput,
+  );
+  grid.marker = "mutated while image decodes";
+  resume(state.rock);
+  const owner = await pending;
+  expect(owner.grid()).toEqual({ marker: "original" });
   owner.dispose();
 });

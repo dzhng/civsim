@@ -1,17 +1,13 @@
 import * as THREE from "three/webgpu";
-import heightUrl from "../../assets/rock-detail-height.png?url";
+import { decodeRockDetail } from "../../../game-renderer/src/terrain/rockDetail";
 
 /** Resolves the tiling rock face height map the shared landscape material
  *  samples. One world owns one instance for its whole lifetime: terrain tiles
  *  and rebuilds reuse it rather than decoding again. The caller disposes the
  *  returned texture, which closes the decoded bitmap with it; this module holds
  *  no cache and no shared instance. */
-export async function loadRockDetailMap(url = heightUrl): Promise<THREE.Texture> {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`rock detail map ${url}: ${response.status}`);
-  // Decode with colour management off: the bytes are a height field, not a
-  // display-referred image, and must reach the sampler exactly as baked.
-  const bitmap = await createImageBitmap(await response.blob(), { colorSpaceConversion: "none" });
+export async function loadRockDetailMap(url?: string): Promise<THREE.Texture> {
+  const bitmap = await decodeRockDetail(url);
   try {
     const map = new THREE.Texture(bitmap);
     map.colorSpace = THREE.NoColorSpace;

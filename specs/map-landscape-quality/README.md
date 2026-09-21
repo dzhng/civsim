@@ -10,9 +10,13 @@ Work in `/Users/david/dev/game/.worktrees/map-landscape-quality` on
 `codex/map-landscape-quality`. Keep this one worktree and a single GPU capture
 lane; inspect live processes before starting captures or replacing their build.
 
-**Current pickup: finish the TypeGPU bitmap rock consumer in progress.** Follow
-[13](slices/13-battle-adoption.md) for asset lifetime, authored visual defaults and
-production verification. Do not treat uncommitted implementation as acceptance.
+**Current pickup: common battle water blending, alongside tree variants/detail.**
+The bitmap rock checkpoint is accepted: 1,072 tests, typecheck/build, five exact
+battle repeats, three unchanged campaign views and independent review. See
+[bitmap evidence](assets/slice-13/bitmap-rock/README.md). In13, fix the shared
+water-policy/single-conversion boundary; in06, restore stable tree variants and
+projected detail without a separate placement owner.
+
 Campaign keeps Three and battle keeps main's TypeGPU renderer: share neutral
 policy/data/assets, not backend wrappers or a restored battle backend.
 

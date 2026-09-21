@@ -14,10 +14,13 @@ import {
 } from "@packages/photoreal-renderer/src/landscape/terrainLayer";
 import { createLandscapeGroundMaterial } from "@packages/photoreal-renderer/src/landscape/terrainMaterial";
 import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
-import { CAMPAIGN_TERRAIN_PROFILE } from "@packages/game-renderer/src/terrain/materialProfile";
+import {
+  CAMPAIGN_TERRAIN_PROFILE,
+  TERRAIN_MATERIAL,
+} from "@packages/game-renderer/src/terrain/materialProfile";
 
 const ASSET = fileURLToPath(
-  new URL("../../packages/photoreal-renderer/assets/rock-detail-height.png", import.meta.url),
+  new URL("../../packages/game-renderer/assets/rock-detail-height.png", import.meta.url),
 );
 
 /** The grade the bake aims at. The response reads the sampled height as a 0..1
@@ -26,8 +29,11 @@ const ASSET = fileURLToPath(
  *  off this centre or spread lands those mixes outside their authored range. */
 const HEIGHT_MEAN = 0.5;
 const HEIGHT_SD = 0.14;
-/** The fracture band of `terrainMaterial.ts`, mirrored: dark is a crevice. */
-const FRACTURE_BAND = [0.28, 0.56] as const;
+/** Height thresholds invert the shared dark-crevice band. */
+const FRACTURE_BAND = [
+  1 - TERRAIN_MATERIAL.rock.fractureBand[1],
+  1 - TERRAIN_MATERIAL.rock.fractureBand[0],
+] as const;
 
 async function tile() {
   const png = PNG.sync.read(await readFile(ASSET));

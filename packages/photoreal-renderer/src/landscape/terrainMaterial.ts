@@ -144,7 +144,11 @@ export function terrainRockResponse(
     rgbNode(TERRAIN_MATERIAL.rock.faceHigh),
     faceHeight,
   );
-  rock = mix(rock, rgbNode(TERRAIN_MATERIAL.rock.fracture), fracture.mul(slopeRock).mul(0.32));
+  rock = mix(
+    rock,
+    rgbNode(TERRAIN_MATERIAL.rock.fracture),
+    fracture.mul(slopeRock).mul(TERRAIN_MATERIAL.rock.fractureStrength),
+  );
   // Landform normals keep lighting coherent across the filtered rock detail.
   const normal = transformNormalToView(worldNormal);
 
@@ -166,13 +170,21 @@ export function terrainRockResponse(
 
   albedo = mix(albedo, scree, screeMask.mul(0.78));
   albedo = mix(albedo, rock, rockMask);
-  albedo = mix(albedo, mix(rgbNode(TERRAIN_MATERIAL.rock.bench), inputAlbedo, 0.65), benchCreep);
+  albedo = mix(
+    albedo,
+    mix(rgbNode(TERRAIN_MATERIAL.rock.bench), inputAlbedo, TERRAIN_MATERIAL.rock.benchBaseMix),
+    benchCreep,
+  );
   dryRoughness = mix(
     dryRoughness,
     float(0.985),
     clamp(rockMask.add(screeMask).mul(0.62), 0.0, 1.0),
   );
-  dryRoughness = mix(dryRoughness, faceHeight.mul(0.03).add(0.955), rockMask);
+  dryRoughness = mix(
+    dryRoughness,
+    faceHeight.mul(TERRAIN_MATERIAL.rock.roughnessHeight).add(TERRAIN_MATERIAL.rock.roughnessBase),
+    rockMask,
+  );
   return { albedo, dryRoughness, normal };
 }
 
@@ -286,30 +298,31 @@ function frontSideIndexBuffer(indices: Uint32Array): Uint32Array {
   return out;
 }
 
-/** Face feature frequency in scaled world units. It sets the distance fade and,
- *  divided by the plate count, the rate the detail map tiles across a face. */
-const FACE_FREQUENCY = 0.16;
-/** Crevice band on the face height, about its 0.5 mean. Dark is a crevice, so
- *  the band is read from the top of the range downwards. */
-const FACE_FRACTURE_BAND = [0.44, 0.72] as const;
-/** Rock plates across one tile of the detail map. Dividing the face frequency
- *  by this puts a plate at the feature size the rock palette was authored for. */
-const ROCK_DETAIL_PLATES_PER_TILE = 10;
-
 /** Surface height and crevice weight on an exposed rock face. The map's own
  *  crevices are the fractures, so one triplanar fetch feeds both, and the rock
  *  albedo and roughness stay one response for every consumer. */
 function rockFaceField(p: Vec3Node, worldNormal: Vec3Node, map: THREE.Texture) {
-  const visibility = detailVisibility(p, FACE_FREQUENCY).toVar();
+  const visibility = detailVisibility(p, TERRAIN_MATERIAL.rock.faceFrequency).toVar();
   // Below the resolving distance the field converges to its 0.5 mean rather
   // than aliasing, leaving the flat palette mix the mips cannot carry.
   const height = mix(
     float(0.5),
-    triplanarHeight(p, worldNormal, map, FACE_FREQUENCY / ROCK_DETAIL_PLATES_PER_TILE),
+    triplanarHeight(
+      p,
+      worldNormal,
+      map,
+      TERRAIN_MATERIAL.rock.faceFrequency / TERRAIN_MATERIAL.rock.platesPerTile,
+    ),
     visibility,
   ).toVar();
   const fracture = float(1)
-    .sub(smoothstepN(1 - FACE_FRACTURE_BAND[1], 1 - FACE_FRACTURE_BAND[0], height))
+    .sub(
+      smoothstepN(
+        1 - TERRAIN_MATERIAL.rock.fractureBand[1],
+        1 - TERRAIN_MATERIAL.rock.fractureBand[0],
+        height,
+      ),
+    )
     .mul(visibility)
     .toVar();
   return { height, fracture };
@@ -334,5 +347,7 @@ function triplanarHeight(
 
 function detailVisibility(position: Vec3Node, frequency: number) {
   // Subpixel modulation converges to its mean instead of aliasing into dots.
-  return float(1).sub(smoothstepN(0.3, 1.0, length(fwidth(position)).mul(frequency)));
+  return float(1).sub(
+    smoothstepN(...TERRAIN_MATERIAL.rock.detailFade, length(fwidth(position)).mul(frequency)),
+  );
 }

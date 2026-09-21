@@ -1,0 +1,22 @@
+{
+  "generated-ridge": {
+    "changedPixels": 921255,
+    "rgbMAE": 2.1340296223958335
+  },
+  "generated-ridge-distant": {
+    "changedPixels": 305443,
+    "rgbMAE": 0.4094908854166667
+  },
+  "generated-clay": {
+    "changedPixels": 0,
+    "rgbMAE": 0
+  },
+  "authored-rock-a": {
+    "changedPixels": 0,
+    "rgbMAE": 0
+  },
+  "authored-rock-c": {
+    "changedPixels": 0,
+    "rgbMAE": 0
+  }
+}

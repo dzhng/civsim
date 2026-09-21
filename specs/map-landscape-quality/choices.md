@@ -313,3 +313,35 @@ All cases verify actual camera and renderer identity. The old scene had retired
 readiness/stats hooks after main's renderer migration. The gap was how to maintain
 that gate without losing what it previously showed; isolated diagnostic captures
 supplement the authored views, and never replace composed battle acceptance.
+
+
+## Battle bitmap rock adoption
+
+### Sound — medium confidence: reuse the campaign rock image in battle
+
+A steep battle slope now samples the same rock-height image as campaign terrain,
+using the same fracture, filtering and roughness policy. This adds three filtered
+texture samples per fragment and one approximately 1.33 MiB mipmapped GPU image to
+a battle scene. The plan called for matching material character but did not pick
+an upload strategy. Reusing the existing image/mipmap uploader avoids a new asset
+pipeline; keeping the image at scene scope avoids repeated decoding for each
+terrain ring. Hardware acceptance must still measure the rendering cost.
+
+### Sound — high confidence: neutral bytes, backend-owned GPU images
+
+The PNG and raw-data decoder belong to game-renderer, so battle does not import
+campaign GPU types. Each backend creates its own texture using those bytes. In
+battle, ground and replacement vista layers borrow one scene-owned image; they
+release before that image is destroyed. This is the minimal sharing boundary:
+sharing native textures between independent renderer owners would couple their
+lifetimes. The plan left the precise loader split open.
+
+### Sound — high confidence: authored slope defaults remain visual only
+
+An authored rock marker describes a placed prop's footprint, whereas a generated
+rock category also describes exposed terrain. The shader therefore uses geometric
+slope defaults for authored terrain without turning those prop footprints into
+full rock faces or adding gameplay slope metadata. Authored scree still excludes
+turf. This carries the accepted Three interpretation across the backend boundary
+and leaves physical height, passability and recipe identity with their existing
+owners.

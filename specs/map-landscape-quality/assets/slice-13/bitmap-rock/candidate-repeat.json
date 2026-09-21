@@ -1,0 +1,503 @@
+{
+  "target": "http://127.0.0.1:5188",
+  "errors": [],
+  "warnings": [],
+  "checks": [
+    {
+      "name": "snapshot generated-ridge",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "snapshot generated-ridge-distant",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "snapshot generated-clay",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "snapshot authored-rock-a",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "name": "snapshot authored-rock-c",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    }
+  ],
+  "frames": [
+    {
+      "name": "generated-ridge",
+      "params": "map=gen&ref=1&env=golden-hour&t=0&ticks=60&zoom=7.6&cx=-960&cy=20&camYaw=-1.5707963267948966&shadows=single&only=battle-ground%2Cbattle-horizon&seed=8",
+      "camera": {
+        "center": [
+          -956.6184677575587,
+          20
+        ],
+        "zoom": 7.6,
+        "yaw": -1.5707963267948966
+      },
+      "stats": {
+        "substrate": "typegpu",
+        "projection": "camera3d",
+        "reviewClay": false,
+        "reviewVisibility": {
+          "ground": true,
+          "vista": true,
+          "water": false,
+          "scenery": false,
+          "crowd": false
+        },
+        "preparedCamera": {
+          "x": -956.6184677575587,
+          "y": 20,
+          "zoom": 7.6,
+          "zoomT": 0.9464788732394366,
+          "camera3d": {
+            "target": [
+              -956.6184677575587,
+              20,
+              0
+            ],
+            "distance": 499.0807333722905,
+            "pitch": 1.192931185617751,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.5309521162474292,
+            "aspect": 1.6,
+            "near": 1
+          }
+        },
+        "terrain": {
+          "installed": true,
+          "generation": 1,
+          "replacing": false,
+          "groundTriangles": 120000,
+          "scenery": 3495,
+          "vistaBands": 2,
+          "groundCover": "green-grass",
+          "groundStyle": "beauty",
+          "rockDetail": {
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "bytes": 1398100
+          },
+          "slopeBands": {
+            "cliffDilateCells": 6,
+            "cliffMin": 0.3199999928474426,
+            "flatMax": 0.03500000014901161,
+            "highlandCapMinM": 35,
+            "rollingMax": 0.11500000208616257,
+            "slowMin": 0.13500000536441803
+          },
+          "vista": {
+            "shape": "two full vertex-sample height bands; renderer cuts the inner rect per band",
+            "bands": [
+              {
+                "name": "vista",
+                "w": 301,
+                "h": 201,
+                "cell": 16,
+                "ox": -2400,
+                "oy": -1600,
+                "innerHalfW": 1200,
+                "innerHalfH": 800,
+                "outerHalfW": 2400,
+                "outerHalfH": 1600
+              },
+              {
+                "name": "farFog",
+                "w": 133,
+                "h": 90,
+                "cell": 64,
+                "ox": -4208,
+                "oy": -2848,
+                "innerHalfW": 2400,
+                "innerHalfH": 1600,
+                "outerHalfW": 4200,
+                "outerHalfH": 2800
+              }
+            ]
+          },
+          "water": {
+            "draws": 0,
+            "triangles": 0,
+            "surfaces": [],
+            "ownedBuffers": 0,
+            "disposed": false,
+            "depth": "read-write",
+            "blending": "opaque"
+          }
+        }
+      }
+    },
+    {
+      "name": "generated-ridge-distant",
+      "params": "map=gen&ref=1&env=golden-hour&t=0&ticks=60&zoom=7.2&cx=-750&cy=20&camYaw=-1.5707963267948966&shadows=single&only=battle-ground%2Cbattle-horizon&seed=8",
+      "camera": {
+        "center": [
+          -535.764272370782,
+          20
+        ],
+        "zoom": 7.2,
+        "yaw": -1.5707963267948966
+      },
+      "stats": {
+        "substrate": "typegpu",
+        "projection": "camera3d",
+        "reviewClay": false,
+        "reviewVisibility": {
+          "ground": true,
+          "vista": true,
+          "water": false,
+          "scenery": false,
+          "crowd": false
+        },
+        "preparedCamera": {
+          "x": -535.764272370782,
+          "y": 20,
+          "zoom": 7.2,
+          "zoomT": 0.8929577464788733,
+          "camera3d": {
+            "target": [
+              -535.764272370782,
+              20,
+              0
+            ],
+            "distance": 1532.732088790917,
+            "pitch": 1.35,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.5,
+            "aspect": 1.6,
+            "near": 1
+          }
+        },
+        "terrain": {
+          "installed": true,
+          "generation": 1,
+          "replacing": false,
+          "groundTriangles": 120000,
+          "scenery": 3495,
+          "vistaBands": 2,
+          "groundCover": "green-grass",
+          "groundStyle": "beauty",
+          "rockDetail": {
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "bytes": 1398100
+          },
+          "slopeBands": {
+            "cliffDilateCells": 6,
+            "cliffMin": 0.3199999928474426,
+            "flatMax": 0.03500000014901161,
+            "highlandCapMinM": 35,
+            "rollingMax": 0.11500000208616257,
+            "slowMin": 0.13500000536441803
+          },
+          "vista": {
+            "shape": "two full vertex-sample height bands; renderer cuts the inner rect per band",
+            "bands": [
+              {
+                "name": "vista",
+                "w": 301,
+                "h": 201,
+                "cell": 16,
+                "ox": -2400,
+                "oy": -1600,
+                "innerHalfW": 1200,
+                "innerHalfH": 800,
+                "outerHalfW": 2400,
+                "outerHalfH": 1600
+              },
+              {
+                "name": "farFog",
+                "w": 133,
+                "h": 90,
+                "cell": 64,
+                "ox": -4208,
+                "oy": -2848,
+                "innerHalfW": 2400,
+                "innerHalfH": 1600,
+                "outerHalfW": 4200,
+                "outerHalfH": 2800
+              }
+            ]
+          },
+          "water": {
+            "draws": 0,
+            "triangles": 0,
+            "surfaces": [],
+            "ownedBuffers": 0,
+            "disposed": false,
+            "depth": "read-write",
+            "blending": "opaque"
+          }
+        }
+      }
+    },
+    {
+      "name": "generated-clay",
+      "params": "map=gen&ref=1&env=golden-hour&t=0&ticks=60&zoom=7.6&cx=-960&cy=20&camYaw=-1.5707963267948966&shadows=single&only=battle-ground%2Cbattle-horizon&clay=1&seed=8",
+      "camera": {
+        "center": [
+          -956.6184677575587,
+          20
+        ],
+        "zoom": 7.6,
+        "yaw": -1.5707963267948966
+      },
+      "stats": {
+        "substrate": "typegpu",
+        "projection": "camera3d",
+        "reviewClay": true,
+        "reviewVisibility": {
+          "ground": true,
+          "vista": false,
+          "water": false,
+          "scenery": false,
+          "crowd": false
+        },
+        "preparedCamera": {
+          "x": -956.6184677575587,
+          "y": 20,
+          "zoom": 7.6,
+          "zoomT": 0.9464788732394366,
+          "camera3d": {
+            "target": [
+              -956.6184677575587,
+              20,
+              0
+            ],
+            "distance": 499.0807333722905,
+            "pitch": 1.192931185617751,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.5309521162474292,
+            "aspect": 1.6,
+            "near": 1
+          }
+        },
+        "terrain": {
+          "installed": true,
+          "generation": 1,
+          "replacing": false,
+          "groundTriangles": 120000,
+          "scenery": 3495,
+          "vistaBands": 2,
+          "groundCover": "green-grass",
+          "groundStyle": "clay",
+          "rockDetail": {
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "bytes": 1398100
+          },
+          "slopeBands": {
+            "cliffDilateCells": 6,
+            "cliffMin": 0.3199999928474426,
+            "flatMax": 0.03500000014901161,
+            "highlandCapMinM": 35,
+            "rollingMax": 0.11500000208616257,
+            "slowMin": 0.13500000536441803
+          },
+          "vista": {
+            "shape": "two full vertex-sample height bands; renderer cuts the inner rect per band",
+            "bands": [
+              {
+                "name": "vista",
+                "w": 301,
+                "h": 201,
+                "cell": 16,
+                "ox": -2400,
+                "oy": -1600,
+                "innerHalfW": 1200,
+                "innerHalfH": 800,
+                "outerHalfW": 2400,
+                "outerHalfH": 1600
+              },
+              {
+                "name": "farFog",
+                "w": 133,
+                "h": 90,
+                "cell": 64,
+                "ox": -4208,
+                "oy": -2848,
+                "innerHalfW": 2400,
+                "innerHalfH": 1600,
+                "outerHalfW": 4200,
+                "outerHalfH": 2800
+              }
+            ]
+          },
+          "water": {
+            "draws": 0,
+            "triangles": 0,
+            "surfaces": [],
+            "ownedBuffers": 0,
+            "disposed": false,
+            "depth": "read-write",
+            "blending": "opaque"
+          }
+        }
+      }
+    },
+    {
+      "name": "authored-rock-a",
+      "params": "map=A&ref=1&env=golden-hour&t=0&ticks=60&zoom=7.8&cx=380&cy=-180&camYaw=-1.5707963267948966&shadows=single&only=battle-ground%2Cbattle-horizon%2Cbattle-scenery",
+      "camera": {
+        "center": [
+          380,
+          -180
+        ],
+        "zoom": 7.8,
+        "yaw": -1.5707963267948966
+      },
+      "stats": {
+        "substrate": "typegpu",
+        "projection": "camera3d",
+        "reviewClay": false,
+        "reviewVisibility": {
+          "ground": true,
+          "vista": true,
+          "water": false,
+          "scenery": true,
+          "crowd": false
+        },
+        "preparedCamera": {
+          "x": 380,
+          "y": -180,
+          "zoom": 7.8,
+          "zoomT": 0.9732394366197182,
+          "camera3d": {
+            "target": [
+              380,
+              -180,
+              0
+            ],
+            "distance": 141.95682879445167,
+            "pitch": 0.7058410020984317,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.6466878854526068,
+            "aspect": 1.6,
+            "near": 1
+          }
+        },
+        "terrain": {
+          "installed": true,
+          "generation": 1,
+          "replacing": false,
+          "groundTriangles": 120000,
+          "scenery": 1282,
+          "vistaBands": 0,
+          "groundCover": "green-grass",
+          "groundStyle": "beauty",
+          "rockDetail": {
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "bytes": 1398100
+          },
+          "slopeBands": null,
+          "vista": null,
+          "water": {
+            "draws": 1,
+            "triangles": 387200,
+            "surfaces": [
+              {
+                "kind": "ocean",
+                "level": 0,
+                "surfaceLevel": 0,
+                "triangles": 387200
+              }
+            ],
+            "ownedBuffers": 4,
+            "disposed": false,
+            "depth": "read-write",
+            "blending": "opaque"
+          }
+        }
+      }
+    },
+    {
+      "name": "authored-rock-c",
+      "params": "map=C&ref=1&env=golden-hour&t=0&ticks=60&zoom=7.8&cx=540&cy=260&camYaw=-1.5707963267948966&shadows=single&only=battle-ground%2Cbattle-horizon%2Cbattle-scenery",
+      "camera": {
+        "center": [
+          540,
+          260
+        ],
+        "zoom": 7.8,
+        "yaw": -1.5707963267948966
+      },
+      "stats": {
+        "substrate": "typegpu",
+        "projection": "camera3d",
+        "reviewClay": false,
+        "reviewVisibility": {
+          "ground": true,
+          "vista": true,
+          "water": false,
+          "scenery": true,
+          "crowd": false
+        },
+        "preparedCamera": {
+          "x": 540,
+          "y": 260,
+          "zoom": 7.8,
+          "zoomT": 0.9732394366197182,
+          "camera3d": {
+            "target": [
+              540,
+              260,
+              0
+            ],
+            "distance": 141.95682879445167,
+            "pitch": 0.7058410020984317,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.6466878854526068,
+            "aspect": 1.6,
+            "near": 1
+          }
+        },
+        "terrain": {
+          "installed": true,
+          "generation": 1,
+          "replacing": false,
+          "groundTriangles": 120000,
+          "scenery": 74,
+          "vistaBands": 0,
+          "groundCover": "yellow-grass",
+          "groundStyle": "beauty",
+          "rockDetail": {
+            "width": 512,
+            "height": 512,
+            "mipLevels": 10,
+            "bytes": 1398100
+          },
+          "slopeBands": null,
+          "vista": null,
+          "water": {
+            "draws": 1,
+            "triangles": 387200,
+            "surfaces": [
+              {
+                "kind": "ocean",
+                "level": 0,
+                "surfaceLevel": 0,
+                "triangles": 387200
+              }
+            ],
+            "ownedBuffers": 4,
+            "disposed": false,
+            "depth": "read-write",
+            "blending": "opaque"
+          }
+        }
+      }
+    }
+  ]
+}

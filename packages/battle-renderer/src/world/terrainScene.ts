@@ -16,6 +16,7 @@ import { createTypegpuTerrain } from "./terrain";
 import { createTypegpuWater } from "./water";
 import { createTypegpuScenery } from "./scenery";
 import { createTypegpuBackdrop } from "./backdrop";
+import { loadTypegpuRockDetail, type TypegpuRockDetail } from "./rockDetail";
 type Disposable = { dispose(): void };
 /** One committed terrain presentation. Replacements never expose a partial scene. */
 export async function createTypegpuBattleTerrainScene(
@@ -32,6 +33,7 @@ export async function createTypegpuBattleTerrainScene(
     zoom = 1,
     strength = 1,
     generation = 0;
+  let rockDetail: TypegpuRockDetail | undefined;
   let staging: { dispose(): void } | undefined;
   let active: Awaited<ReturnType<typeof prepare>> | undefined;
   const check = () => {
@@ -56,6 +58,8 @@ export async function createTypegpuBattleTerrainScene(
     };
     try {
       const { grid, cover, data, slopeBands, waterInputs } = prepareBattleTerrain(input);
+      rockDetail ??= await loadTypegpuRockDetail(device);
+      check();
       // These surfaces have no same-view equal-depth prepass; invariant clip output can
       // constrain upstream arithmetic and change grazing interpolants.
       const ground = own(
@@ -63,6 +67,7 @@ export async function createTypegpuBattleTerrainScene(
           device,
           cameraBuffer,
           environment,
+          rockDetail,
           data.ground,
           data.horizon,
           { earthDistance: data.ground.earthDistance, slopeBands, farGrass: true },
@@ -78,6 +83,7 @@ export async function createTypegpuBattleTerrainScene(
             device,
             cameraBuffer,
             environment,
+            rockDetail,
             ring.mesh,
             null,
             { vistaBand: ring.name, slopeBands, farGrass: true },
@@ -143,6 +149,7 @@ export async function createTypegpuBattleTerrainScene(
       if (disposed) {
         staging?.dispose();
         active?.dispose();
+        rockDetail?.dispose();
       }
       staging = undefined;
     }
@@ -157,6 +164,7 @@ export async function createTypegpuBattleTerrainScene(
   } catch (error) {
     staging?.dispose();
     active?.dispose();
+    rockDetail?.dispose();
     throw error;
   }
   return {
@@ -191,6 +199,7 @@ export async function createTypegpuBattleTerrainScene(
           groundCover: null,
           groundStyle: null,
           slopeBands: null,
+          rockDetail: null,
           vista: null,
           water: null,
         };
@@ -203,6 +212,7 @@ export async function createTypegpuBattleTerrainScene(
         vistaBands: committed.opaqueVista.length + committed.transparentVista.length,
         groundCover: committed.cover,
         groundStyle: clay ? ("clay" as const) : ("beauty" as const),
+        rockDetail: { ...rockDetail!.stats },
         slopeBands: committed.slopeBands ? { ...committed.slopeBands } : null,
         vista: committed.data.vista
           ? {
@@ -255,6 +265,7 @@ export async function createTypegpuBattleTerrainScene(
       if (!pending) {
         staging?.dispose();
         active?.dispose();
+        rockDetail?.dispose();
       }
     },
   };

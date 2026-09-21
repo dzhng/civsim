@@ -22,6 +22,16 @@ export const TERRAIN_MATERIAL = {
     maximum: 1.36,
   },
   rock: {
+    // Feature frequency sets screen filtering; plates per tile sets bitmap tiling.
+    faceFrequency: 0.16,
+    platesPerTile: 10,
+    // Inverted when sampled: low height is a dark crevice.
+    fractureBand: [0.44, 0.72],
+    detailFade: [0.3, 1],
+    fractureStrength: 0.32,
+    benchBaseMix: 0.65,
+    roughnessBase: 0.955,
+    roughnessHeight: 0.03,
     faceLow: [0.32, 0.32, 0.29],
     faceHigh: [0.45, 0.43, 0.36],
     fracture: [0.21, 0.22, 0.21],

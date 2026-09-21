@@ -641,26 +641,11 @@ interface OccupancyClaim {
   card: boolean;
 }
 
-/** The one occupancy authority ensures nothing readable overlaps.
- *
- * Claim order is the who-yields priority, deterministic:
- *   1. DOM cards (reported by the scene loop) — pre-claimed; cards outrank
- *      canvas labels.
- *   2. Faction engravings (major): claim their ink against same-scale text but
- *      neither yield to nor contest cards — a small chip over a giant
- *      background engraving reads fine, hiding a nation's name would not
- *      (the same reasoning that keeps sea names out entirely).
- *   3. Minor faction (league) names — label-scale text, so they yield to
- *      cards and earlier claims.
- *   4. Army labels — fixed anchors on moving stacks; they yield by hiding
- *      (the marker stays).
- *   5. City labels, higher tier first — the only movable text: each dodges
- *      through its placement candidates (occupancy-clear first, then the
- *      shared land scorer) and hides only when every candidate is claimed.
- * Sea labels stay out of the game on both sides: basin-scale background text.
- * A surviving composed garrison label still replaces its city's plain label
- * by collision group; a composed label that loses its ground frees the city
- * label to arbitrate normally.
+/** Labels claim their painted bounds in importance order; lower-priority names
+ * hide when they cannot retain readable separation. DOM cards are preclaimed,
+ * except major faction engravings may pass behind them. Sea names stay outside
+ * this budget. A surviving composed garrison name replaces its plain city label
+ * through their shared collision group. Anchors never move during arbitration.
  */
 function arbitrateLabelOccupancy(
   labels: MeasuredCampaignLabel[],
@@ -671,8 +656,14 @@ function arbitrateLabelOccupancy(
     rect,
     card: true,
   }));
-  const overlapsClaim = (rect: ScreenRect, ignoreCards: boolean) =>
-    claims.some((claim) => !(ignoreCards && claim.card) && rectsOverlap(rect, claim.rect));
+  const overlapsClaim = (rect: ScreenRect, ignoreCards: boolean) => {
+    // CSS pixels: halo bounds that almost touch still read as one joined name.
+    const separated = { x: rect.x - 2, y: rect.y - 2, w: rect.w + 4, h: rect.h + 4 };
+    return claims.some(
+      (claim) =>
+        !(ignoreCards && claim.card) && rectsOverlap(claim.card ? rect : separated, claim.rect),
+    );
+  };
 
   const arbitrates = (entry: MeasuredCampaignLabel) =>
     entry.label.kind !== "sea" && entry.opacity >= OCCUPANCY_MIN_OPACITY;
@@ -716,8 +707,8 @@ function arbitrateLabelOccupancy(
         cull(entry);
         continue;
       }
-      const rect = placeCityLabel(entry, claims, dpr);
-      if (!rect) {
+      const rect = entryInkRect(entry, dpr);
+      if (overlapsClaim(rect, false)) {
         cull(entry);
         continue;
       }
@@ -739,18 +730,6 @@ function arbitrateLabelOccupancy(
     entries: labels.filter((entry) => !culled.has(entry)),
     culledLabels,
   };
-}
-
-/** A city label has one marker
- * hug position. If that ink rect is already claimed, the label hides rather
- * than dodging to another side. */
-function placeCityLabel(
-  entry: MeasuredCampaignLabel,
-  claims: OccupancyClaim[],
-  dpr: number,
-): ScreenRect | null {
-  const rect = entryInkRect(entry, dpr);
-  return claims.some((claim) => rectsOverlap(rect, claim.rect)) ? null : rect;
 }
 
 /** Ink rect (CSS px AABB) of a measured label at its current anchor. */

@@ -168,3 +168,14 @@ The [crest prominence control](../assets/slice-04/crest-prominence/README.md)
 produces clearer summits in clay and natural color, but amplifies walls and fins.
 The original formula is restored. Next test only lowering saddle segments; do
 not raise the accepted crest envelope or introduce a new synthesis owner.
+
+## Adopted bounded saddle improvement
+
+The [downward-only saddle pass](../assets/slice-04/downward-saddles/README.md)
+improves summit/valley articulation without increasing crest heights, mesh
+resolution or source-data scope. Independent clay, natural-material and actual
+campaign reviews prefer it in the Alps and Italy. Production repeats and all
+seven canonical mountain frames are exact;565 frontend tests pass. The pass also
+fixes a subpixel label-gap readability defect exposed by changed terrain seating.
+This does not close mountain-form acceptance: wall-like faces, steps, vegetation
+and road draping remain visible. Next address the road width inflation on slopes.

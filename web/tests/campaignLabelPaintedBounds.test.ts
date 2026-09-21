@@ -137,8 +137,7 @@ function expectCoversPaint(ink: [number, number], paint: [number, number], dpr: 
 }
 
 describe("campaign label painted bounds", () => {
-  // The reported ink rect IS the rect the occupancy arbitration enforced, so a
-  // gap here is a gap in what labels are allowed to do to each other.
+  // Ink telemetry reports paint; occupancy also reserves readable separation.
   it.each([1, 2])("report the halo the painter strokes, not just the fill (DPR%d)", (dpr) => {
     const span = paintedSpanCss("IULIA CONCORDIA", dpr, 600);
 
@@ -173,22 +172,24 @@ describe("campaign label painted bounds", () => {
 
   // The main-map defect: two names whose fills clear by ~2px while their halos
   // merge, so the map reads one joined word.
-  it.each([1, 2])("hide a neighbour whose halo would touch (DPR%d)", (dpr) => {
+  it.each([1, 2])("keep a readable gap between neighbouring halos (DPR%d)", (dpr) => {
     const left = paintedSpanCss("IULIA CONCORDIA", dpr, 600);
     const right = paintedSpanCss("AQUILEIA", dpr, 600);
     // Centre separation at which the two painted spans exactly touch.
     const touching = left.hi - right.lo;
 
-    const merged = runFrame([cityLabel("IULIA CONCORDIA", 9), cityLabel("AQUILEIA", 4)], dpr, [
-      [600 * dpr, CENTER_Y_CSS * dpr],
-      [(600 + touching - 1) * dpr, CENTER_Y_CSS * dpr],
-    ]);
-    expect(merged.visibleCityLabelRects.map((rect) => rect.text)).toEqual(["IULIA CONCORDIA"]);
-    expect(merged.collisionCulledLabels).toEqual(["city:AQUILEIA"]);
+    for (const gap of [-1, 0.066, 1]) {
+      const merged = runFrame([cityLabel("IULIA CONCORDIA", 9), cityLabel("AQUILEIA", 4)], dpr, [
+        [600 * dpr, CENTER_Y_CSS * dpr],
+        [(600 + touching + gap) * dpr, CENTER_Y_CSS * dpr],
+      ]);
+      expect(merged.visibleCityLabelRects.map((rect) => rect.text)).toEqual(["IULIA CONCORDIA"]);
+      expect(merged.collisionCulledLabels).toEqual(["city:AQUILEIA"]);
+    }
 
     const clear = runFrame([cityLabel("IULIA CONCORDIA", 9), cityLabel("AQUILEIA", 4)], dpr, [
       [600 * dpr, CENTER_Y_CSS * dpr],
-      [(600 + touching + 1) * dpr, CENTER_Y_CSS * dpr],
+      [(600 + touching + 3) * dpr, CENTER_Y_CSS * dpr],
     ]);
     const [first, second] = clear.visibleCityLabelRects;
     expect(clear.visibleCityLabelRects.map((rect) => rect.text)).toEqual([

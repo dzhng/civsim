@@ -37,9 +37,11 @@ export function campaignRelief(source: CampaignReliefSource, cell: number) {
       const n = 2 * campaignNoise(wx / scale, wy / scale) - 1;
       return Math.max(0, 1 - Math.sqrt(n * n + 0.0025));
     };
+    // Lower short crest sections into saddles without raising the range envelope.
+    const saddle = 0.65 + 0.35 * smoothstep(0.35, 0.65, campaignNoise(wx / 24 + 31, wy / 24 - 19));
     const folds =
       0.24 +
-      0.52 * ridge(60) ** 2 +
+      0.52 * ridge(60) ** 2 * saddle +
       0.18 * ridge(28) ** 2 +
       0.06 * ridge(13) * (1 - smoothstep(3, 8, cell));
     const foothill = 0.5 + campaignNoise(x / 18, y / 18) * 1.1;

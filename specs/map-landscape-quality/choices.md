@@ -242,3 +242,11 @@ before/after visual evidence.
   immutable markup object per command lets React retain the icon nodes; classes,
   disabled state and click handlers still update. This removes redundant work
   and observed snapshot drift without adding a renderer cache or changing art.
+
+### Readable label separation — sound, medium confidence
+
+Label ink that barely clears another name can read as one joined string. Reserve
+two CSS pixels between label claims in the existing importance-ordered occupancy
+owner. Keep measured ink bounds truthful and card precedence unchanged. This may
+hide an additional low-importance name at a crowded zoom; its city marker remains.
+This replaces the earlier assumption that any non-overlapping halo was readable.

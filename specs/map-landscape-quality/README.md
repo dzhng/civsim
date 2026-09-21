@@ -11,13 +11,23 @@ Production uses the shared rendering foundation; overall visual quality still
 falls short of the reference. Keep every open slice below open until its own
 acceptance evidence is complete.
 
-**Current pickup:** test a downward-only saddle variation along the dominant
-ridge, holding all heights at or below the parent. The previous crest prominence
-control improved summit distinction but amplified walls/fins; it is not adopted.
-The original runtime formula is restored. Evidence and exact rejected formula
-are in slice04's `crest-prominence` folder. No alternate worktree is retained.
-The lab `targetZ` parameter pins the actual camera during shape changes. Use the
-same real Alps regional/close clay and natural frames before broader validation.
+**Current pickup:** correct campaign road width inflation on steep cross-slopes.
+The saddle/label checkpoint is verified:565 frontend tests, typecheck, two code
+reviews, fresh Alps/Italy/production reviews, three exact production repeats and
+seven exact canonical mountain repeats (22 checks). Evidence is in
+`assets/slice-04/downward-saddles/`. This is a bounded improvement; slice04 stays open.
+
+Road audit: `roadGeometry.ts` extrudes fixed XY widths; `geographicLayer.ts`
+seats both sides independently, stretching the ribbon across steep slopes.
+Keep centerlines, land runs, water gaps and gameplay graph fixed. Give existing
+seating enough centerline/lateral-width information to maintain surface width,
+including junction caps and terrain replacement. Avoid repeatedly shrinking
+already-seated vertices. Prove width/centerline invariants with a steep-plane CPU
+case, then compare the same close Alps production view. Keep style tuning separate:
+roadScale also controls traffic clearances, so globally reducing it is not isolated.
+
+Only the integrated worktree is retained. The main server uses5186; inspect its
+live process before use. Freeze runtime edits during the single GPU capture lane.
 
 The finer-mesh clay comparison is rejected: close stair steps improve but regional
 character does not, at3.5× triangles. Evidence is in slice04's

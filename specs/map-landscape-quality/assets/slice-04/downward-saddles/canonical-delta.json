@@ -1,0 +1,79 @@
+[
+  {
+    "name": "alps-regional",
+    "storedToParent": {
+      "pixels": 690722,
+      "rgbMAE": 1.8915927734375
+    },
+    "parentToCandidate": {
+      "pixels": 956317,
+      "rgbMAE": 6.636544596354167
+    }
+  },
+  {
+    "name": "alps-close",
+    "storedToParent": {
+      "pixels": 726370,
+      "rgbMAE": 1.4873268229166667
+    },
+    "parentToCandidate": {
+      "pixels": 989456,
+      "rgbMAE": 9.086568033854167
+    }
+  },
+  {
+    "name": "italy-regional",
+    "storedToParent": {
+      "pixels": 420228,
+      "rgbMAE": 0.5916796875
+    },
+    "parentToCandidate": {
+      "pixels": 465087,
+      "rgbMAE": 1.4506897786458333
+    }
+  },
+  {
+    "name": "italy-close",
+    "storedToParent": {
+      "pixels": 479158,
+      "rgbMAE": 0.6396097005208333
+    },
+    "parentToCandidate": {
+      "pixels": 570478,
+      "rgbMAE": 2.0058154296875
+    }
+  },
+  {
+    "name": "fixture-regional",
+    "storedToParent": {
+      "pixels": 366708,
+      "rgbMAE": 0.441578125
+    },
+    "parentToCandidate": {
+      "pixels": 332917,
+      "rgbMAE": 0.95555078125
+    }
+  },
+  {
+    "name": "fixture-close",
+    "storedToParent": {
+      "pixels": 313420,
+      "rgbMAE": 0.2789970703125
+    },
+    "parentToCandidate": {
+      "pixels": 477239,
+      "rgbMAE": 1.3531901041666667
+    }
+  },
+  {
+    "name": "alps-coarse",
+    "storedToParent": {
+      "pixels": 970036,
+      "rgbMAE": 6.254543619791667
+    },
+    "parentToCandidate": {
+      "pixels": 966397,
+      "rgbMAE": 6.7300869140625
+    }
+  }
+]

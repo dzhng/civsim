@@ -73,6 +73,8 @@ export interface CampaignMapDrawStyle {
 export interface CampaignMapDrawData {
   lineVertices: Float32Array;
   roadMeshVertices: Float32Array;
+  /** XY centerline or junction center for each road mesh vertex. */
+  roadAnchors: Float32Array;
   labels: CampaignLabel[];
   stats: CampaignMapStats;
 }
@@ -85,6 +87,7 @@ export function buildCampaignMapDrawData(
   const seaLanes = data.map.edges.filter((edge) => edge.kind === "sea");
   const lineVertices: number[] = [];
   const roadMeshVertices: number[] = [];
+  const roadAnchors: number[] = [];
   const safeRoads: CampaignMapEdgeData[] = [];
   const roadAt = style.roadSurfaceAt;
   let roadEdgesCulled = 0;
@@ -93,12 +96,18 @@ export function buildCampaignMapDrawData(
     if (edge.kind === "sea") pushEdgeLines(lineVertices, edge, style.heightAt);
     else if (roadEdgeIsLandSafe(edge, roadAt)) {
       safeRoads.push(edge);
-      roadWaterGaps += pushRaisedRoad(roadMeshVertices, edge, style, roadAt);
+      roadWaterGaps += pushRaisedRoad(roadMeshVertices, roadAnchors, edge, style, roadAt);
     } else {
       roadEdgesCulled++;
     }
   }
-  const roadJunctionCaps = pushRoadJunctionCaps(roadMeshVertices, data, safeRoads, style);
+  const roadJunctionCaps = pushRoadJunctionCaps(
+    roadMeshVertices,
+    roadAnchors,
+    data,
+    safeRoads,
+    style,
+  );
   const seaLabelFit =
     data.map.nodes.length > 20
       ? fitSeaLabels(seaLabels(), style)
@@ -106,6 +115,7 @@ export function buildCampaignMapDrawData(
   return {
     lineVertices: new Float32Array(lineVertices),
     roadMeshVertices: new Float32Array(roadMeshVertices),
+    roadAnchors: new Float32Array(roadAnchors),
     labels: seaLabelFit.labels,
     stats: {
       roads: roads.length,
@@ -177,6 +187,7 @@ export const CAMPAIGN_ROAD_SURFACE_LIFT = 0.32;
 /** Returns the number of unbridged water gaps (drawn ribbon stops at a shore). */
 function pushRaisedRoad(
   out: number[],
+  anchors: number[],
   edge: CampaignMapEdgeData,
   style: CampaignMapDrawStyle,
   at?: (x: number, y: number) => "land" | "water",
@@ -187,6 +198,7 @@ function pushRaisedRoad(
   for (const run of runs) {
     pushRoadRibbon(
       out,
+      anchors,
       run,
       halfWidth * 1.58,
       0.18 * roadScale,
@@ -196,6 +208,7 @@ function pushRaisedRoad(
     );
     pushRoadRibbon(
       out,
+      anchors,
       run,
       halfWidth,
       CAMPAIGN_ROAD_SURFACE_LIFT * roadScale,
@@ -283,6 +296,7 @@ function roadLandRuns(
 
 function pushRoadJunctionCaps(
   out: number[],
+  anchors: number[],
   data: CampaignMapInputData,
   roads: CampaignMapEdgeData[],
   style: CampaignMapDrawStyle,
@@ -307,6 +321,7 @@ function pushRoadJunctionCaps(
     const surfaceRadius = cityRadius * roadScale;
     pushRoadDisc(
       out,
+      anchors,
       node.pos,
       surfaceRadius * 1.12,
       0.19 * roadScale,
@@ -316,6 +331,7 @@ function pushRoadJunctionCaps(
     );
     pushRoadDisc(
       out,
+      anchors,
       node.pos,
       surfaceRadius,
       0.34 * roadScale,
@@ -396,6 +412,7 @@ function pushRoadVertex(
 
 function pushRoadDisc(
   out: number[],
+  anchors: number[],
   center: [number, number],
   radius: number,
   z: number,
@@ -418,11 +435,13 @@ function pushRoadDisc(
     pushRoadVertex(out, center, z, color, [0, 0], material, heightAt);
     pushRoadVertex(out, p0, z, color, [Math.cos(a0), Math.sin(a0)], material, heightAt);
     pushRoadVertex(out, p1, z, color, [Math.cos(a1), Math.sin(a1)], material, heightAt);
+    anchors.push(...center, ...center, ...center);
   }
 }
 
 function pushRoadRibbon(
   out: number[],
+  anchors: number[],
   center: [number, number][],
   halfWidth: number,
   z: number,
@@ -448,37 +467,18 @@ function pushRoadRibbon(
     left.push([p[0] - nx * halfWidth, p[1] - ny * halfWidth, distance * 0.26]);
     right.push([p[0] + nx * halfWidth, p[1] + ny * halfWidth, distance * 0.26]);
   }
+  const vertex = (index: number, side: -1 | 1) => {
+    const point = side < 0 ? left[index] : right[index];
+    pushRoadVertex(out, [point[0], point[1]], z, color, [point[2], side], material, heightAt);
+    anchors.push(...center[index]);
+  };
   for (let i = 0; i + 1 < center.length; i++) {
-    pushRoadVertex(out, [left[i][0], left[i][1]], z, color, [left[i][2], -1], material, heightAt);
-    pushRoadVertex(
-      out,
-      [left[i + 1][0], left[i + 1][1]],
-      z,
-      color,
-      [left[i + 1][2], -1],
-      material,
-      heightAt,
-    );
-    pushRoadVertex(
-      out,
-      [right[i + 1][0], right[i + 1][1]],
-      z,
-      color,
-      [right[i + 1][2], 1],
-      material,
-      heightAt,
-    );
-    pushRoadVertex(out, [left[i][0], left[i][1]], z, color, [left[i][2], -1], material, heightAt);
-    pushRoadVertex(
-      out,
-      [right[i + 1][0], right[i + 1][1]],
-      z,
-      color,
-      [right[i + 1][2], 1],
-      material,
-      heightAt,
-    );
-    pushRoadVertex(out, [right[i][0], right[i][1]], z, color, [right[i][2], 1], material, heightAt);
+    vertex(i, -1);
+    vertex(i + 1, -1);
+    vertex(i + 1, 1);
+    vertex(i, -1);
+    vertex(i + 1, 1);
+    vertex(i, 1);
   }
 }
 

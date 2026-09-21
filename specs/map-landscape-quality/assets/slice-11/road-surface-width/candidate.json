@@ -1,0 +1,77 @@
+{
+  "base": "http://127.0.0.1:5186",
+  "errors": [],
+  "checks": [
+    {
+      "name": "snapshot alps",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "snapshot italy",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "name": "snapshot alps-close",
+      "ok": true,
+      "detail": "baseline created"
+    }
+  ],
+  "frames": [
+    {
+      "name": "alps",
+      "camera": {
+        "x": -450,
+        "y": 990,
+        "scale": 2.5,
+        "pitchDeg": 46.9825392007275
+      },
+      "tick": 0,
+      "geography": {
+        "vertices": 866724,
+        "cpuBytes": 45066960,
+        "gpuBytes": 27735168,
+        "sampledVertices": 19914,
+        "visitedVertices": 35928,
+        "regions": 358
+      }
+    },
+    {
+      "name": "italy",
+      "camera": {
+        "x": -325,
+        "y": 640,
+        "scale": 2.5,
+        "pitchDeg": 46.9825392007275
+      },
+      "tick": 0,
+      "geography": {
+        "vertices": 866724,
+        "cpuBytes": 45066960,
+        "gpuBytes": 27735168,
+        "sampledVertices": 15120,
+        "visitedVertices": 47880,
+        "regions": 358
+      }
+    },
+    {
+      "name": "alps-close",
+      "camera": {
+        "x": -450,
+        "y": 990,
+        "scale": 7.5,
+        "pitchDeg": 46.9825392007275
+      },
+      "tick": 0,
+      "geography": {
+        "vertices": 866724,
+        "cpuBytes": 45066960,
+        "gpuBytes": 27735168,
+        "sampledVertices": 41964,
+        "visitedVertices": 81879,
+        "regions": 358
+      }
+    }
+  ]
+}

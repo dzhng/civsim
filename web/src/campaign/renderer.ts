@@ -112,6 +112,7 @@ export class CampaignRenderer {
   private world: PhotorealCampaignWorld | null = null;
   private geography: CampaignGeography = {
     roadMeshVertices: new Float32Array(),
+    roadAnchors: new Float32Array(),
     lineVertices: new Float32Array(),
     borderVertices: new Float32Array(),
   };

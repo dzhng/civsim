@@ -24,6 +24,7 @@ export async function route(ctx: LabContext) {
     objects: [],
     geography: {
       roadMeshVertices: new Float32Array(),
+      roadAnchors: new Float32Array(),
       lineVertices: new Float32Array(),
       borderVertices: new Float32Array(),
     },
@@ -194,6 +195,7 @@ export async function route(ctx: LabContext) {
               ? geographicInputs
               : {
                   roadMeshVertices: new Float32Array(),
+                  roadAnchors: new Float32Array(),
                   lineVertices: new Float32Array(),
                   borderVertices: new Float32Array(),
                 },

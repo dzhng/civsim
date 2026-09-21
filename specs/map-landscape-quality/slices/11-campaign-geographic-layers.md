@@ -90,3 +90,15 @@ Remaining11work: full geographic fog/overview-atmosphere behavior, input/lifecyc
 integration with complete entities/UI and final hardware acceptance. Geometry is
 still resident globally; its CPU/GPU allocations are reported separately from the
 bounded terrain budget. Do not call full11complete from this checkpoint alone.
+
+
+### Surface-width checkpoint
+
+[Road evidence](../assets/slice-11/road-surface-width/README.md) accepts the local
+surface-width correction on steep slopes and terrain replacement. Original route
+centers and widths remain the inputs; road/junction seating uses their local
+surface distance. Full fog uploads remain compatible with visibility updates.
+Three production frames and two settled geography frames repeat exactly. The
+geography scene now waits for the requested camera's frame before terrain
+readiness, rather than photographing an intermediate tile generation. This does
+not close the remaining geographic styling, fog/overview or hardware acceptance.

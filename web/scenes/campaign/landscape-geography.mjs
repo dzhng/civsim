@@ -15,13 +15,20 @@ export async function run(ctx) {
     ["italy", -456, 446],
     ["alps", -450, 1080],
   ]) {
-    await page.evaluate(([x, y]) => window.__landscapeTraversal.cam(x, y, 1.8), [x, y]);
-    await page.waitForFunction(
-      () => {
-        const s = window.__landscapeTraversal.stats();
-        return s.ready && !s.pendingKey;
+    const cameraFrame = await page.evaluate(
+      ([x, y]) => {
+        const traversal = window.__landscapeTraversal;
+        traversal.cam(x, y, 1.8);
+        return traversal.stats().frames;
       },
-      undefined,
+      [x, y],
+    );
+    await page.waitForFunction(
+      (cameraFrame) => {
+        const s = window.__landscapeTraversal.stats();
+        return s.frames > cameraFrame && s.ready && !s.pendingKey;
+      },
+      cameraFrame,
       { timeout: 120000 },
     );
     await page.waitForTimeout(300);

@@ -7,12 +7,18 @@ import { RENDER_ORDER } from "../renderOrder";
  * intended surface clearance; this layer owns seating on presented triangles. */
 export interface CampaignGeography {
   roadMeshVertices: Float32Array;
+  roadAnchors: Float32Array;
   lineVertices: Float32Array;
   borderVertices: Float32Array;
 }
 
 type Region = RenderedSurface["domain"];
-type Entry = { mesh: THREE.Mesh; offsets: Float32Array; bounds: THREE.Box3 };
+type Entry = {
+  mesh: THREE.Mesh;
+  offsets: Float32Array;
+  roadLayout?: Float32Array;
+  bounds: THREE.Box3;
+};
 const REGION_SIZE = 128;
 
 /** One material and lifetime for campaign's depth-tested geographic ribbons. */
@@ -54,6 +60,23 @@ export class CampaignGeographicLayer {
           chunk.set(vertices.subarray(group[i], group[i] + stride * 3), i * stride * 3);
         const geometry = colorGeometry(chunk, stride, 3);
         const offsets = new Float32Array(chunk.length / stride);
+        // Immutable center and planar lateral offset; reseating never consumes
+        // already-adjusted positions, so terrain updates cannot narrow roads twice.
+        const roadLayout = stride === 10 ? new Float32Array(offsets.length * 4) : undefined;
+        if (roadLayout) {
+          for (let triangle = 0; triangle < group.length; triangle++) {
+            for (let v = 0; v < 3; v++) {
+              const source = group[triangle] / stride + v;
+              const index = triangle * 3 + v;
+              const cx = data.roadAnchors[source * 2],
+                cy = data.roadAnchors[source * 2 + 1];
+              roadLayout.set(
+                [cx, cy, chunk[index * stride] - cx, chunk[index * stride + 1] - cy],
+                index * 4,
+              );
+            }
+          }
+        }
         const fog = new Float32Array(offsets.length);
         for (let i = 0; i < offsets.length; i++) {
           offsets[i] = chunk[i * stride + 2];
@@ -65,13 +88,19 @@ export class CampaignGeographicLayer {
         mesh.renderOrder = RENDER_ORDER.groundCues + order;
         geometry.computeBoundingBox();
         const bounds = geometry.boundingBox!.clone();
-        this.entries.push({ mesh, offsets, bounds });
+        if (roadLayout) {
+          let radius = 0;
+          for (let i = 0; i < offsets.length; i++)
+            radius = Math.max(radius, Math.hypot(roadLayout[i * 4 + 2], roadLayout[i * 4 + 3]));
+          bounds.expandByScalar(radius);
+        }
+        this.entries.push({ mesh, offsets, roadLayout, bounds });
         this.vertices += offsets.length;
         const attributeBytes = Object.values(geometry.attributes).reduce(
           (n, a) => n + a.array.byteLength,
           0,
         );
-        this.cpuBytes += attributeBytes + offsets.byteLength;
+        this.cpuBytes += attributeBytes + offsets.byteLength + (roadLayout?.byteLength ?? 0);
         this.gpuBytes += attributeBytes;
         this.scene.add(mesh);
       }
@@ -82,7 +111,7 @@ export class CampaignGeographicLayer {
   seat(surface: Pick<RenderedSurface, "sampleRendered">, changed?: readonly Region[]) {
     this.sampledVertices = 0;
     this.visitedVertices = 0;
-    for (const { mesh, offsets, bounds } of this.entries) {
+    for (const { mesh, offsets, roadLayout, bounds } of this.entries) {
       if (
         changed &&
         !changed.some(
@@ -99,29 +128,64 @@ export class CampaignGeographicLayer {
       let firstChanged = positions.count,
         lastChanged = -1;
       for (let i = 0; i < positions.count; i++) {
-        const x = positions.getX(i),
-          y = positions.getY(i);
+        const cx = roadLayout ? roadLayout[i * 4] : positions.getX(i);
+        const cy = roadLayout ? roadLayout[i * 4 + 1] : positions.getY(i);
+        const dx = roadLayout?.[i * 4 + 2] ?? 0;
+        const dy = roadLayout?.[i * 4 + 3] ?? 0;
+        const radius = Math.hypot(dx, dy);
         if (
           changed &&
           !changed.some(
             (r) =>
-              x >= r.ox &&
-              y >= r.oy &&
-              x <= r.ox + (r.columns - 1) * r.cell &&
-              y <= r.oy + (r.rows - 1) * r.cell,
+              cx + radius >= r.ox &&
+              cy + radius >= r.oy &&
+              cx - radius <= r.ox + (r.columns - 1) * r.cell &&
+              cy - radius <= r.oy + (r.rows - 1) * r.cell,
           )
         )
           continue;
         this.sampledVertices++;
+        let x = cx,
+          y = cy;
+        if (roadLayout && radius > 0) {
+          const normal = surface.sampleRendered(cx, cy)?.normal;
+          if (normal && normal[2] > 0) {
+            // Lift the route tangent onto the triangle, then its perpendicular
+            // onto the surface. Its length, rather than its XY projection, owns width.
+            const tz = -(normal[0] * dy - normal[1] * dx) / normal[2];
+            const lx = normal[1] * tz + normal[2] * dx;
+            const ly = normal[2] * dy - normal[0] * tz;
+            const lz = -normal[0] * dx - normal[1] * dy;
+            const scale = radius / Math.hypot(lx, ly, lz);
+            x += lx * scale;
+            y += ly * scale;
+          } else {
+            x += dx;
+            y += dy;
+          }
+        }
         const z = (surface.sampleRendered(x, y)?.position[2] ?? 0) + offsets[i];
-        if (positions.getZ(i) === Math.fround(z)) continue;
-        positions.setZ(i, z);
+        if (
+          positions.getX(i) === Math.fround(x) &&
+          positions.getY(i) === Math.fround(y) &&
+          positions.getZ(i) === Math.fround(z)
+        )
+          continue;
+        positions.setXYZ(i, x, y, z);
+        (mesh.geometry.getAttribute("campaignFog") as THREE.BufferAttribute).setX(
+          i,
+          this.fogAt(x, y),
+        );
         firstChanged = Math.min(firstChanged, i);
         lastChanged = i;
       }
       if (lastChanged >= 0) {
         positions.addUpdateRange(firstChanged * 3, (lastChanged - firstChanged + 1) * 3);
         positions.needsUpdate = true;
+        const fog = mesh.geometry.getAttribute("campaignFog") as THREE.BufferAttribute;
+        // Visibility can refresh the whole region in this same frame.
+        // Keep fog uploads full so reseating cannot narrow that pending update.
+        fog.needsUpdate = true;
         mesh.geometry.computeBoundingSphere();
       }
     }

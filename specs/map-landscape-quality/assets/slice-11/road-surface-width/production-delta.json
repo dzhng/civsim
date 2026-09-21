@@ -1,0 +1,17 @@
+[
+  {
+    "name": "alps",
+    "changedPixels": 8421,
+    "rgbMAE": 0.14101692708333333
+  },
+  {
+    "name": "italy",
+    "changedPixels": 4013,
+    "rgbMAE": 0.06419075520833334
+  },
+  {
+    "name": "alps-close",
+    "changedPixels": 8307,
+    "rgbMAE": 0.2939798177083333
+  }
+]

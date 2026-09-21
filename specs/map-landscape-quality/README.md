@@ -11,17 +11,21 @@ Work in `/Users/david/dev/game/.worktrees/map-landscape-quality` on
 implementations or create sibling project folders. The integrated server uses5186.
 Inspect live processes and keep source edits out of the single GPU capture lane.
 
-**Current pickup: finish the road surface-width pass.** The uncommitted builder
-emits road center anchors; the geographic layer preserves local surface width
-through slope and terrain replacement without changing routes, style widths or
-water gaps. Six CPU tests and typecheck pass. Merged-base production controls are
-in `throwaway/road-surface-merged`; candidate/repeat work uses
-`road-surface-merged.mjs`. Check the live process before restarting. Geography
-controls use `road-geography-merged.mjs`; the scene now waits for a frame at the
-requested camera before trusting terrain readiness. Its prior Alps capture raced
-revision16→32; settled controls restore exactly. Evidence is accumulating under
-`assets/slice-11/road-surface-width/`. Finish production comparison, fresh review,
-exact repeats, geography verification, review/choices, and commit this pass.
+**Current pickup: restore categorical battle terrain coverage.** In 13, convert
+source material IDs to rock/forest/scree weights before both CPU vista joins and
+GPU interpolation. Grass-to-forest blends must never invent rock. Keep source
+simulation grids unchanged and make Three/TypeGPU consume the same neutral
+coverage recipe. Use the production CPU seam test before pixel verification.
+Scenery integration in 06 is independent; keep shared API seams on one owner.
+
+The road surface-width pass is complete: 1,064 frontend tests and typecheck pass;
+three production views repeat exactly on final code; both canonical geography
+views repeat exactly, restore their toggles exactly, and report no page errors.
+Fresh reviews accept the bounded width improvement. Evidence, CPU memory cost,
+test/readiness changes and older-baseline drift are in
+`assets/slice-11/road-surface-width/`. Bright road styling and sharp bends remain
+outside that pass. Only eight focused geographic tests were added/retained; do not
+mistake this for whole 11 acceptance.
 
 **Main boundary:** merge `72177093` integrates `fa2e11bf`. Battle now uses TypeGPU
 and a simulation worker; campaign retains Three. Share neutral terrain, appearance,
@@ -37,7 +41,7 @@ not final art or hardware performance.
    seams/GPU interpolation, then common rock/water response. Dry beauty normals
    already come from geometry. The current patch plan is in13.
 2. Restore battle tree variants, projected detail selection and a common visible/
-   shadow leaf mask in06. Campaign crown work remains accepted; the new battle
+   shadow leaf mask in 06. Campaign crown work remains accepted; the new battle
    consumer does not yet satisfy it. Battle water verification in09 belongs to13.
 3. Improve the reference gap: mountains still read as similar rounded ribs with
    narrow grass streaks, dark hollows and isolated woods. Try the smallest isolated
@@ -45,7 +49,9 @@ not final art or hardware performance.
    clay/geometry and reject a mere recoloring of the same ribs. Do not repeat
    rejected fine-mesh or raised-crest experiments without new evidence.
 4. Complete label-owner coverage, shore/water motion, whole-frame/camera coverage,
-   lifetime and hardware gates, then whole-spec review and closeout.
+   lifetime and hardware gates, then whole-spec review and closeout. The sibling
+   landscape-traversal scene has the same old-camera readiness pattern; correct
+   that before trusting its fresh timing or capture evidence.
 
 Accepted pre-merge terrain/label evidence is in
 `assets/slice-04/downward-saddles/`; earlier material and lifetime evidence remains

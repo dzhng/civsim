@@ -261,3 +261,21 @@ that consumer's acceptance reopens until its replacement implements and verifies
 the feature. Campaign evidence remains valid within its original scope. This
 retains main's shipped architecture without pretending shared asset files prove
 shared visible behavior.
+
+### Road width on slopes — sound, medium confidence
+
+Keep the existing route and width settings, but measure each road's width across
+its local terrain surface. A fixed horizontal strip becomes a wide ribbon when
+its edges climb a steep slope; seating a perpendicular strip of the intended
+surface width removes that swelling. Junction caps follow the same distance rule.
+This is a local-plane approximation, so sharp bends and changing slopes can still
+vary in the image. It does not move the gameplay route or make roads flat benches.
+
+Preserve each rendered road vertex's original center and lateral offset on the
+CPU. A replacement terrain tile always seats those original inputs, so repeated
+updates cannot progressively narrow the road. The production map pays about
+13.86 MB for this layer data plus 6.93 MB for source anchors, with no additional
+GPU attributes. The explicit copy keeps reseating independent of caller mutations;
+a borrowed source/index representation could reduce memory but would change that
+ownership contract. Fog refreshes upload whole affected region buffers so a local
+road update cannot truncate a full visibility refresh in the same frame.

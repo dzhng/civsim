@@ -1,0 +1,77 @@
+[
+  {
+    "phase": "visible",
+    "before": {
+      "frames": 64,
+      "revision": 32,
+      "ready": true,
+      "pendingKey": null,
+      "camera": {
+        "x": -450,
+        "y": 1080,
+        "zoom": 1.8
+      }
+    },
+    "after": {
+      "frames": 72,
+      "revision": 32,
+      "ready": true,
+      "pendingKey": null,
+      "camera": {
+        "x": -450,
+        "y": 1080,
+        "zoom": 1.8
+      }
+    }
+  },
+  {
+    "phase": "hidden",
+    "before": {
+      "frames": 72,
+      "revision": 32,
+      "ready": true,
+      "pendingKey": null,
+      "camera": {
+        "x": -450,
+        "y": 1080,
+        "zoom": 1.8
+      }
+    },
+    "after": {
+      "frames": 80,
+      "revision": 32,
+      "ready": true,
+      "pendingKey": null,
+      "camera": {
+        "x": -450,
+        "y": 1080,
+        "zoom": 1.8
+      }
+    }
+  },
+  {
+    "phase": "restored",
+    "before": {
+      "frames": 81,
+      "revision": 32,
+      "ready": true,
+      "pendingKey": null,
+      "camera": {
+        "x": -450,
+        "y": 1080,
+        "zoom": 1.8
+      }
+    },
+    "after": {
+      "frames": 89,
+      "revision": 32,
+      "ready": true,
+      "pendingKey": null,
+      "camera": {
+        "x": -450,
+        "y": 1080,
+        "zoom": 1.8
+      }
+    }
+  }
+]

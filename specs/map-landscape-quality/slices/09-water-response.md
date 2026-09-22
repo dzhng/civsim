@@ -42,7 +42,7 @@ Campaign retains the accepted material response. Battle now expresses water thro
 
 ## Pre-merge shared owner checkpoint
 
-The existing response now lives in `landscape/waterMaterial.ts`; terrain, ocean and lake consumers import it directly. Geometry and displacement remain mode-specific. The [extraction control](../assets/slice-09/owner/README.md) preserves the prior water output. Next add separate campaign coverage/shore/depth inputs and review the composed water; this extraction alone does not complete09.
+The existing response now lives in `landscape/waterMaterial.ts`; terrain, ocean and lake consumers import it directly. Geometry and displacement remain mode-specific. The [extraction control](../assets/slice-09/owner/README.md) preserves the prior water output. The later campaign finish below accepts its source coverage/shore/depth response; this historical extraction does not accept the current TypeGPU consumer.
 
 ## Source-distance response checkpoint
 
@@ -51,3 +51,13 @@ The [response evidence](../assets/slice-09/response/README.md) now covers explic
 ## Accepted material response
 
 The [focused finish evidence](../assets/slice-09/finish/README.md) resolves the fresh critique of uniform shallow halos and isolated foam dabs. Existing multiscale noise varies scattering and surf; screen-footprint contrast keeps regional surf readable while close narrow-water interiors stay blue. The final independent review accepts the material pass, with softer western-coast surf documented as an acceptable simplification. Geometry, palette and environment remain fixed; whole-landscape acceptance stays with slice10.
+
+## Current TypeGPU owner work
+
+The [linear-blend correction](../assets/slice-13/water-linear/README.md) accepts the
+color-space fix, unchanged dry control and exact repeats. It explicitly leaves
+flat lake response and bevel-like pale shore cues open. Run current TypeGPU frozen
+phases, phase return, per-phase dry masks, standalone lake/ocean and composed
+field/ocean joins; resolve material surface cues before accepting09. Shore geometry
+belongs to08, and common motion/hardware results belong to15. Campaign clock
+evidence cannot stand in for the new battle backend.

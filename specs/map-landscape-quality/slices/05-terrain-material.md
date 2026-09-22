@@ -4,7 +4,7 @@ Status: shared owner and face-oriented artifact reduction implemented; combined 
 
 ## Contract and owner
 
-Shared terrain response lives in the landscape terrainMaterial owner. Keep battle turf, roads, mud, trample and physical tint decoding at their existing boundary. Common material profiles own neutral palette and feature scale.
+Neutral response policy lives in game-renderer terrain/materialProfile, with the shared raw rock asset. Three and TypeGPU implement their own shader adapters. Keep battle turf, roads, mud, trample and physical tint decoding at their existing boundary. Common material profiles own neutral palette and feature scale.
 
 Slice variable: **Surface material and transition quality on fixed geometry.**
 
@@ -14,7 +14,7 @@ First reproduce triplanar color/normal mapping on a flat-to-steep ramp with the 
 
 ## Runnable checkpoint
 
-The landscape-materials scene renders equivalent campaign and battle inputs and near/far material views. The earlier geometric-normal control is retired after the production comparison rejected the bump contribution. Frozen real regions and terrain-water remain consumer guards.
+The landscape-materials scene is a Three material/source guard. Its historical consumer=battle branch does not exercise the current TypeGPU renderer and cannot prove present cross-backend equivalence. Current TypeGPU production evidence lives with13; equivalent-input material/shore/seam controls through that backend remain required. The earlier geometric-normal control is retired after the production comparison rejected the bump contribution. Frozen real regions and terrain-water remain consumer guards.
 
 ## Verification and review
 
@@ -129,3 +129,12 @@ record the bounded gain and its limits. Uniform crack coverage, soft green
 patches, terrain form and final lighting keep the slice open. Full ordinary
 battle distance and the remaining water/turf/seam acceptance matrix still need
 review; flat patch controls are not mountain-quality evidence.
+
+## Current remaining owner work
+
+Accepted [bitmap adoption](../assets/slice-13/bitmap-rock/README.md) proves shared
+image/policy, filtered fracture detail, resource lifetime and bounded production
+controls. It does not accept stone/grass transition quality, distinct scree or
+motion/shimmer. Resolve those on accepted geometry, then use current TypeGPU
+material/shore/seam consumers and the common motion/hardware matrix in15. Historical
+Three-equivalence RGBA remains historical evidence, not current backend coverage.

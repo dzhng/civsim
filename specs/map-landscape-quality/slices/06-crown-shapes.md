@@ -1,12 +1,12 @@
 # 06 — Shared tree crown representation
 
-Status: shared crown assets and campaign consumer accepted; TypeGPU battle consumer verified; final integrated hardware acceptance open. Depends on 01; regional planting and environment remain in 07/10.
+Status: owner implementation and both consumer visual adoptions accepted; common composed-world/hardware acceptance remains in15. Depends on 01; regional planting and environment remain in 07/10.
 
 ## Contract
 
 Both map pitches use the shared scenery registry and the same connected crown geometry. Close leaf surfaces add detail over that volume, so minification cannot hollow out a tree. Instance identity selects a stable variant; projected size chooses detail with hysteresis. Visible and shadow cutouts use one mask.
 
-The accepted character is a solid, irregular canopy with readable lobes and connected trunks. Broad families use fewer main lobes; narrow aspen retains fuller coverage. Leaves intersect the crown instead of forming a loose fringe. Species dimensions and instance scale remain unchanged. Fixed geometry budgets and family/detail draw buckets are preserved.
+The accepted character is a solid, irregular canopy with readable lobes and connected trunks. Broad families use fewer main lobes; narrow aspen retains fuller coverage. Leaves intersect the crown instead of forming a loose fringe. Species dimensions and instance scale remain unchanged. Both adapters use bounded family/detail buckets. The reviewed TypeGPU adoption increases static geometry and instance capacity to avoid allocation during camera changes; its cost is recorded in the adoption evidence.
 
 ## Acceptance state
 
@@ -14,7 +14,7 @@ The accepted character is a solid, irregular canopy with readable lobes and conn
 | --- | --- | --- |
 | Shared connected crown design and campaign consumer; family sheets and campaign regional review | Preserve these results unless asset changes require their scoped gates again | [Model evidence](../assets/crowns/finish/README.md), [regional evidence](../assets/crowns/finish/integration/README.md) |
 | TypeGPU visible/shadow leaf atlas and cutoff consistency | Preserve the common mask through projected detail changes | [Coverage/shadow checkpoint](../assets/slice-13/coverage-shadow/README.md) |
-| Historical battle crown appearance through the retired backend | Current TypeGPU both-pitch/detail/return coverage and fresh production review | [Battle adoption](13-battle-adoption.md), [integrated matrix](15-acceptance.md) |
+| Current TypeGPU stable variants, projected detail, exact near/far/close repeats and same-world return | Common composed-world and hardware acceptance in15; no unresolved crown-owner defect | [TypeGPU adoption](../assets/slice-06/typegpu-adoption/README.md), [integrated matrix](15-acceptance.md) |
 
 Battle now selects stable variants and projected leaf detail with a permanent
 canopy. The first inherited campaign threshold was rejected visually; an explicit

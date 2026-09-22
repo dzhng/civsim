@@ -61,3 +61,11 @@ phases, phase return, per-phase dry masks, standalone lake/ocean and composed
 field/ocean joins; resolve material surface cues before accepting09. Shore geometry
 belongs to08, and common motion/hardware results belong to15. Campaign clock
 evidence cannot stand in for the new battle backend.
+
+## Standalone lake viewing-distance correction
+
+The [view-distance control](../assets/slice-09/lake-view-distance/README.md) accepts
+reduced distant glints in the current production lake. It changes only lake normal
+detail attenuation from ground-focus distance to eye distance. The same source
+wave field remains in use. Ripple regularity, shore treatment, motion, and the
+software baseline migration remain open; this does not close09.

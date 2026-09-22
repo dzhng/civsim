@@ -1,0 +1,30 @@
+[
+  {
+    "name": "seed-7 generated map exports at least one lake surface",
+    "ok": true
+  },
+  {
+    "name": "golden: rendered lake-blue pixels follow sim tint=water projection",
+    "ok": true,
+    "detail": "{\"waterSamples\":119,\"drySamples\":89,\"waterHit\":0.437,\"dryLeak\":0.034}"
+  },
+  {
+    "name": "snapshot golden-lake",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  },
+  {
+    "name": "seed-7 generated map exports at least one lake surface",
+    "ok": true
+  },
+  {
+    "name": "overcast: rendered lake-blue pixels follow sim tint=water projection",
+    "ok": true,
+    "detail": "{\"waterSamples\":119,\"drySamples\":89,\"waterHit\":0.563,\"dryLeak\":0.112}"
+  },
+  {
+    "name": "snapshot overcast-lake",
+    "ok": true,
+    "detail": "0 px differ (0.0000%)"
+  }
+]

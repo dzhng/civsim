@@ -12,9 +12,11 @@ lane; inspect live processes before starting captures or replacing their build.
 
 **Current pickup: production standalone lake surface response.** The
 [battle consumer audit](assets/slice-09/battle-consumer-audit/README.md) shows dense
-metallic glints in the golden-hour production lake. Corrected geometry checks
-pass; the water-mask hit0.378 remains below0.42, and two crop sizes differ from
-old snapshots. Keep these failures visible. The uncommitted lake scene now uses
+metallic glints in the golden-hour production lake. The [view-distance correction](assets/slice-09/lake-view-distance/README.md) now
+reduces those glints: golden water hit rises0.378→0.437, clearing the unchanged
+0.42 floor, and both native crops repeat exactly. Fresh visual and code reviews
+accept that bounded fix. Regular ripples/shore outlines remain; software checking
+is running, and old crop-size baselines still need justified migration. The uncommitted lake scene now uses
 installed elevation, completed camera frames, and an opt-in detached live tint
 mask; it no longer imports a source-only WASM module. Typecheck and independent
 code review pass. Do not lower mask thresholds to accept the surface.
@@ -26,8 +28,8 @@ rejected and removed. Uniform directional streaks and pale shore halos remain
 open. Frozen control5189 and candidate5190 are available; keep one GPU lane.
 The latest candidate includes the live tint hook; control5189 does not. Scratch
 phase evidence is in `throwaway/battle-water-phases/`; the verified current data
-is `candidate-repeat-clock.json` and the `candidate/` images. No water candidate
-is accepted or committed. Finish actual surface/motion quality before accepting09.
+is `candidate-repeat-clock.json` and the `candidate/` images. Field-water normals are still unaccepted; the standalone viewing-distance fix
+is a separate bounded acceptance. Finish actual surface/motion quality before accepting09.
 
 The [chart atmosphere correction](assets/slice-10/chart-atmosphere/README.md) is
 committed and its nine migrated snapshots pass. Full campaign-lod remains red only

@@ -36,7 +36,7 @@ export function waterShaderBodies(lake: boolean) {
   const fragment = `
     let p=v.position.xy;
     let sample=waterField(p,cam.time);
-    let viewDist=length(p-cam.focus);
+    let viewDist=${lake ? "length(v.position-cam.eye)" : "length(p-cam.focus)"};
     ${
       lake
         ? `

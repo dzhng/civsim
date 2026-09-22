@@ -434,3 +434,13 @@ world pixels remain identical. The restoration gate allows only that precision
 inside existing card bounds, still requiring exact world pixels and rejecting
 missing titles through independent high-contrast fault controls. It does not apply
 a general screenshot tolerance or pretend every capture was byte-identical.
+
+## Standalone lake distance detail
+
+### Sound — high confidence: fade detail with camera distance
+
+A lake beneath the center of a high camera must not retain close-range ripple
+contrast. Standalone lakes now use distance to the camera eye for the existing
+detail falloff; distance to the ground focus ignored camera altitude. This is a
+simple viewing-distance approximation at the existing FOV, not an exact pixel
+footprint filter. Ocean policy and the water spectrum remain unchanged.

@@ -1,0 +1,46 @@
+[
+  {
+    "name": "campaign-ownership",
+    "canonical": {
+      "changedPixels": 553460,
+      "rgbMae": 2.0073499348958332
+    },
+    "previousActual": {
+      "changedPixels": 0,
+      "rgbMae": 0
+    }
+  },
+  {
+    "name": "campaign-ownership-changed",
+    "canonical": {
+      "changedPixels": 553632,
+      "rgbMae": 1.9752457682291666
+    },
+    "previousActual": {
+      "changedPixels": 0,
+      "rgbMae": 0
+    }
+  },
+  {
+    "name": "campaign-visibility-west",
+    "canonical": {
+      "changedPixels": 553564,
+      "rgbMae": 1.8521617838541666
+    },
+    "previousActual": {
+      "changedPixels": 0,
+      "rgbMae": 0
+    }
+  },
+  {
+    "name": "campaign-visibility-east",
+    "canonical": {
+      "changedPixels": 553553,
+      "rgbMae": 1.8348837890625
+    },
+    "previousActual": {
+      "changedPixels": 0,
+      "rgbMae": 0
+    }
+  }
+]

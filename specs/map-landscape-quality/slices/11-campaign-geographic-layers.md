@@ -56,3 +56,8 @@ terrain changes cannot progressively narrow the ribbon. Width is measured on the
 local surface, including junction caps. This approximation does not straighten
 sharp bends or make roads flat benches. Resource costs and its accepted limits
 are recorded in the road evidence above.
+
+The [current overlay checkpoint](../assets/slice-11/overlay-current/README.md)
+reconciles four earlier material/shadow baselines with exact repeats and unchanged
+ownership/visibility behavior. Final regional road, coast and fog composition
+still belongs to the common production matrix.

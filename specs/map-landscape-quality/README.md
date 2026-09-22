@@ -29,8 +29,8 @@ for distant glints. Flat water detail, soft coastal fringes and final compositio
 remain open; do not spend another spectrum-polish pass before the mountain test.
 The direction shuffle was rejected on actual images despite better isotropy.
 
-The preview-owner and CSS-density comparisons on5193 are complete. Both builds use symlinks to existing public
-assets; the retired shelf build is removed. The turf software run completed its
+The preview-owner and CSS-density comparisons on5193 are complete. The current build uses symlinks to existing public
+assets; the retired shelf and matched-control builds are removed. The turf software run completed its
 functional/cold-boot gates, but canonical images and a corrected grass-bearing
 isolation wait remain unaccepted. Inspect `throwaway/active-pickup.txt` and live
 processes before switching the single capture lane. Obsolete previews

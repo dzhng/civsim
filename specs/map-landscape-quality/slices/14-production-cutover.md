@@ -81,3 +81,17 @@ records the real-map color-oracle transfer and the cart check's migration to
 seated physical anchors. Numeric floors remain fixed; broader label/interaction and canonical image
 acceptance are tracked by12 and the common matrix in15. Completed card-placement and painted-label fixes keep their
 scoped acceptance; they are not new implementation pickups.
+
+## Retired Three background owners
+
+The unused `BattleBackgroundQuads` and horizon-blocker mesh adapter are removed,
+along with their private materials/geometry helpers. Live neutral geometry,
+TypeGPU horizon rendering and Three material fixtures remain. Reference review,
+web/lab typechecks and16 focused tests pass; independent review additionally
+passes17 selected tests and finds no live consumer removed. No test contract or
+rendered behavior changes are intended.
+
+Remaining retirement work includes test-only Three vista/join wrappers and the
+regional campaign preview's independent composition. Migrate their meaningful
+coverage/controls to current owners before removal; registered raw model/UI labs
+are live consumers and must not be deleted as if they were dead production code.

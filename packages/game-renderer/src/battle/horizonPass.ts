@@ -17,17 +17,14 @@ const WALL_TOP: [number, number, number] = [0.64, 0.61, 0.55];
 const HAZE: [number, number, number] = [0.8, 0.81, 0.83];
 
 /** Envelope of the sealed-edge blocker mesh, relative to the edge line and the
- *  edge's ground datum. The mesh is a shadow RECEIVER as well as a caster
- *  (terrainLayer's createHorizonBlockerMesh), and its peaks stand an order of
- *  magnitude higher than anything on the field — so the shadow fit
+ *  edge's ground datum. Its peaks stand an order of magnitude higher than
+ *  anything on the field, so the shadow fit
  *  (battle/shadowPolicy.ts) carries this band as a receiver domain of its own
  *  rather than stretching the field's slab up to reach it.
  *
  *  `reach` stops at the outermost peak. Past it the apron is a receding quad
- *  graded into HAZE, which is vista rather than shadowed ground — the same call
- *  createVistaMesh makes for the vista bands, and the same ground the shipped
- *  whole-map fit has never covered either. Only the west and east edges are
- *  ever built; north/south dissolve into fog. */
+ *  graded into HAZE, outside the blocker receiver domain. Only the west and
+ *  east edges are built; north/south dissolve into fog. */
 export const BATTLE_HORIZON_BOUNDS = {
   /** Outward from the edge line, past the far row's widest peak ring. */
   reach: 600,

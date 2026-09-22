@@ -9,14 +9,7 @@ import {
   applyTerrainSurface,
   groundDetailNode,
 } from "../landscape/terrainMaterial";
-// terrainLayer — the battle ground on the photoreal substrate. Background
-// quads, the height-displaced ground mesh, and sealed-edge horizon blockers use
-// standard-material responses with NEUTRAL albedos; the sun + IBL environment
-// light them. The CPU geometry comes
-// from the same builders the bespoke passes upload (buildBattleGroundMesh /
-// buildBattleHorizonLayout). Distance haze comes ONLY from the shared
-// aerial-perspective hook (scene.fogNode) — no material here adds
-// its own haze, ever.
+// Three terrain fixtures share neutral geometry and appearance policy with production.
 import * as THREE from "three/webgpu";
 import {
   abs,
@@ -33,31 +26,23 @@ import {
   positionWorld,
   step,
   texture,
-  transformNormalToView,
   varying,
   vec2,
   vec3,
-  vec4,
 } from "three/tsl";
 import type { LandscapeMesh } from "../../../game-renderer/src/terrain/surface";
 import type { PhotorealEarthDistanceField } from "../../../game-renderer/src/battle/photorealEarthDistance";
 import { MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
-import type { BattleHorizonLayout } from "../../../game-renderer/src/battle/horizonPass";
 import type { BattleVistaBand } from "../../../game-renderer/src/battle/vistaSurface";
 import { joinedTerrainEdgeData } from "../../../game-renderer/src/battle/terrainEdgeData";
 import {
   fbmN,
   hashN,
-  linearAlbedo,
   ridgeN,
   rgbNode,
   smoothstepN,
-  viewNormalNode,
-  vnoiseN,
   type LandscapeFrameUniforms,
   type FloatNode,
-  type Rgb,
-  type Vec2Node,
 } from "../landscape/shaderNodes";
 import {
   coverEdgeNode,
@@ -65,7 +50,6 @@ import {
   mudInteriorCoverageNode,
   roadInteriorCoverageNode,
   turfEdgeCoverageNode,
-  turfCanopyFromSignalsNode,
   turfCanopyNode,
   TURF_CONTRAST,
 } from "./groundDetail";
@@ -73,49 +57,6 @@ import type {
   BattleGroundCover,
   BattleSlopeBands,
 } from "../../../game-renderer/src/battle/terrainFeatures";
-
-// frameShell TerrainShaderStyle — numeric mirror of the WGSL literals.
-interface TerrainQuadStyle {
-  oliveLow: Rgb;
-  oliveHigh: Rgb;
-  dry: Rgb;
-  lightFleckLow: number;
-  lightFleckHigh: number;
-  darkFleckLow: number;
-  darkFleckHigh: number;
-  stoneFleckLow: number;
-  stoneFleckHigh: number;
-  stubbleColor: Rgb;
-  darkFleckColor: Rgb;
-}
-
-const DEFAULT_TERRAIN_STYLE: TerrainQuadStyle = {
-  oliveLow: MEADOW.quad.default.oliveLow,
-  oliveHigh: MEADOW.quad.default.oliveHigh,
-  dry: MEADOW.quad.default.dry,
-  lightFleckLow: 0.884,
-  lightFleckHigh: 0.99,
-  darkFleckLow: 0.82,
-  darkFleckHigh: 0.982,
-  stoneFleckLow: 0.924,
-  stoneFleckHigh: 0.996,
-  stubbleColor: MEADOW.quad.default.stubble,
-  darkFleckColor: MEADOW.quad.default.darkFleck,
-};
-
-const WIDE_DETAIL_TERRAIN_STYLE: TerrainQuadStyle = {
-  oliveLow: MEADOW.quad.wideDetail.oliveLow,
-  oliveHigh: MEADOW.quad.wideDetail.oliveHigh,
-  dry: MEADOW.quad.wideDetail.dry,
-  lightFleckLow: 0.876,
-  lightFleckHigh: 0.988,
-  darkFleckLow: 0.8,
-  darkFleckHigh: 0.976,
-  stoneFleckLow: 0.916,
-  stoneFleckHigh: 0.995,
-  stubbleColor: MEADOW.quad.wideDetail.stubble,
-  darkFleckColor: MEADOW.quad.wideDetail.darkFleck,
-};
 
 interface TerrainMaterialOptions {
   /** Material-detail frequency in native world units; geometry and masks stay unscaled. */
@@ -126,191 +67,6 @@ interface TerrainMaterialOptions {
   earthDistance?: PhotorealEarthDistanceField;
   /** The rock face detail map, owned and disposed by the caller's world. */
   rockDetailMap: THREE.Texture;
-}
-
-function quadGeometry(): THREE.BufferGeometry {
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(12), 3));
-  geo.setIndex([0, 1, 2, 1, 3, 2]);
-  return geo;
-}
-
-function setQuadRect(
-  geo: THREE.BufferGeometry,
-  [x, y, w, h]: [number, number, number, number],
-): void {
-  const attr = geo.getAttribute("position") as THREE.BufferAttribute;
-  const a = attr.array as Float32Array;
-  a.set([x, y, 0, x + w, y, 0, x, y + h, 0, x + w, y + h, 0]);
-  attr.needsUpdate = true;
-}
-
-// frameShell terrainWgsl groundHeight(p) — relief for the builtin quad shading.
-function quadGroundHeight(p: Vec2Node): FloatNode {
-  const broad = vnoiseN(p.mul(0.018).add(vec2(8.1, 2.4))).mul(0.58);
-  const folds = ridgeN(
-    vec2(p.x.mul(0.052).add(p.y.mul(0.018)), p.y.mul(0.038).sub(p.x.mul(0.012))),
-  ).mul(0.26);
-  const scratch = ridgeN(vec2(p.x.mul(0.42).add(p.y.mul(0.09)), p.y.mul(0.26))).mul(0.16);
-  return broad.add(folds).add(scratch);
-}
-
-function terrainQuadMaterial(
-  style: TerrainQuadStyle,
-  contrast: typeof TURF_CONTRAST.quad.default | typeof TURF_CONTRAST.quad.wideDetail,
-  frame: LandscapeFrameUniforms,
-): THREE.MeshStandardNodeMaterial {
-  const material = new THREE.MeshStandardNodeMaterial({
-    side: THREE.FrontSide,
-    roughness: 0.96,
-    metalness: 0,
-  });
-  material.depthTest = false;
-  material.depthWrite = false;
-  const world = varying(attribute<"vec3">("position", "vec3").xy).toVar();
-  const dist = varying(length(attribute<"vec3">("position", "vec3").xy.sub(vec2(frame.focus))));
-  const fine = vnoiseN(world.mul(2.2)).toVar();
-  const mid = vnoiseN(world.mul(0.47).add(vec2(5.2, 1.8))).toVar();
-  const broad = vnoiseN(world.mul(0.085).add(vec2(0.7, 9.3))).toVar();
-  const relief = quadGroundHeight(world).toVar();
-  const hx = quadGroundHeight(world.add(vec2(1.8, 0.0))).sub(relief);
-  const hy = quadGroundHeight(world.add(vec2(0.0, 1.8))).sub(relief);
-  // The quad is 4 vertices: the relief normal must be per-fragment (a vertex
-  // varying would interpolate flat) — the sun shades it directly.
-  material.normalNode = transformNormalToView(normalize(vec3(hx.mul(-1.45), hy.mul(-1.45), 1.0)));
-  const grazing = smoothstepN(
-    0.16,
-    0.86,
-    ridgeN(vec2(world.x.mul(0.12).add(world.y.mul(0.03)), world.y.mul(0.09))),
-  ).toVar();
-  const oliveNoise = mix(
-    rgbNode(style.oliveLow),
-    rgbNode(style.oliveHigh),
-    mid.mul(0.66).add(fine.mul(0.16)).add(relief.mul(0.18)),
-  );
-  const oliveAnchor = mix(rgbNode(style.oliveLow), rgbNode(style.oliveHigh), 0.5);
-  const olive = mix(oliveAnchor, oliveNoise, contrast.oliveSpread);
-  const scrubPatch = smoothstepN(0.5, 0.86, broad).mul(
-    float(1.0).sub(smoothstepN(0.86, 0.98, fine)),
-  );
-  const trample = smoothstepN(0.72, 0.98, vnoiseN(world.add(vec2(13.0, -7.0)).mul(0.18)));
-  const rakedDust = smoothstepN(0.58, 0.92, grazing).mul(relief.mul(0.08).add(0.08));
-  const seed = world.mul(6.8).floor().toVar();
-  const fleck = hashN(seed);
-  const blade = hashN(seed.add(vec2(19.0, 41.0)));
-  const pebble = hashN(seed.add(vec2(73.0, 11.0)));
-  const stubble = smoothstepN(
-    0.66,
-    0.95,
-    ridgeN(vec2(world.x.mul(1.26).add(world.y.mul(0.18)), world.y.mul(0.84))),
-  );
-  const lightFleck = smoothstepN(style.lightFleckLow, style.lightFleckHigh, fleck).mul(
-    fine.mul(0.54).add(0.46),
-  );
-  const darkFleck = smoothstepN(style.darkFleckLow, style.darkFleckHigh, blade).mul(
-    float(1.0).sub(smoothstepN(0.76, 0.98, broad)),
-  );
-  const stoneFleck = smoothstepN(style.stoneFleckLow, style.stoneFleckHigh, pebble).mul(
-    relief.mul(0.46).add(0.36),
-  );
-  const speckle = lightFleck.mul(contrast.speckleStrength);
-  let grass = mix(
-    olive,
-    rgbNode(style.dry),
-    trample.mul(contrast.trampleMix).add(contrast.dryMixBase),
-  );
-  grass = mix(grass, rgbNode(MEADOW.quad.scrub), scrubPatch.mul(TURF_CONTRAST.quad.scrubStrength));
-  grass = mix(grass, rgbNode(MEADOW.quad.rakedDust), rakedDust);
-  grass = grass.add(rgbNode(MEADOW.quad.lightFleck).mul(speckle));
-  grass = mix(grass, rgbNode(style.stubbleColor), stubble.mul(contrast.stubbleStrength));
-  grass = mix(
-    grass,
-    grass.mul(rgbNode(style.darkFleckColor)),
-    darkFleck.mul(contrast.darkFleckStrength),
-  );
-  grass = mix(grass, rgbNode(MEADOW.quad.stoneFleck), stoneFleck.mul(contrast.stoneFleckStrength));
-  grass = mix(grass, turfCanopyFromSignalsNode(broad, mid, fine), TURF_CONTRAST.canopy.mixStrength);
-  const dust = smoothstepN(18.0, 96.0, dist).mul(contrast.dustStrength);
-  const sunBleached = mix(grass, rgbNode(MEADOW.quad.sunBleached), dust);
-  material.colorNode = vec4(linearAlbedo(sunBleached), 1.0);
-  return material;
-}
-
-function backdropMaterial(): THREE.MeshStandardNodeMaterial {
-  const material = new THREE.MeshStandardNodeMaterial({
-    side: THREE.FrontSide,
-    roughness: 0.98,
-    metalness: 0,
-  });
-  material.depthTest = false;
-  material.depthWrite = false;
-  material.normalNode = viewNormalNode(vec3(0.0, 0.0, 1.0));
-  const world = varying(attribute<"vec3">("position", "vec3").xy).toVar();
-  const broad = vnoiseN(world.mul(0.055).add(vec2(4.7, 8.1)));
-  const mid = vnoiseN(world.mul(0.42).add(vec2(11.3, 1.9)));
-  const speck = smoothstepN(0.78, 0.98, vnoiseN(world.mul(2.8)));
-  let grass = mix(rgbNode(MEADOW.quad.backdrop.low), rgbNode(MEADOW.quad.backdrop.high), broad);
-  grass = mix(grass, rgbNode(MEADOW.quad.backdrop.shadow), smoothstepN(0.62, 0.94, mid).mul(0.38));
-  grass = grass.add(rgbNode(MEADOW.quad.backdrop.fleck).mul(speck));
-  material.colorNode = vec4(linearAlbedo(grass), 1.0);
-  return material;
-}
-
-/** The background band: backdrop quad + terrain quad (two detail styles,
- *  toggled by the battle world's zoom policy). Deliberately
- *  OUTSIDE the shadow set (neither casts nor receives): they are
- *  depthTest-off underlays beyond the heightfield, always shaded fullscreen
- *  under the real ground — receiving would pay per-pixel cascade sampling
- *  twice for pixels the aerial haze owns anyway. */
-export class BattleBackgroundQuads {
-  readonly backdrop: THREE.Mesh;
-  readonly terrainDefault: THREE.Mesh;
-  readonly terrainWide: THREE.Mesh;
-
-  constructor(scene: THREE.Scene, frame: LandscapeFrameUniforms) {
-    this.backdrop = new THREE.Mesh(quadGeometry(), backdropMaterial());
-    this.backdrop.name = "battle-backdrop";
-    this.backdrop.renderOrder = RENDER_ORDER.backdrop;
-    this.terrainDefault = new THREE.Mesh(
-      quadGeometry(),
-      terrainQuadMaterial(DEFAULT_TERRAIN_STYLE, TURF_CONTRAST.quad.default, frame),
-    );
-    this.terrainDefault.name = "battle-terrain-quad";
-    this.terrainDefault.renderOrder = RENDER_ORDER.terrain;
-    this.terrainWide = new THREE.Mesh(
-      quadGeometry(),
-      terrainQuadMaterial(WIDE_DETAIL_TERRAIN_STYLE, TURF_CONTRAST.quad.wideDetail, frame),
-    );
-    this.terrainWide.name = "battle-terrain-quad-wide";
-    this.terrainWide.renderOrder = RENDER_ORDER.terrain;
-    this.terrainWide.visible = false;
-    for (const mesh of [this.backdrop, this.terrainDefault, this.terrainWide]) {
-      mesh.frustumCulled = false;
-      scene.add(mesh);
-    }
-  }
-
-  setRects(
-    terrainRect: [number, number, number, number],
-    backdropRect: [number, number, number, number],
-  ): void {
-    setQuadRect(this.backdrop.geometry, backdropRect);
-    setQuadRect(this.terrainDefault.geometry, terrainRect);
-    setQuadRect(this.terrainWide.geometry, terrainRect);
-  }
-
-  setStyle(style: "default" | "wide-detail"): void {
-    this.terrainDefault.visible = style === "default";
-    this.terrainWide.visible = style === "wide-detail";
-  }
-
-  dispose(): void {
-    for (const mesh of [this.backdrop, this.terrainDefault, this.terrainWide]) {
-      mesh.removeFromParent();
-      mesh.geometry.dispose();
-      (mesh.material as THREE.Material).dispose();
-    }
-  }
 }
 
 /** The rolling battle ground mesh shared by playable and vista terrain. */
@@ -546,39 +302,6 @@ export function createVistaMesh(
   vista.receiveShadow = false;
   vista.userData.pickable = false;
   return vista;
-}
-
-/** The sealed-edge blocker mesh (horizonPass port — cliffs/walls/aprons). */
-export function createHorizonBlockerMesh(layout: BattleHorizonLayout): THREE.Mesh | null {
-  if (layout.mesh.indices.length === 0) return null;
-  const geo = new THREE.BufferGeometry();
-  const buffer = new THREE.InterleavedBuffer(layout.mesh.vertices, 10);
-  geo.setAttribute("position", new THREE.InterleavedBufferAttribute(buffer, 3, 0));
-  geo.setAttribute("hNormal", new THREE.InterleavedBufferAttribute(buffer, 3, 3));
-  // 'normal' alias for shadow.normalBias (see the ground-mesh note above).
-  geo.setAttribute("normal", new THREE.InterleavedBufferAttribute(buffer, 3, 3));
-  geo.setAttribute("hColor", new THREE.InterleavedBufferAttribute(buffer, 3, 6));
-  geo.setIndex(new THREE.BufferAttribute(layout.mesh.indices, 1));
-
-  const material = new THREE.MeshStandardNodeMaterial({
-    side: THREE.FrontSide,
-    roughness: 0.92,
-    metalness: 0,
-  });
-  material.normalNode = viewNormalNode(normalize(attribute<"vec3">("hNormal", "vec3")));
-  const color = varying(attribute<"vec3">("hColor", "vec3"));
-  const col = clamp(color, vec3(0.0), vec3(1.0));
-  material.colorNode = vec4(linearAlbedo(col), 1.0);
-
-  const mesh = new THREE.Mesh(geo, material);
-  mesh.name = "battle-horizon-blockers";
-  mesh.frustumCulled = false;
-  mesh.renderOrder = RENDER_ORDER.worldOpaque;
-  // Headland cliffs/walls throw long shadows onto the field at low
-  // sun and self-shade; they receive like every world surface.
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  return mesh;
 }
 
 /** Install the shared seam data into the landscape preview's Three geometry. */

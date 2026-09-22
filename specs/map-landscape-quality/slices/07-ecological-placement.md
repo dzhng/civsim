@@ -10,13 +10,14 @@ Slice variable: **Vegetation distribution and density on fixed terrain/models.**
 
 ## Work
 
-Replace window-local scatter and battle circular approximations with world-stable candidate identities. Test actual forest membership, wet coverage and slope at each candidate. Preserve campaign regional reservations, existing species mixing, city/road clearance and battle gameplay clearings. Build dense interiors, irregular edges and sparser outliers; use existing bush/stone assets for intermediate detail before adding models. Species and clumps follow climate/source cover. Keep work bounded: iterate a deterministic candidate lattice or finite candidate budget, never retry until a desired count is reached. Upload static spatial buckets only when their residency/representation changes.
+Preserve world-stable candidate identities and actual forest membership, wet coverage and slope eligibility at each candidate. Preserve campaign regional reservations, existing species mixing, city/road clearance and battle gameplay clearings. Build dense interiors, irregular edges and sparser outliers; use existing bush/stone assets for intermediate detail before adding models. Species and clumps follow climate/source cover. Keep work bounded: iterate a deterministic candidate lattice or finite candidate budget, never retry until a desired count is reached. Upload static spatial buckets only when their residency/representation changes.
 
 ## Runnable checkpoint
 
-Planned landscape-vegetation scene: forest interior/edge/plain and coast/cliff exclusion; battle wooded and authored irregular-forest fixtures use the same scatter core.
-
-New routes/scenes named here are planned deliverables. Use the existing scene runner and snapshot primitive; do not claim they already exist.
+The existing [landscape-vegetation scene](../../../web/scenes/campaign/landscape-vegetation.mjs)
+checks scenery seating, membership and upload lifetime through terrain changes.
+It does not prove forest interior/edge/plain composition or coast/cliff exclusion;
+those remain required through regional and battle production controls.
 
 ## Verification and review
 
@@ -36,140 +37,46 @@ Feedback that would change the slice: A stronger preference for woodland density
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
 
-## Battle eligibility checkpoint
+## Accepted checkpoints and their limits
 
-The battle subpass replaces the equivalent-area forest disc with each extracted
-forest's exact source-cell footprint. Explicitly authored features without a
-footprint retain their disc meaning. World-anchored lattice candidates share
-identity across windows and feature enumeration; the existing per-forest cap is
-selected by stable random priority rather than filling the first rows.
+| Checkpoint | Evidence and retained boundary |
+| --- | --- |
+| Battle membership and slope eligibility | [Ecology evidence](../assets/ecology/README.md) proves exact extracted forest membership, world-stable candidates, all-prop exclusions and correct boundary slopes. Explicit authored discs retain their meaning. Spatial correctness does not establish composed forest quality. |
+| Campaign placement ownership and canopy coverage | [Canopy evidence](../assets/slice-07/canopy-coverage/README.md) accepts improved woodland mass on the shared relief and existing campaign candidate/reservation owner. The embedded landscape planting path is retired; do not reimplement it. |
+| Bounded battle density | [Density evidence](../assets/slice-07/battle-density/README.md) accepts improved woodland presence with scoped hardware cost. Its full-frame HUD drift and pre-migration consumer limits remain historical evidence, not current TypeGPU acceptance. |
+| Categorical forest material boundary | [Forest-cover evidence](../assets/slice-07/forest-cover/README.md) accepts removal of false rock at grass/forest transitions. [Current TypeGPU coverage evidence](../assets/slice-13/coverage-shadow/README.md) proves the migrated consumer. Preserve independent cover weights before interpolation; physical tint remains unchanged. |
+| Detached campaign rock removal | [Production comparison](../assets/slice-07/campaign-rock-removal/README.md) accepts continuity without changing tree records. Generic battle/authored rocks remain; this does not supply intermediate ground detail. |
 
-Only forest tint cells admit trees. Existing water, roads, walls and gameplay
-clearings therefore remain exclusions without a second reservation map. The
-shared height sampler rejects steep surfaces; its normal helper now uses the
-actual one-sided sample separation at field edges, also correcting the same
-eligibility error for battle grass. No physical height, tint or gameplay rule
-is changed.
+## Remaining ecological quality
 
-The production placement control has 139 of 240 trees outside a concave forest
-before this subpass and 0 of 240 after. Seven CPU cases cover that reproduction,
-reserved cells, slopes, deterministic identity, explicit disc semantics, window
-overlap and boundary normals. See [battle ecology evidence](../assets/ecology/README.md).
+Resolve oversized geometric conifers, isolated planted clumps, exposed slope
+placement and missing intermediate ground detail in campaign. Battle still needs
+judgment of tree proportions, forest-floor striping, understory and troop
+visibility under crowns through the current production adapter. Neither larger
+crowns nor more candidates alone establishes a natural forest edge.
 
-Whole-slice status remains **pending**: campaign distribution, production scale,
-intermediate vegetation detail and the composed visual acceptance still remain.
+Keep species, regional budgets and static/dynamic reservations in the existing
+[campaign producer](../../../packages/game-renderer/src/campaign/scenery.ts).
+Share relief sampling with geometry; candidate identity must not depend on mesh
+tessellation, and final seating follows the presented surface. Keep exact forest
+membership and authored-disc semantics in the existing
+[battle producer](../../../packages/game-renderer/src/battle/terrainFeatures.ts).
+All props must respect water, roads, walls and gameplay clearings. Do not weaken
+exclusion assertions to mature trees only or introduce another scatter lattice,
+budget, tier schema or clearance owner.
 
-## Campaign implementation pickup
+The common [production matrix](15-acceptance.md) owns final regional scale,
+forest interior/edge/outlier and plains-detail composition, current hardware,
+strict repeats and final critique. Preserve scoped accepted checkpoints while
+keeping the whole slice open.
 
-The instance data and physical scenery layer now have neutral owners, with unchanged behavior. The existing `campaign/scenery.ts` already owns species mixing, regional budgets, static city/road clearances and dynamic reservations. Reuse those policies when replacing the embedded planting loop in `campaignLandscape.ts`; do not create another clearance implementation. Candidate positions must depend on a fixed world lattice, not terrain tessellation. Sample slope/water at the candidate location, and keep rendered seating tied to the presented surface.
+## Rejected intermediate-growth controls
 
-Global candidate generation, local presentation and terrain geometry are distinct responsibilities. Prefer the existing world candidate cache and view filtering where they fit. Remove the landscape builder's redundant planting path when its callers consume the shared campaign producer.
-
-### Campaign placement owner
-
-The global producer now proposes trees on a fixed 4 km lattice, queries actual
-source cover and coastal footprint, and rejects steep canonical relief sampled
-at 2 km. Coast scratch is bounded to one 128 km block with a 24 km halo; no
-whole-map height cache is introduced. Source interpolation and geographic relief
-are extracted to one owner shared by geometry and eligibility, with exact array
-equality at 2, 8 and 16 km verified before further visual changes.
-
-Existing regional budgets, species choices and static/dynamic reservations remain
-the campaign policy owner. Candidate heights are assigned by the consuming
-presentation surface: the current production producer still seats against its
-current field, and the new physical world must seat against its presented mesh.
-The embedded prototype planting path and worker scenery payload are removed. Repeated residency/upload and fog/growth behavior pass. The canopy coverage
-checkpoint below records regional acceptance; whole-slice acceptance remains pending.
-
-
-The sparse first candidate and an evenly dispersed second candidate were rejected.
-Candidate selection now uses spatially coherent priority, preserving dense cores
-instead of uniformly thinning them. Source cover remains primary; moisture can
-support small groves on gentle rendered foothills. The global candidate cap is
-32,000, separate from visible scenery. Mixed broadleaf cover now connects northern
-conifer groups. The species/density policy remains in the existing campaign owner.
-
-The water source predicate excludes river centers without altering strategic
-land semantics. Fog applies the campaign entity visibility rule to scenery and
-cannot reveal it during a terrain swap. A membership-change regression exposed
-stale Three bindings after disposing/reusing geometry. Shrinking sets retain their
-capacity; growth replaces geometry identity and disposes the old buffers. The
-browser fixture exercises hiding/restoring/growth and reports no GPU errors.
-
-
-## Accepted canopy coverage checkpoint
-
-Mature trees use a larger presentation footprint on the same deterministic
-candidate lattice, source cover, cap, species and crown meshes. Existing coast,
-road and city clearances use the final footprint; fringe shrubs retain their
-size. Fresh comparison accepts the larger overlapping crowns as a meaningful
-woodland-mass improvement in both regions. Exact repeat screenshots and all
-501 web tests pass. See [evidence](../assets/slice-07/canopy-coverage/README.md).
-
-This completes only the canopy coverage checkpoint. Oversized geometric conifers,
-isolated planted clumps, exposed slope placement and missing intermediate ground
-detail keep this slice open. Further work must address those properties rather
-than increase every tree again.
-
-## Composed battle audit follow-up
-
-The [battle audit and census](../assets/slice-13/composed/README.md) finds a sparse western forest and an outlined angular forest-floor transition. In real seed 8, the large connected forest has 2,873 eligible candidates and no slope removals, but its per-feature 240 cap removes 2,633; measured coarse canopy coverage is 2.348%, versus 26–29% in uncapped small components. Investigate area-stable visual density and shared budget policy while preserving physical membership/clearings. The cap is a measured thinning cause; it does not by itself explain the material boundary. Full ecological acceptance remains open.
-
-## Forest material boundary correction
-
-The battle ground shader currently interpolates categorical tint IDs before
-classifying them. A grass0-to-forest4 edge therefore passes through rock2 even
-when neither source vertex is rock. This is a concrete candidate cause of the
-gray forest outline, separate from tree density. Decode categorical IDs into
-independent forest/rock/scree weights before any GPU or seam interpolation;
-interpolate those weights, preserving source geometry and physical tint bytes.
-The existing battle material boundary owns decoding; shared terrain geometry
-must not acquire battle class semantics. Do not add a second source field.
-
-Use the existing seed8 forest-edge framing with fixed tree distribution and an
-actual geometry/seam interpolation regression that cannot invent an absent
-material. Compare full frames and boundary crops, run the shared terrain/water
-and battle seam guards, then fresh critique and exact crop repeats. Forest
-models, density, ground color palette, atmosphere and physics are frozen.
-
-The [bounded battle-density correction](../assets/slice-07/battle-density/README.md) raises the existing component cap without changing lattice, masks, slopes or models. CPU and source-field checks pass across generated 1/7/8 and authored A/B/C; fresh critique accepts improved woodland presence. Named seed 8 and standing 30k hardware costs remain within budget. Forest-world pixels repeat exactly; unrelated bronze-cardbar hardware drift is retained as an explicit full-frame limitation. Boundary material, tree proportions, understory and troop visibility under crowns remain open.
-
-The [forest boundary correction](../assets/slice-07/forest-cover/README.md) is
-implemented and freshly accepted: independent cover weights remove the false
-rock strip. World/edge repeats are exact; full-frame hardware HUD drift remains
-explicit. Fine floor striping and understory remain open.
-
-## Detached campaign rock props
-
-[Production comparison](../assets/slice-07/campaign-rock-removal/README.md) accepts
-removing the real-geography rock producer. All tree records remain exact; the
-three production views repeat exactly and fresh review prefers the continuity.
-Generic battle and authored-stage rocks remain. This does not resolve missing
-intermediate detail, terrain texture or final ecological composition.
-
-## Intermediate growth control
-
-Two understory prototypes remain rejected and unintegrated. An independent shrub
-pool exceeded the existing budgets. Relocating only existing bushes fit the
-budget but changed campaign views by only a few props, and battle fringe seats
-allowed bushes into grass-painted gameplay clearings. Exclusion assertions must
-continue to cover all props; filtering them to mature trees would weaken the
-contract.
-
-The next controlled variable is age/size mixture at existing eligible forest-edge
-positions. Keep the admission lattice, caps, source terrain and all-prop exclusions fixed;
-allow a measured subset of edge appearances to become smaller shrubs/young
-growth, retaining dense interiors. The prior mature-record freeze was a diagnostic
-constraint, not a product invariant, and preserving it did not address the
-missing intermediate detail. This should remain a small policy in each existing
-scatter owner, with no separate lattice, budget, tier schema or LoD switch.
-Battle preserves every site. Campaign can substitute sites because a smaller
-footprint passes existing coastal clearance; the measured prototype substitutes
-59 of32,000 candidates, so it must not claim exact campaign-position preservation.
-
-The age/size prototype was rejected on2026-09-21. In the actual Alpine regional
-frame, smaller scattered trees expose more relief but dense boundaries remain
-abrupt. Fresh review found only a subtle improvement, not enough to justify the
-new policy. No runtime change was integrated. The prototype worktree was deleted;
-future ecological work must address the actual missing transition rather than
-repeat the same size-only policy.
+The independent shrub pool exceeded existing budgets. Relocating existing bushes
+made little campaign difference and admitted battle bushes into grass-painted
+clearings. The subsequent age/size mixture was also rejected: smaller trees
+exposed more relief but left dense boundaries abrupt. None was integrated.
+These outcomes rule out repeating the same size-only or separate-pool proposal
+without a new hypothesis about the visible transition. The former mature-record
+freeze was a diagnostic constraint, not a requirement to preserve every mature
+tree in future ecological work.

@@ -10,7 +10,7 @@ Slice variable: **Lighting, shadow and atmospheric treatment over fixed accepted
 
 ## Work
 
-Tune the campaign environment to bright Mediterranean grass, warm stone, readable cool shadows and restrained aerial depth. Remove baked campaign light from physical material inputs. Keep cloud/parchment framing at overview where it supports the campaign identity; do not let haze erase the close landscape. Verify shadows across close/regional/overview transitions without acne, giant detached shapes or caster popping. Battle retains its existing weather presets over the same materials. After tuning, compose all accepted variables in full regional frames and assess the whole reference bar before production migration proceeds.
+Tune the campaign environment to bright Mediterranean grass, warm stone, readable cool shadows and restrained aerial depth. Remove baked campaign light from physical material inputs. Keep cloud/parchment framing at overview where it supports the campaign identity; do not let haze erase the close landscape. Verify shadows across close/regional/overview transitions without acne, giant detached shapes or caster popping. Battle retains its existing weather presets over the same materials. After tuning, compose all accepted variables in full regional frames and assess the whole reference bar for final integrated acceptance.
 
 ## Runnable checkpoint
 
@@ -36,80 +36,50 @@ Feedback that would change the slice: Lighting mood preferences change preset va
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
 
-## Normal-transform audit before lighting tuning
+## Accepted checkpoints and their limits
 
-The current scenery position shader scales XY by instance size and Z by optional instance height, but rotates its authored normal without the corresponding inverse scale. Audit this when height and width differ, as they do in campaign planting. Correct that shared normal transform before compensating with environment values; preserve deliberate crown/card normal direction and verify both uniform and nonuniform instances.
+| Checkpoint | Evidence and retained boundary |
+| --- | --- |
+| Instance normal transform | [Normal evidence](../assets/slice-10/normals/README.md) accepts inverse-transpose scale before yaw for uniform and nonuniform instances. Preserve deliberate crown/card normals; this is correctness, not lighting/composition acceptance. |
+| Visible-view shadow fit | [Shadow evidence](../assets/slice-10/shadow-fit/README.md) accepts attached shadows with stabilized campaign view fitting. Clipping the fit to world bounds was rejected because fixed-zoom edge pans changed resolution. Battle's fit remains its existing policy. |
+| Shared aerial ray | [Ray evidence](../assets/slice-14-production/aerial-ray/README.md) accepts consistent normalized-ray intersection and integration. This does not establish atmosphere density or distant battle readability. |
+| Campaign chart atmosphere | [Chart evidence](../assets/slice-10/chart-atmosphere/README.md) accepts chart-scale optical depth and preserved regional/close output. Angular peripheral mountains and the composed concealment/readability judgment remain open. |
+| Controlled production composition | [Merged proof](../assets/integration/production-shadow/README.md) accepts scoped contact, UI and water continuity with exact repeats. Regional reference quality remains a separate gate. |
+| Screen-space output | [Output mechanism](../assets/slice-10/screen-output/README.md), [production replay](../assets/slice-14-production/remaining-acceptance/screen-ui-production-control/README.md) and [attachment retirement](../assets/slice-15-retention/screen-ui-production10/README.md) prove the shared output boundary, preserved world pixels and scoped lifetime. Final DPR/performance and current integrated lifetime remain open. |
 
+## Remaining composition acceptance
 
-### Instance normal checkpoint
+Judge roof banding, canopy contact/composition, close-to-overview transitions and
+the full Mediterranean environment target through current production. Keep
+geometry, planting and material profiles fixed while testing lighting. A failure
+owned by form or material returns to that owner rather than being hidden by
+haze or grading.
 
-The shared instance shader now applies inverse-transpose scale before yaw. The
-independent baked-geometry fixture covers uniform, tall and wide rock/tree pairs;
-the former code fails its precision bound while uniform scale stays exact.
-See [normal evidence](../assets/slice-10/normals/README.md). This correctness fix
-precedes environment tuning and does not complete lighting/composition acceptance.
+The [historical battle audit](../assets/slice-13/composed/README.md) found distant
+terrain and enemy lines suppressed by yellow haze and a weak field/vista join.
+Reassess those properties through current TypeGPU production; the old Three
+captures neither establish a present defect nor accept the migrated consumer.
+Preserve playable terrain and weather semantics. The common
+[integrated matrix](15-acceptance.md) owns the final world/camera comparisons,
+strict repeats, hardware and unprimed critique.
 
-## Accepted visible-view shadow fitting
+## Screen-output invariants
 
-The shared single-sun rectangle fit now follows campaign's full canonical view
-footprint, with light-space texel stabilization. Clipping to world bounds was
-rejected because it changes resolution during fixed-zoom edge pans. Battle's
-existing fit is preserved. Matched city comparisons, exact repeats and sampled
-hardware edge/interior pans accept the bounded improvement in attached shadows.
-See [evidence](../assets/slice-10/shadow-fit/README.md). Roof banding, full canopy
-composition, overview transitions and the complete environment target remain open.
+The pinned Three renderer grades in a global output pass; material
+`toneMapped=false` alone does not exempt screen ink. Keep source UI colors,
+opaque and translucent blending, and world pixels outside UI influence intact.
+The [rejected direct-draw proof](../assets/slice-10/screen-output-first/README.md)
+records why a second draw that replaces world samples is invalid. Restore both
+renderer target selectors before the final copy and retain one renderer, canvas,
+time and output owner. Do not compensate with brighter ink, inverse-tone-map
+hacks, a new setting or a second permanent post chain. Battle readout placement
+and depth semantics remain their current owner's responsibility.
 
-## Composed battle audit follow-up
-
-The [current battle vistas](../assets/slice-13/composed/README.md) retain readable near formations but fresh critique finds yellow haze suppressing far terrain and enemy lines, with a weak visible transition from battlefield to distant walls. Investigate atmosphere/material/vista presentation together while preserving playable terrain. Exact-repeat captures prove deterministic output, not final environment quality.
-
-The [shared aerial-ray correction](../assets/slice-14-production/aerial-ray/README.md)
-removes the overview rectangle through consistent normalized-ray intersection.
-It does not tune atmosphere density or establish distant battle readability.
-The [merged campaign proof](../assets/integration/production-shadow/README.md)
-accepts contact, UI and water continuity in controlled production/composition
-frames with exact repeats; regional reference quality remains a separate gate.
-
-## Ungraded screen-space UI output
-
-The campaign label control isolates two effects. Opting out of scene fog improves
-outline contrast but leaves the existing brightness gate failing. The pinned
-WebGPU renderer applies tone mapping in a global output pass; the material's
-`toneMapped=false` flag does not exempt labels from it. Source ink must not be
-brightened to compensate for AgX.
-
-Run a bounded output-composition proof with known screen-space UI colors over
-the unchanged graded world. Use public renderer/TSL APIs and the existing
-PhotorealWorld/output owners: one renderer, canvas, time and frame contract.
-The UI needs no world-depth test; keep battle readouts' current placement/depth
-behavior and all physical surface/lighting behavior unchanged in this proof. Establish the
-smallest shared output boundary before adopting it in production, and reconcile
-it with the existing battle post-chain rather than adding a second permanent
-post-processing implementation. No new user settings or inverse-tone-map hacks.
-
-Judge exact UI color/outline crops, the unchanged labelRatio>=0.002 gate, and
-zero-difference world pixels outside UI influence. Then run existing production
-frame/collision checks, a deterministic repeat and an unprimed visual critique.
-This is a color/output-phase variable; card placement, typography, terrain and
-palette remain frozen. Temporary proof wiring must be removed when the shared
-output owner adopts the verified path.
-
-The [first output-phase GPU proof](../assets/slice-10/screen-output-first/README.md)
-rejects a direct second draw under default MSAA: ink is correct but the world
-attachment is replaced. The next public-API composition must preserve world
-samples and verify translucent blending as well as exact non-UI pixels.
-
-The [corrected output mechanism](../assets/slice-10/screen-output/README.md)
-passes exact opaque color, translucent blending, non-UI pixel preservation and
-an explicit rendered repeat. Both renderer target selectors must be restored
-before the final copy. Its owned and implicit MSAA cost is recorded; matched
-production UI, lifecycle and hardware checks remain before full acceptance.
-
-The corrected phase is integrated after the
-[matched production replay](../assets/slice-14-production/remaining-acceptance/screen-ui-production-control/README.md).
-It preserves the existing source colors, camera and label placement. Regional
-bright-pixel coverage remains below the unchanged floor even with restored ink;
-that is an open typography/coverage contract, not permission to distort grading.
-The [added attachment retirement proof](../assets/slice-15-retention/screen-ui-production10/README.md)
-passes ten production cycles; DPR/performance checks remain before whole-game
-acceptance. Battle currently contributes no screen-phase members.
+The old whole-image brightness floor is superseded by the independently tested
+[label-owner controls](../assets/slice-12/label-owners/README.md), not an open
+requirement to raise unrelated bright pixels. Preserve missing-owner detection
+and its documented card-only precision boundary. Broader typography, DPR,
+label/scenery policy and presentation quality remain under
+[12](12-campaign-entities-labels.md); current integrated resource and performance
+acceptance remains under15. Do not reopen the accepted output mechanism solely
+to repeat its completed proof.

@@ -3,8 +3,6 @@ import { FIELD_WATER_RAMP } from "../../../game-renderer/src/water/waterShoreRam
 
 const f = (value: number) => `${value.toExponential(16)}f`;
 const rgb = (value: readonly number[]) => `vec3f(${value.map(f).join(",")})`;
-export const FIELD_WATER_RESPONSE_WGSL =
-  "struct FieldWaterResponse {albedo:vec3f,foam:f32,roughness:f32,detail:f32};";
 
 /** Shared linear field-water response for ground and the adjoining ocean edge. */
 export const fieldWaterResponseBody = `(p:vec2f,coverage:f32,time:f32,viewDistance:f32)->FieldWaterResponse {

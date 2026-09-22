@@ -1,18 +1,13 @@
-import { fieldWaterResponseBody, FIELD_WATER_RESPONSE_WGSL } from "./fieldWaterResponse";
-import { WORLD_CAMERA_WGSL } from "../../../renderer-core/src/cameraWgsl";
-import { waterFieldBody } from "./waterField";
 import * as policy from "../../../game-renderer/src/water/photorealWaterPolicy";
 import * as physical from "../../../game-renderer/src/water/physicalWaterPolicy";
 import { BATTLE_OCEAN_RAMP } from "../../../game-renderer/src/water/waterShoreRamp";
-import { terrainNoiseFunctions } from "./terrainNoise";
 
-/** Exact source wave constants and surface response, expressed for native WGSL.
- * Lighting, GGX, IBL and fog are supplied by the shared environment owner. */
+/** Displacement and response bodies for the typed water pipeline.
+ * Wave, lighting and field-response dependencies come from their shared owners. */
 export function waterShaderBodies(lake: boolean) {
   const f = (value: number) => `${value}${Number.isInteger(value) ? ".0" : ""}`;
   const v = (value: number[]) => `vec3f(${value.map(f).join(",")})`;
   const ramp = lake ? policy.LAKE_SHORE_RAMP : BATTLE_OCEAN_RAMP;
-  const field = waterFieldBody();
   const vertex = `
     let position=vec3f(p.xy,waterField(p.xy,cam.time).height*${lake ? f(policy.LAKE_SWELL_SCALE) : `smoothstep(0.0,${f(ramp.depthFar)},abs(p.x-water.shoreX))`}+${lake ? "water.baseZ" : "p.z"});
     return VertexOut(projectWorld(position),position,shore);
@@ -58,27 +53,5 @@ export function waterShaderBodies(lake: boolean) {
     let roughness=${lake ? "max(0.3," : ""}mix(${f(physical.WATER_ROUGHNESS)},${f(physical.WATER_FOAM_ROUGHNESS)},foam)${lake ? ")" : ""};
     return shadeWorldSurface(albedo,vec3f(0),roughness,0.0,0.0,1.0,normal,v.position,1.0);
   `;
-  return { field, vertex, fragment };
-}
-
-/** Public WGSL entrypoints compose the same bodies used by typed pipelines. */
-export function waterShader(environment: string, lake: boolean) {
-  const body = waterShaderBodies(lake);
-  return (
-    WORLD_CAMERA_WGSL +
-    environment +
-    Object.entries(terrainNoiseFunctions)
-      .map(([name, text]) => `fn ${name}${text}`)
-      .join("\n") +
-    `
-  ${FIELD_WATER_RESPONSE_WGSL}
-  fn fieldWaterResponse${fieldWaterResponseBody}
-  struct WaterState {baseZ:f32,shoreX:f32,pad:vec2f};
-  @group(1) @binding(0) var<uniform> water:WaterState;
-  struct WaterField {height:f32,normal:vec3f,foam:f32};
-  fn waterField(p:vec2f,t:f32)->WaterField {${body.field}}
-  struct VertexOut {@invariant @builtin(position) clip:vec4f,@location(0) position:vec3f,@location(1) shore:f32};
-  @vertex fn vertex(@location(0) p:vec3f,@location(1) shore:f32)->VertexOut {${body.vertex}}
-  @fragment fn fragment(v:VertexOut)->@location(0) vec4f {${body.fragment}}`
-  );
+  return { vertex, fragment };
 }

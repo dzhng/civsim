@@ -467,3 +467,18 @@ revision, rather than writing a time value that the next frame overwrites.
 Water GIFs use full RGB source buckets before selecting their shared palette,
 because coarse buckets hid the small changes being reviewed. Existing GIF callers
 keep their previous default behavior; this adds no production rendering option.
+
+## Gentle ground within mountain ranges
+
+### Sound — medium confidence: altitude strengthens exposed faces, not bare shelves
+
+When a gentle shelf lies high inside a campaign mountain region, the altitude
+band previously painted it almost entirely as stone. The selected response lets
+it retain grass; the band strengthens rock only as the existing slope response
+reveals a face. This keeps broad connected green shelves but allows some green
+crest caps and soft patches that still need visual refinement. Battle cover keeps
+its existing meaning. The plan delegates blend curves but does not choose how
+strongly altitude should override slope; this pass favors the reference's grass
+integration using existing thresholds, without a new material control. Future
+campaign tuning inherits that distinction; the remaining edge artifacts keep
+confidence medium rather than establishing final landscape acceptance.

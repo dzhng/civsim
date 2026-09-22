@@ -1,0 +1,540 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-22T11:37:09.419Z",
+  "target": "http://127.0.0.1:5193",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "campaign-collision",
+      "file": "campaign/campaign-collision.mjs",
+      "kind": "visual",
+      "tier": "quick"
+    },
+    {
+      "name": "campaign-lod",
+      "file": "campaign/campaign-lod.mjs",
+      "kind": "visual",
+      "tier": "quick"
+    },
+    {
+      "name": "campaign-production",
+      "file": "campaign/campaign-production.mjs",
+      "kind": "flow",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "campaign-collision",
+      "name": "overview shows LONDINIUM beside (not under) the ARVERNI engraving",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "collision overview: nothing readable overlaps (labels pairwise, cards pairwise, cards vs labels)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "snapshot collision-overview-political",
+      "ok": false,
+      "detail": "460650 px differ (44.9854%) \u2014 see shots/diff/collision-overview-political.png"
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "reported card rects are same-frame with the DOM; entering cards settle in one frame (ordering pin)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "Roma cluster city cards all visible at full-tilt zoom (nudged, never culled)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "collision regional-roma: nothing readable overlaps (labels pairwise, cards pairwise, cards vs labels)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "snapshot collision-regional-roma",
+      "ok": false,
+      "detail": "369228 px differ (36.0574%) \u2014 see shots/diff/collision-regional-roma.png"
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "campaign map has Pella",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-collision",
+      "name": "collision pella: nothing readable overlaps (labels pairwise, cards pairwise, cards vs labels)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "natural-ground classifier accepts reference yellow field",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "natural-ground classifier accepts reference olive field",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "natural-ground classifier rejects blue water",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "natural-ground classifier rejects neutral gray rock",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "natural-ground classifier rejects red-brown soil",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "real campaign LoD scene found Roma, Ostia, and player army",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-whole-political stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-whole-political",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-whole-natural stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-whole-natural",
+      "ok": false,
+      "detail": "26534 px differ (2.5912%) \u2014 see shots/diff/campaign-lod-whole-natural.png"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-whole-fog stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-whole-fog",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural semantic mainland Italy cities and roads stay on land",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural rendered mainland Italy anchors do not sit in visible water",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural visible central Italy roads are continuous above terrain",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural reads as a structured map (sea, land, roads; no political wash)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural keeps named mountain and forest crops readable",
+      "ok": false,
+      "detail": "{\"northern-apennines\":{\"crop\":{\"total\":72363,\"mountainRatio\":0.7348,\"darkFeatureRatio\":0.2975,\"naturalGroundRatio\":0.681},\"ok\":true},\"central-apennines\":{\"crop\":{\"total\":100791,\"mountainRatio\":0.6239,\"darkFeatureRatio\":0.2313,\"naturalGroundRatio\":0.5713},\"ok\":true},\"southern-apennines\":{\"crop\":{\"total\":53475,\"mountainRatio\":0.6378,\"darkFeatureRatio\":0.2621,\"naturalGroundRatio\":0.545},\"ok\":false}}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional canvas city names contribute visible text",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional missing canvas names fail independently",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional missing canvas preserves cards names",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional cards city names contribute visible text",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional missing cards names fail independently",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional missing cards preserves canvas names",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional name controls restore exact world pixels and card paint within one RGB8 step",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional canvas control leaves pixels outside its owning surface unchanged",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional cards control leaves pixels outside its owning surface unchanged",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-regional-italy-natural",
+      "ok": false,
+      "detail": "34333 px differ (3.3528%) \u2014 see shots/diff/campaign-lod-regional-italy-natural.png"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-political stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-regional-italy-political",
+      "ok": false,
+      "detail": "31748 px differ (3.1004%) \u2014 see shots/diff/campaign-lod-regional-italy-political.png"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-political own-city cards sit directly under their visible city model",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close semantic mainland Italy cities and roads stay on land",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close rendered mainland Italy anchors do not sit in visible water",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close visible central Italy roads are continuous above terrain",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close natural terrain keeps its yellow-olive ground coverage",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-rome-close",
+      "ok": false,
+      "detail": "36908 px differ (3.6043%) \u2014 see shots/diff/campaign-lod-rome-close.png"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod rome-close shows own-city map cards incl. Ostia/Portus + garrisoned Roma",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close own-city cards sit directly under their visible city model",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-selected-army-city stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-selected-army-city natural terrain keeps its yellow-olive ground coverage",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-selected-army-city",
+      "ok": false,
+      "detail": "36911 px differ (3.6046%) \u2014 see shots/diff/campaign-lod-selected-army-city.png"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-selected-city stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-selected-city",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-border-fog stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-border-fog",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR1: campaign terrain residency completed without worker failure",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR1: production campaign route uses the shared physical world",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR1: post-cutover screenshot policy is WebGPU-only",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR1: same-frame city cards clear the presented city bodies",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "snapshot campaign-production-physical",
+      "ok": false,
+      "detail": "960251 px differ (93.7745%) \u2014 see shots/diff/campaign-production-physical.png"
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR1: campaign frame has visible ground, faction and UI pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR1: real canvas click selects the rendered WebGPU army marker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR1: auto replenish checkbox, icon and label occupy one readable row",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "snapshot campaign-production-physical-selected",
+      "ok": false,
+      "detail": "838139 px differ (81.8495%) \u2014 see shots/diff/campaign-production-physical-selected.png"
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR1: selected WebGPU army marker exposes the campaign selection color",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR1: real canvas click opens the normal city panel over WebGPU",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR1: dragging the actual campaign canvas pans the camera",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR1: fog input reaches the shared world",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR2: campaign terrain residency completed without worker failure",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR2: production campaign route uses the shared physical world",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR2: post-cutover screenshot policy is WebGPU-only",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR2: same-frame city cards clear the presented city bodies",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "snapshot campaign-production-physical-dpr2",
+      "ok": false,
+      "detail": "3840384 px differ (93.7594%) \u2014 see shots/diff/campaign-production-physical-dpr2.png"
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR2: campaign frame has visible ground, faction and UI pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR2: real canvas click selects the rendered WebGPU army marker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR2: auto replenish checkbox, icon and label occupy one readable row",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "snapshot campaign-production-physical-selected-dpr2",
+      "ok": false,
+      "detail": "3351948 px differ (81.8347%) \u2014 see shots/diff/campaign-production-physical-selected-dpr2.png"
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR2: selected WebGPU army marker exposes the campaign selection color",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR2: real canvas click opens the normal city panel over WebGPU",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR2: dragging the actual campaign canvas pans the camera",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-production",
+      "name": "DPR2: fog input reaches the shared world",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "campaign-collision: snapshot collision-overview-political",
+    "campaign-collision: snapshot collision-regional-roma",
+    "campaign-lod: snapshot campaign-lod-whole-natural",
+    "campaign-lod: campaign-lod-regional-italy-natural keeps named mountain and forest crops readable",
+    "campaign-lod: snapshot campaign-lod-regional-italy-natural",
+    "campaign-lod: snapshot campaign-lod-regional-italy-political",
+    "campaign-lod: snapshot campaign-lod-rome-close",
+    "campaign-lod: snapshot campaign-lod-selected-army-city",
+    "campaign-production: snapshot campaign-production-physical",
+    "campaign-production: snapshot campaign-production-physical-selected",
+    "campaign-production: snapshot campaign-production-physical-dpr2",
+    "campaign-production: snapshot campaign-production-physical-selected-dpr2"
+  ],
+  "pageErrors": []
+}

@@ -9,15 +9,16 @@ Make the campaign landscape meet the supplied reference's quality and bring the 
 Use `/Users/david/dev/game/.worktrees/map-landscape-quality`, branch
 `codex/map-landscape-quality`. Keep this single worktree and one GPU capture lane.
 
-**Current pickup: grass exposure on the simpler mountain form.** The
-[28km-fold removal](assets/slice-04/reduced-secondary-fold/README.md) is accepted
-as a modest simplification: three matched views repeat exactly; fewer cramped
-folds, lower relief, rounder summits. It does not complete mountain quality.
-CPU attribution on the new form finds gentle-low terrain has mean rock mask0.697
-almost entirely from the source altitude band, not slope. Test exposure on those
-now larger gentle patches while preserving steep faces; prior isolated slope-gate
-failure is documented and must remain the comparison risk. Scratch evidence:
-`throwaway/mountain-topology/cover-attribution.md`. No material edit yet.
+**Current pickup: repair the terrain-color measurement, then reconcile presentation baselines.**
+The [connected-shelf pass](assets/slice-05/connected-shelves/README.md) improves
+mountain grass integration on the retained simplified form. Three production
+views repeat exactly; terrain return is byte-identical and residency/DPR gates
+pass. Production interaction/collision/LOD has70 passes and12 failures:11 older
+snapshots plus the southern crop's0.545/0.55 ground-color gate. A pixel audit finds
+city cards and dark sea dominate that crop's rejects. A reversible hidden-card
+probe is running; prove isolation before repairing the measurement, keep the
+floor and independent card checks unchanged. Do not recolor terrain to satisfy UI
+contamination. Angular grass edges, painted patches and final quality stay open.
 
 The [joined water pass](assets/slice-08/battle-ocean-join/README.md) now removes
 the mapC field/ocean intersection, shares their near-edge response, and passes
@@ -27,9 +28,9 @@ for distant glints. Flat water detail, soft coastal fringes and final compositio
 remain open; do not spend another spectrum-polish pass before the mountain test.
 The direction shuffle was rejected on actual images despite better isotropy.
 
-Server5191 contains the one-term mountain candidate;5190 the joined-water build,
-and5189 the prior chart/form control. Inspect live handles before
-capturing or rebuilding. No GPU run remains active at this checkpoint.
+Server5193 contains the current rebuilt shelf candidate;5191 the accepted form
+before material changes. Obsolete frozen builds on5189/5190/5192 are removed.
+Inspect live processes before capturing or rebuilding; keep one GPU lane.
 
 After the mountain verdict, continue the remaining presentation/coast gates and
 one integrated acceptance matrix. Reuse each matched capture across the slices

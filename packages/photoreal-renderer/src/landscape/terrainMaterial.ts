@@ -93,6 +93,16 @@ export function groundDetailNode(
   return mix(color, color.mul(detail), options.coverage ?? float(1));
 }
 
+function normalZForSlope(slope: number) {
+  return 1 / Math.sqrt(1 + slope * slope);
+}
+
+function slopeRockMask(normalZ: FloatNode, bands: TerrainProfile["slopeBands"]) {
+  return float(1).sub(
+    smoothstepN(normalZForSlope(bands.cliffMin), normalZForSlope(bands.slowMin), normalZ),
+  );
+}
+
 /** Material slopes consume geometric normals; they never change physical slope. */
 export function terrainSlopeMasks(
   normalZ: FloatNode,
@@ -101,13 +111,9 @@ export function terrainSlopeMasks(
   screeCover: FloatNode,
   bands: TerrainProfile["slopeBands"],
 ) {
-  const normalZForSlope = (slope: number) => 1 / Math.sqrt(1 + slope * slope);
   const slowNz = normalZForSlope(bands.slowMin),
-    rollingNz = normalZForSlope(bands.rollingMax),
-    cliffNz = normalZForSlope(bands.cliffMin);
-  const slopeRock = float(1)
-    .sub(smoothstepN(cliffNz, slowNz, normalZ))
-    .toVar();
+    rollingNz = normalZForSlope(bands.rollingMax);
+  const slopeRock = slopeRockMask(normalZ, bands).toVar();
   const slowSlope = float(1)
     .sub(smoothstepN(slowNz, rollingNz, normalZ))
     .toVar();
@@ -220,8 +226,8 @@ export function applyTerrainSurface(
 }
 
 /** Shared world lookup avoids coverage seams between coarse and fine terrain.
- * The source grades a mountain altitude band; only its high interior adds
- * slope-independent rock, leaving lower shelves to the slope response. */
+ * The altitude band locates mountain interiors; the material combines it with
+ * face exposure so gentle ground can retain soil within a range. */
 export function createSourceCoverSampler(raster: {
   data: Uint8Array;
   width: number;
@@ -246,12 +252,13 @@ export function createLandscapeGroundMaterial(
   options: { sourceShore?: boolean; rockCover?: FloatNode; rockDetailMap: THREE.Texture },
 ) {
   const surface = terrainSignals(profile.detailScale);
+  const normalZ = clamp(surface.worldNormal.z, 0, 1);
+  const exposure = slopeRockMask(normalZ, profile.slopeBands);
   const masks = terrainSlopeMasks(
-    clamp(surface.worldNormal.z, 0, 1),
+    normalZ,
     surface.waterBlend,
-    // Absent source cover leaves the slope-only response unchanged. Loose stone
-    // has no source channel; scree still comes from slope inside these masks.
-    options.rockCover ?? float(0),
+    // Campaign's mountain band locates ranges; gentle shelves can retain soil.
+    (options.rockCover ?? float(0)).mul(exposure),
     float(0),
     profile.slopeBands,
   );

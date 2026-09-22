@@ -138,3 +138,12 @@ controls. It does not accept stone/grass transition quality, distinct scree or
 motion/shimmer. Resolve those on accepted geometry, then use current TypeGPU
 material/shore/seam consumers and the common motion/hardware matrix in15. Historical
 Three-equivalence RGBA remains historical evidence, not current backend coverage.
+
+## Connected shelf exposure
+
+The [coupled form/material evidence](../assets/slice-05/connected-shelves/README.md)
+selects slope-conditioned source rock on the simplified mountain form. Grass now
+connects through bowls and shoulders; steep faces remain rocky. The wider existing
+rock interval is preferred over the narrower rolling-ground interval. Exact
+production repeats and terrain-return evidence support this bounded improvement.
+Painted patches, angular boundaries and final shared-landscape quality remain open.

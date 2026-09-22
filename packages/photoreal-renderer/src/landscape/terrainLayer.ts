@@ -1,4 +1,3 @@
-import { buildVistaGroundMesh } from "../../../game-renderer/src/battle/vistaGeometry";
 import { DEFAULT_TERRAIN_SLOPE_BANDS } from "../../../game-renderer/src/terrain/materialProfile";
 import { RENDER_ORDER } from "../renderOrder";
 import {
@@ -14,7 +13,6 @@ import * as THREE from "three/webgpu";
 import {
   abs,
   attribute,
-  cameraPosition,
   clamp,
   float,
   floor,
@@ -22,8 +20,6 @@ import {
   max,
   min,
   mix,
-  normalize,
-  positionWorld,
   step,
   texture,
   varying,
@@ -33,8 +29,6 @@ import {
 import type { LandscapeMesh } from "../../../game-renderer/src/terrain/surface";
 import type { PhotorealEarthDistanceField } from "../../../game-renderer/src/battle/photorealEarthDistance";
 import { MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
-import type { BattleVistaBand } from "../../../game-renderer/src/battle/vistaSurface";
-import { joinedTerrainEdgeData } from "../../../game-renderer/src/battle/terrainEdgeData";
 import {
   fbmN,
   hashN,
@@ -62,7 +56,6 @@ interface TerrainMaterialOptions {
   /** Material-detail frequency in native world units; geometry and masks stay unscaled. */
   detailScale?: number;
   slopeBands?: BattleSlopeBands | null;
-  vistaBand?: BattleVistaBand["name"] | null;
   farGrass?: { terrainDetailStrength: FloatNode } | null;
   earthDistance?: PhotorealEarthDistanceField;
   /** The rock face detail map, owned and disposed by the caller's world. */
@@ -230,21 +223,7 @@ export function createGroundMesh(
   albedo = response.albedo;
   const dryRoughness = response.dryRoughness;
   const dryNormal = response.normal;
-  const dryRoughnessFloor = options.vistaBand
-    ? options.vistaBand === "farFog"
-      ? float(0.995)
-      : float(0.985)
-    : float(0);
-  applyTerrainSurface(material, frame, surface, albedo, dryRoughness, dryRoughnessFloor, dryNormal);
-  if (options.vistaBand === "farFog") {
-    // The 64 m far-fog ring is real terrain below the horizon, but from a low
-    // eye its coarse vertices can project into the sky as giant grazing tiles.
-    // Let saturated aerial perspective own those near/above-horizon rays.
-    const view = normalize(positionWorld.sub(cameraPosition));
-    material.transparent = true;
-    material.depthWrite = false;
-    material.opacityNode = float(1.0).sub(smoothstepN(-0.012, 0.05, view.z));
-  }
+  applyTerrainSurface(material, frame, surface, albedo, dryRoughness, float(0), dryNormal);
 
   const ground = new THREE.Mesh(geo, material);
   ground.name = "battle-ground";
@@ -272,46 +251,4 @@ export function createGroundMesh(
     } as const;
   }
   return ground;
-}
-
-export function createVistaMesh(
-  frame: LandscapeFrameUniforms,
-  band: BattleVistaBand,
-  cover: BattleGroundCover,
-  options: TerrainMaterialOptions,
-  innerMesh?: THREE.Mesh,
-): THREE.Mesh | null {
-  const mesh = buildVistaGroundMesh(band, cover);
-  if (mesh.indices.length === 0) return null;
-  const vista = createGroundMesh(frame, mesh, {
-    ...options,
-    vistaBand: band.name,
-    earthDistance: undefined,
-  });
-  if (innerMesh) {
-    const hole: [number, number, number, number] = [
-      band.ox + Math.floor((-band.innerHalfW - band.ox) / band.cell) * band.cell,
-      band.oy + Math.floor((-band.innerHalfH - band.oy) / band.cell) * band.cell,
-      band.ox + Math.ceil((band.innerHalfW - band.ox) / band.cell) * band.cell,
-      band.oy + Math.ceil((band.innerHalfH - band.oy) / band.cell) * band.cell,
-    ];
-    joinTerrainMeshEdges(vista.geometry, innerMesh.geometry, hole);
-  }
-  vista.name = `battle-vista-${band.name}`;
-  vista.castShadow = false;
-  vista.receiveShadow = false;
-  vista.userData.pickable = false;
-  return vista;
-}
-
-/** Install the shared seam data into the landscape preview's Three geometry. */
-export function joinTerrainMeshEdges(
-  outer: THREE.BufferGeometry,
-  inner: THREE.BufferGeometry,
-  hole: [number, number, number, number],
-): void {
-  const data = joinedTerrainEdgeData(outer, inner, hole);
-  for (const [name, attribute] of Object.entries(data.attributes))
-    outer.setAttribute(name, new THREE.BufferAttribute(attribute.values, attribute.itemSize));
-  outer.setIndex(new THREE.BufferAttribute(data.indices, 1));
 }

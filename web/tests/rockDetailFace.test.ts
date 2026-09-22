@@ -1,17 +1,14 @@
 // @vitest-environment node
 // The two things the adopted rock face can be held to from the CPU: what the
 // checked-in asset's raw heights measure, and that one world-owned texture
-// reaches every terrain consumer's shading graph. Neither is evidence about the
+// reaches the live Three terrain consumers' shading graphs. Neither is evidence about the
 // rendered face — only a GPU capture settles that.
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { expect, test } from "vitest";
 import * as THREE from "three/webgpu";
 import { PNG } from "pngjs";
-import {
-  createGroundMesh,
-  createVistaMesh,
-} from "@packages/photoreal-renderer/src/landscape/terrainLayer";
+import { createGroundMesh } from "@packages/photoreal-renderer/src/landscape/terrainLayer";
 import { createLandscapeGroundMaterial } from "@packages/photoreal-renderer/src/landscape/terrainMaterial";
 import { createLandscapeFrameUniforms } from "@packages/photoreal-renderer/src/landscape/shaderNodes";
 import {
@@ -102,7 +99,7 @@ function readsTexture(material: THREE.MeshStandardNodeMaterial, map: THREE.Textu
   return found;
 }
 
-test("one provisioned rock map reaches campaign, battle ground and battle vista graphs", () => {
+test("one provisioned rock map reaches campaign and Three ground-fixture graphs", () => {
   const map = new THREE.Texture();
   const detailScale = CAMPAIGN_TERRAIN_PROFILE.detailScale;
   const flatQuad = {
@@ -114,8 +111,7 @@ test("one provisioned rock map reaches campaign, battle ground and battle vista 
     indices: new Uint32Array([0, 1, 2, 1, 3, 2]),
     triangles: 2,
   };
-  // Every consumer is built at the same detail scale, the one profile input the
-  // rock response reads, so the three differ only by which constructor made them.
+  // Compare the two live Three consumers at the same material-detail scale.
   const campaign = createLandscapeGroundMaterial(
     createLandscapeFrameUniforms(),
     CAMPAIGN_TERRAIN_PROFILE,
@@ -125,32 +121,14 @@ test("one provisioned rock map reaches campaign, battle ground and battle vista 
     detailScale,
     rockDetailMap: map,
   });
-  const vista = createVistaMesh(
-    createLandscapeFrameUniforms(),
-    {
-      name: "vista",
-      w: 9,
-      h: 9,
-      cell: 8,
-      ox: -32,
-      oy: -32,
-      innerHalfW: 16,
-      innerHalfH: 16,
-      outerHalfW: 32,
-      outerHalfH: 32,
-      height: new Float32Array(81).fill(120),
-      shoreDistance: new Float32Array(81).fill(-1000),
-    },
-    "green-grass",
-    { detailScale, rockDetailMap: map },
-  );
-  expect(vista, "the band must produce geometry for this to mean anything").not.toBeNull();
-
-  // Wiring evidence only: the provisioned texture instance reaches all three
+  // Wiring evidence only: the provisioned texture instance reaches both
   // built graphs. Walking TSL nodes cannot show compiled fetch counts, that no
   // other field coexists with this one, or who owns and disposes the texture.
   // Whether the consumers render the same face is a GPU A/B.
   expect(readsTexture(campaign, map)).toBe(true);
   expect(readsTexture(ground.material as THREE.MeshStandardNodeMaterial, map)).toBe(true);
-  expect(readsTexture(vista!.material as THREE.MeshStandardNodeMaterial, map)).toBe(true);
+  ground.geometry.dispose();
+  (ground.material as THREE.Material).dispose();
+  campaign.dispose();
+  map.dispose();
 });

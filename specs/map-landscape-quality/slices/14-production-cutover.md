@@ -91,7 +91,8 @@ web/lab typechecks and16 focused tests pass; independent review additionally
 passes17 selected tests and finds no live consumer removed. No test contract or
 rendered behavior changes are intended.
 
-Remaining retirement work includes test-only Three vista/join wrappers and the
-regional campaign preview's independent composition. Migrate their meaningful
-coverage/controls to current owners before removal; registered raw model/UI labs
-are live consumers and must not be deleted as if they were dead production code.
+The [test-only vista/join wrappers](../assets/slice-14-production/retired-vista/README.md)
+are also removed; their meaningful texture/seam checks follow current consumers.
+The regional campaign preview's independent composition remains to migrate.
+Registered raw model/UI labs are live consumers and must not be deleted as if
+they were dead production code.

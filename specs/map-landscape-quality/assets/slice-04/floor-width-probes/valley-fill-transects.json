@@ -1,0 +1,195 @@
+{
+  "note": "Raw continuous relief, inland=Infinity; mountain-envelope >2 mask. Equal-height widths are aggregate line occupancy, not connected valley widths; low-floor uses old p25 height and abs directional slope <0.2.",
+  "maxDerivative": 1.0000000000287557,
+  "at": 0.7199999999992588,
+  "transects": [
+    {
+      "name": "alps-ew",
+      "from": [
+        -650,
+        990
+      ],
+      "to": [
+        -250,
+        990
+      ],
+      "step": 0.25,
+      "mountainLength": 400.25,
+      "minFold": 0.3210265726869358,
+      "raised": 1187,
+      "upper": 413,
+      "upperChanged": 0,
+      "maxLowering": 0,
+      "widths": [
+        {
+          "height": 22.340015868707813,
+          "old": 99.90042456147845,
+          "new": 54.251798632366615
+        },
+        {
+          "height": 28.026107563885837,
+          "old": 199.8481806080874,
+          "new": 138.55821049347497
+        },
+        {
+          "height": 35.67311338608383,
+          "old": 300.0154687591545,
+          "new": 270.6657440537539
+        }
+      ],
+      "stats": {
+        "old": {
+          "lowSlopeLength": 102.75,
+          "lowFloorLength": 37.5,
+          "maxSlope": 3.466874005340088
+        },
+        "new": {
+          "lowSlopeLength": 117.75,
+          "lowFloorLength": 23,
+          "maxSlope": 3.466874005340088
+        }
+      }
+    },
+    {
+      "name": "alps-ns",
+      "from": [
+        -450,
+        790
+      ],
+      "to": [
+        -450,
+        1190
+      ],
+      "step": 0.25,
+      "mountainLength": 259.5,
+      "minFold": 0.4708917980340196,
+      "raised": 727,
+      "upper": 310,
+      "upperChanged": 0,
+      "maxLowering": 0,
+      "widths": [
+        {
+          "height": 17.92347888958056,
+          "old": 64.73463936796591,
+          "new": 63.9670209441371
+        },
+        {
+          "height": 32.194040451686725,
+          "old": 129.43770652692848,
+          "new": 118.29581040815165
+        },
+        {
+          "height": 43.485628917973294,
+          "old": 194.2401711979788,
+          "new": 194.21968325288907
+        }
+      ],
+      "stats": {
+        "old": {
+          "lowSlopeLength": 35,
+          "lowFloorLength": 6.25,
+          "maxSlope": 1.8088116524917552
+        },
+        "new": {
+          "lowSlopeLength": 38.5,
+          "lowFloorLength": 4,
+          "maxSlope": 1.8088116524917552
+        }
+      }
+    },
+    {
+      "name": "italy-ew",
+      "from": [
+        -525,
+        640
+      ],
+      "to": [
+        -125,
+        640
+      ],
+      "step": 0.25,
+      "mountainLength": 178.75,
+      "minFold": 0.5096266452292049,
+      "raised": 455,
+      "upper": 258,
+      "upperChanged": 0,
+      "maxLowering": 3.552713678800501e-15,
+      "widths": [
+        {
+          "height": 8.410641287529963,
+          "old": 44.23456853358708,
+          "new": 41.76701690951106
+        },
+        {
+          "height": 13.648483457401369,
+          "old": 88.84553112842659,
+          "new": 88.74002329709863
+        },
+        {
+          "height": 18.635909231416758,
+          "old": 133.26638207711113,
+          "new": 133.26638207711113
+        }
+      ],
+      "stats": {
+        "old": {
+          "lowSlopeLength": 73.5,
+          "lowFloorLength": 20.25,
+          "maxSlope": 1.3590220364241574
+        },
+        "new": {
+          "lowSlopeLength": 69.75,
+          "lowFloorLength": 19.5,
+          "maxSlope": 1.3294255135529482
+        }
+      }
+    },
+    {
+      "name": "italy-ns",
+      "from": [
+        -325,
+        440
+      ],
+      "to": [
+        -325,
+        840
+      ],
+      "step": 0.25,
+      "mountainLength": 41.5,
+      "minFold": 0.4651780354610677,
+      "raised": 99,
+      "upper": 65,
+      "upperChanged": 0,
+      "maxLowering": 0,
+      "widths": [
+        {
+          "height": 6.736599164274322,
+          "old": 10,
+          "new": 10
+        },
+        {
+          "height": 8.010932680305418,
+          "old": 20.310099327575482,
+          "new": 20.0993500020715
+        },
+        {
+          "height": 10.843662605135535,
+          "old": 30.5,
+          "new": 30.499419205678876
+        }
+      ],
+      "stats": {
+        "old": {
+          "lowSlopeLength": 24.75,
+          "lowFloorLength": 7.75,
+          "maxSlope": 0.5544396405280239
+        },
+        "new": {
+          "lowSlopeLength": 25.25,
+          "lowFloorLength": 7.75,
+          "maxSlope": 0.5500301392889497
+        }
+      }
+    }
+  ]
+}

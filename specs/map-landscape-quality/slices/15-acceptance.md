@@ -28,10 +28,11 @@ requirement. Record links to that evidence, not separate duplicate runs. The
 | Presentation and shores | Natural/political and fog variants; overview/full tilt/max zoom/yawed views; independent raised-marker clicks at DPR1/DPR2, label/card coverage and collision, resize/tile swaps, road endpoints/crossings and coast clipping | Same visible surface/camera/revision for presentation and interaction; owner-aware negative controls before replacing the deficient label brightness oracle |
 | Integrated stability | Water-motion GIF, strict repeats and final unprimed critique; save/load, conquest/reinforcements, campaign/battle return, continuous pan/zoom, rapid distant travel and idle holds | Current named-hardware full-game/30k and campaign frame/admission budgets; stable residency/disposal and no surviving resources/listeners; whole-spec review and closeout |
 
-Repair stale verification contracts before using their output: campaign traversal
-must wait for the requested camera frame, and battle shadow/turf scenes must use
-current TypeGPU stats and completed-frame evidence instead of retired hooks.
-Keep existing default coverage and tolerances. Unavailable hardware is explicitly
+The [completed-frame checkpoint](../assets/scene-contracts/README.md) verifies
+current shadow/traversal contracts and their scoped repeats. Preserve those
+completion owners; turf visual/software baseline acceptance remains open. Repair
+other stale contracts before using their output, keeping default coverage and
+tolerances. Unavailable hardware is explicitly
 unverified, never a software timing pass presented as hardware acceptance.
 
 ## Acceptance state

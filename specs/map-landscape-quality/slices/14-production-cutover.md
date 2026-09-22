@@ -32,7 +32,7 @@ renderer adapter or permanent backend selector survives the cutover.
 | --- | --- | --- |
 | Production campaign adapter, entity preparation before cards, shared traversal/residency owner | Full production journey/interaction matrix and remaining owner-retirement audit | [Adapter](../assets/slice-14-production/README.md) |
 | Merged campaign→16,000-soldier TypeGPU battle→campaign, with no page errors | Broader save/load, conquest/reinforcement and final lifecycle coverage; rerun handoff when affected or in final integration | [Main integration](../assets/main-integration/verification.md) |
-| Shared aerial-ray correction and screen UI composition | Owner-aware label coverage, final DPR and hardware acceptance | [Ray correction](../assets/slice-14-production/aerial-ray/README.md), [UI proof](../assets/slice-14-production/remaining-acceptance/screen-ui-production-control/README.md) |
+| Shared aerial-ray correction, screen UI composition and owner-aware label coverage | Final DPR/interaction and hardware acceptance | [Ray correction](../assets/slice-14-production/aerial-ray/README.md), [UI proof](../assets/slice-14-production/remaining-acceptance/screen-ui-production-control/README.md), [label-owner controls](../assets/slice-12/label-owners/README.md) |
 
 Use the existing scene runner and snapshot primitive. [15](15-acceptance.md)
 owns the common journey, camera, lifetime and hardware matrix. The earlier
@@ -78,6 +78,6 @@ full-frame repeat evidence is required before those baselines are adopted.
 
 The [shared verification-input ledger](../assets/slice-14-production/remaining-acceptance/verifier-inputs.md)
 records the real-map color-oracle transfer and the cart check's migration to
-seated physical anchors. Numeric floors remain fixed; remaining label coverage and canonical image acceptance are tracked by12 and the
-common matrix in15. Completed card-placement and painted-label fixes keep their
+seated physical anchors. Numeric floors remain fixed; broader label/interaction and canonical image
+acceptance are tracked by12 and the common matrix in15. Completed card-placement and painted-label fixes keep their
 scoped acceptance; they are not new implementation pickups.

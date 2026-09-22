@@ -12,10 +12,12 @@ Slice variable: **Entity grounding, text hierarchy and interactive selection.**
 
 Seat cities, representative soldiers, army standards, carts and selection on the same presented surface as roads. Port screen text/markers without discarding the established label hierarchy or DOM card behavior. Use the canonical camera for screen anchors and rendered-surface rays for interaction. Keep fog hiding, faction/allegiance treatments, selected entity hierarchy and city labels readable under taller relief. Preserve troop model/animation ownership rather than building a second crowd pipeline. Add disposal and scene-entry/exit paths.
 
-## Remaining passes and decision boundaries
+## Presentation contracts and remaining acceptance
 
-Complete these in order, with a focused artifact at each boundary. They are parts
-of this migration, not new frameworks. Landscape art stays frozen throughout.
+The entity-frame, label and production adapter owners are implemented; the
+checkpoints below record their evidence. The table defines the remaining combined
+acceptance, not a queue to reimplement those owners. Freeze landscape art while
+checking presentation.
 
 | Pass | One question and seam | Acceptance artifact |
 |---|---|---|
@@ -76,9 +78,9 @@ still supplies its unit identity and selection; zero wind is an explicit value,
 not a request for a default. Tiers select mesh buckets while one material owns
 lighting and cloth response.
 
-This checkpoint does not complete dynamic city/crowd/label migration, footprint
-grounding, or production cutover. The raw standard pass remains only for its
-unmigrated consumers and reads the same instance/default owner.
+This historical standard checkpoint is supplemented by the entity-frame and
+production adoption evidence below. Independent raw consumers are audited under
+[14](14-production-cutover.md); full presentation acceptance remains open.
 
 ## Live city input and grounding checkpoint
 
@@ -91,11 +93,10 @@ seated on those same triangles and remains depth-read. Default city asset arrays
 are unchanged. Terrain replacement, input removal/reappearance, fog and resource
 release are covered by the [city checkpoint evidence](../assets/slice-12-city-inputs/README.md).
 
-This completes the bounded city part of the first remaining pass, not the full
-entity/input pass: army/crowd/cart inputs, accepted label layout, interaction
-policy and production integration remain open. Preserve the recorded coastal
-footprint and steep-selection limitations; map-wide physical sun-shadow fitting
-belongs to the environment pass.
+This proves the bounded city owner. The later army/cart, label and production
+checkpoints supersede its input-migration backlog. Preserve its coastal-footprint
+and steep-selection limitations in combined acceptance; map-wide physical
+sun-shadow fitting belongs to the environment pass.
 
 ## Shared physical crowd checkpoint
 
@@ -104,8 +105,8 @@ campaign figure scale applied consistently to meshes, LOD/culling and impostors.
 The campaign world seats incoming frame figures on its presented surface and
 updates visibility and lifecycle ownership. [Crowd evidence](../assets/slice-12-crowd/README.md)
 records the exact fixture repeat, live frame inputs, scale regression checks and
-retained paired-row readability limit. This does not complete army standards,
-carts, labels, commands or production cutover.
+retained paired-row readability limit. Later entity-frame and production
+checkpoints supply the integrated inputs; composed readability remains open.
 ## Shared label frame checkpoint
 
 The raw campaign pass and physical campaign world now consume one renderer-neutral
@@ -140,15 +141,10 @@ card/model association remain limited by the existing downward-only policy.
 
 
 The [painted-halo occupancy checkpoint](../assets/slice-12/painted-label-bounds/README.md)
-uses the existing rectangle/importance policy with the visible stroke reserved.
-It resolves the Alpine joined-name case, with a recorded conservative-culling
-tradeoff in another readable pair. Collision, own-city-card and DPR/raised-label
-contracts pass with exact repeats. The regional white-pixel coverage gate remains
-open and is being audited independently; typography and its threshold are unchanged.
-
-The [historical label-oracle audit](../assets/slice-14-production/remaining-acceptance/label-oracle-audit/report.md)
-shows that the legacy whole-frame white count can pass after all seven neutral
-canvas names are excluded; legitimate DOM names and other bright surfaces still
-contribute. It therefore does not prove coverage of those names. Before replacing
-it, validate a direct owner-aware readability/coverage contract with real missing
-canvas-name and missing-card-title controls. No threshold has been lowered.
+resolves the Alpine joined-name case using visible stroke bounds, with its
+recorded conservative-culling tradeoff. The subsequent
+[label-owner controls](../assets/slice-12/label-owners/README.md) replace the
+insufficient whole-frame white-count oracle: independently expected canvas names
+and card titles must contribute their own pixels, and real missing-owner controls
+fail. The card-only RGB8 restoration allowance is documented there. Broader
+real-map interaction, DPR and composed presentation acceptance remain open.

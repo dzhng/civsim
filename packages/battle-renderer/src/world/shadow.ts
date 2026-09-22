@@ -215,6 +215,8 @@ export function createTypegpuSunShadow(
           mode,
           cascades: frameData.data.cascades.length,
           mapSize,
+          // First uploaded cascade: mat4 (16 floats), then bias.z is PCF radius.
+          radius: frameData.data.receiver[18],
           layers,
           depthBytes: mapSize * mapSize * 4 * layers,
           cameraBuffers: cameras.length,

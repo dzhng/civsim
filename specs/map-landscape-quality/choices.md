@@ -377,3 +377,20 @@ preview cache. Camera checks read the completed frame's camera and the actual
 clamped camera separately, so a requested URL position cannot masquerade as the
 rendered view. These are verification boundaries required by the migrated renderer,
 not new game state.
+
+## Completed-frame verification
+
+### Sound — high confidence: wait only at verification stops
+
+A screenshot must follow completion of the terrain revision it names. The traversal
+route exposes the existing GPU queue completion together with the submitted camera
+and revision; the scene retries if tile admission changed that revision while
+waiting. The render loop stays synchronous so verification does not alter its
+timing model. A single absolute deadline bounds retries.
+
+### Sound — high confidence: preserve passing baselines and trace changed ones
+
+Only images whose accepted renderer changes altered their appearance are refreshed.
+The contact-shadow image already passed and remains untouched. Refreshing composed
+images records current integration; it does not accept the unresolved reference
+quality or substitute software rendering for hardware performance evidence.

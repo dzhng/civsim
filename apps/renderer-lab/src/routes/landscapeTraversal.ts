@@ -102,6 +102,7 @@ export async function route(ctx: LabContext) {
     : { x: -100, y: 250, zoom: 0.16 };
   let frames = 0,
     stopped = false;
+  let submittedFrame: { frame: number; camera: typeof camera; revision: number } | null = null;
   let lastFrame = 0,
     previousAdmitted = false;
   const frameTimes: number[] = [],
@@ -143,6 +144,11 @@ export async function route(ctx: LabContext) {
     }
     world.render(pose, ctx.canvas.clientWidth, ctx.canvas.clientHeight, devicePixelRatio);
     frames++;
+    submittedFrame = {
+      frame: frames,
+      camera: { ...camera },
+      revision: world.stats().terrain.revision,
+    };
     if (lastFrame) {
       frameTimes.push(now - lastFrame);
       if (previousAdmitted) admissionFrames.push(now - lastFrame);
@@ -163,6 +169,15 @@ export async function route(ctx: LabContext) {
         camera = { x, y, zoom };
       },
       stats,
+      settlePresentedFrame: async () => {
+        // Capture the submission identity before waiting. Later frames may enter
+        // the queue while this one completes; callers must compare its revision.
+        const submitted = submittedFrame;
+        if (!submitted || stopped) throw Error("No live traversal frame to settle");
+        await world.world.settlePresentedFrame();
+        if (stopped) throw Error("Traversal disposed while settling frame");
+        return submitted;
+      },
       cities: (selected: number, hidden: boolean) => {
         const city = cityInstances.find((item) => item.id === selected);
         world.setEntityFrame({

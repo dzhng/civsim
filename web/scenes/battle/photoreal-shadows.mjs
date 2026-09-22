@@ -61,10 +61,10 @@ export async function run(ctx) {
   for (const { env, preset, radius } of PRESETS) {
     const page = await openRoute(ctx, `?${FRAMING}&env=${env}`, env);
     const stats = await page.evaluate(() => window.__rendererLabStats);
-    const shadows = stats?.stats?.renderStats?.shadows;
+    const shadows = stats?.renderStats?.shadows;
     ctx.check(
       `${env}: shadow identity names the tier that ran (single is the default on every adapter)`,
-      shadows?.owner === "shadowRig" &&
+      stats?.renderStats?.substrate === "typegpu" &&
         shadows?.mode === "single" &&
         shadows?.cascades === 1 &&
         shadows?.mapSize === 1024,
@@ -79,6 +79,14 @@ export async function run(ctx) {
     const clip = await page.locator("#renderer-canvas").boundingBox();
     const shotA = await page.screenshot({ clip, timeout: 180000 });
     if (env === "golden-hour") {
+      const completedFrame = await page.evaluateHandle(() => window.__rendererLabStats);
+      await page.waitForFunction(
+        (previous) =>
+          window.__rendererLabStats !== previous && window.__rendererLabStats?.ok === true,
+        completedFrame,
+        { timeout: 180000 },
+      );
+      await completedFrame.dispose();
       const shotB = await page.screenshot({ clip, timeout: 180000 });
       ctx.check(
         "fixed setTime renders byte-identical frames with shadows on",
@@ -117,8 +125,8 @@ export async function run(ctx) {
     const stats = await page.evaluate(() => window.__rendererLabStats);
     ctx.check(
       "?shadows=off runs the off tier (identity proves the override)",
-      stats?.stats?.renderStats?.shadows?.mode === "off",
-      JSON.stringify(stats?.stats?.renderStats?.shadows),
+      stats?.renderStats?.shadows?.mode === "off",
+      JSON.stringify(stats?.renderStats?.shadows),
     );
     const clip = await page.locator("#renderer-canvas").boundingBox();
     const shot = PNG.sync.read(await page.screenshot({ clip, timeout: 180000 }));
@@ -143,7 +151,7 @@ export async function run(ctx) {
   if (hardware) {
     const page = await openRoute(ctx, `?${FRAMING}&env=golden-hour&shadows=csm`, "shadows-csm");
     const stats = await page.evaluate(() => window.__rendererLabStats);
-    const shadows = stats?.stats?.renderStats?.shadows;
+    const shadows = stats?.renderStats?.shadows;
     ctx.check(
       "?shadows=csm runs the cascade tier (identity proves the QA override)",
       shadows?.mode === "csm" && shadows?.cascades === 2 && shadows?.mapSize === 2048,
@@ -161,7 +169,27 @@ async function openRoute(ctx, query, errorPrefix) {
     undefined,
     { timeout: 180000 },
   );
-  await page.waitForTimeout(400);
+  const { stats, actual } = await page.evaluate(() => {
+    const [x, y] = window.__cam.viewCenter();
+    return {
+      stats: window.__rendererLabStats.renderStats,
+      actual: { x, y, zoom: window.__cam.zoom, yaw: window.__cam.yaw },
+    };
+  });
+  const requested = Object.fromEntries(new URLSearchParams(query));
+  ctx.check(
+    `${errorPrefix}: completed TypeGPU frame matches the actual camera`,
+    stats.substrate === "typegpu" &&
+      stats.preparedCamera?.zoom === actual.zoom &&
+      Math.abs(stats.preparedCamera.x - actual.x) < 1e-6 &&
+      Math.abs(stats.preparedCamera.y - actual.y) < 1e-6 &&
+      stats.preparedCamera.camera3d.yaw === actual.yaw,
+    JSON.stringify({
+      requested: { x: requested.cx, y: requested.cy, zoom: requested.zoom },
+      actual,
+      prepared: stats.preparedCamera,
+    }),
+  );
   return page;
 }
 

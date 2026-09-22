@@ -52,17 +52,20 @@ export async function run(ctx) {
     ["return", -450, 1080, 1.8],
   ];
   const move = async ([name, x, y, zoom]) => {
-    await page.evaluate((v) => window.__landscapeTraversal.cam(...v), [x, y, zoom]);
-    await page.waitForFunction(
-      () => {
-        const s = window.__landscapeTraversal.stats();
-        return (s.ready && !s.pendingKey) || s.failed.length;
+    const cameraFrame = await page.evaluate(
+      (v) => {
+        const traversal = window.__landscapeTraversal;
+        traversal.cam(...v);
+        return traversal.stats().frames;
       },
-      undefined,
-      { timeout: 120000 },
+      [x, y, zoom],
     );
-    await page.waitForTimeout(250);
-    const state = await page.evaluate(() => window.__landscapeTraversal.stats());
+    const { state, completedFrame } = await waitForPresentedCamera(page, cameraFrame, {
+      x,
+      y,
+      zoom,
+    });
+    state.completedFrame = completedFrame;
     ctx.check(
       `${name}: bounded real geography admission`,
       state.ready &&
@@ -163,15 +166,22 @@ export async function run(ctx) {
   });
   await retina.goto(`${ctx.target}/renderer/landscape-traversal?ref=1`);
   await retina.waitForFunction(() => window.__landscapeTraversal, undefined, { timeout: 120000 });
-  await retina.evaluate(() => window.__landscapeTraversal.cam(-450, 1080, 1.8));
-  await retina.waitForFunction(() => window.__landscapeTraversal.stats().ready, undefined, {
-    timeout: 120000,
+  const retinaFrame = await retina.evaluate(() => {
+    const traversal = window.__landscapeTraversal;
+    traversal.cam(-450, 1080, 1.8);
+    return traversal.stats().frames;
+  });
+  const retinaPresented = await waitForPresentedCamera(retina, retinaFrame, {
+    x: -450,
+    y: 1080,
+    zoom: 1.8,
   });
   const dpr2 = await retina.evaluate(() => ({
     dpr: devicePixelRatio,
-    state: window.__landscapeTraversal.stats(),
     canvas: [document.querySelector("canvas").width, document.querySelector("canvas").height],
   }));
+  dpr2.state = retinaPresented.state;
+  dpr2.completedFrame = retinaPresented.completedFrame;
   ctx.check(
     "DPR2 retains world requests and bounds",
     dpr2.dpr === 2 &&
@@ -180,4 +190,73 @@ export async function run(ctx) {
     JSON.stringify({ dpr: dpr2.dpr, canvas: dpr2.canvas, bytes: dpr2.state.peakTotalTerrainBytes }),
   );
   await retina.close();
+}
+
+async function waitForPresentedCamera(page, cameraFrame, camera) {
+  const deadline = Date.now() + 120000;
+  let afterFrame = cameraFrame;
+  while (Date.now() < deadline) {
+    const ready = await page.waitForFunction(
+      ({ afterFrame, camera }) => {
+        const state = window.__landscapeTraversal.stats();
+        if (state.failed.length) throw Error(JSON.stringify(state.failed));
+        return (
+          state.frames > afterFrame &&
+          state.ready &&
+          !state.pendingKey &&
+          state.camera.x === camera.x &&
+          state.camera.y === camera.y &&
+          state.camera.zoom === camera.zoom
+        );
+      },
+      { afterFrame, camera },
+      { timeout: Math.max(1, deadline - Date.now()) },
+    );
+    await ready.dispose();
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) break;
+    const result = await page.evaluate(
+      async ({ afterFrame, camera, remaining }) => {
+        const traversal = window.__landscapeTraversal;
+        let timer;
+        try {
+          const completedFrame = await Promise.race([
+            traversal.settlePresentedFrame(),
+            new Promise((_, reject) => {
+              timer = setTimeout(
+                () => reject(Error("Traversal GPU completion deadline exceeded")),
+                remaining,
+              );
+            }),
+          ]);
+          if (!completedFrame || !Number.isFinite(completedFrame.frame))
+            throw Error("Traversal returned no completed frame identity");
+          const state = traversal.stats();
+          if (state.failed.length) throw Error(JSON.stringify(state.failed));
+          const matches =
+            completedFrame.frame > afterFrame &&
+            completedFrame.camera.x === camera.x &&
+            completedFrame.camera.y === camera.y &&
+            completedFrame.camera.zoom === camera.zoom &&
+            completedFrame.revision === state.revision &&
+            state.camera.x === camera.x &&
+            state.camera.y === camera.y &&
+            state.camera.zoom === camera.zoom &&
+            state.ready &&
+            !state.pendingKey;
+          return { matches, completedFrame, state };
+        } finally {
+          clearTimeout(timer);
+        }
+      },
+      { afterFrame, camera, remaining },
+    );
+    if (result.matches) return result;
+    // A new admission raced completion. Require another submitted frame, under
+    // the same absolute deadline, rather than accepting the stale revision.
+    afterFrame = Math.max(afterFrame, result.state.frames, result.completedFrame.frame);
+  }
+  throw Error(
+    `Traversal did not present the requested camera within 120s: ${JSON.stringify(camera)}`,
+  );
 }

@@ -16,8 +16,11 @@ flecks without changing the rounded, tightly packed landforms. Code was removed;
 see [the control](assets/slice-04/source-slope-control/README.md). Keep accepted
 saddles/roads and target this specific remaining shape defect inside the geographic
 envelope. Battle tree adoption7fe24610 passes exact near/far/return and unchanged
-campaign views. Migrated scene gates still need baseline provenance review and
-turf runtime verification; their functional traversal checks now pass.
+campaign views. Shadow and traversal gates now pass update and no-update runs, with baseline
+provenance recorded in [scene contracts](assets/scene-contracts/README.md). Turf
+runtime verification is in progress. A real-source valley-compression probe was
+rejected because its recovery steepened maximum flanks by 29–80%; pursue wider
+connected floors without that recovery wall.
 
 Campaign keeps Three and battle keeps main's TypeGPU renderer: share neutral
 policy/data/assets, not backend wrappers or a restored battle backend.
@@ -28,8 +31,7 @@ separate projects or duplicate capture runs:
 1. **Battle consumers (05–10/13):** finish rock and water response, stable tree
    variants and projected detail; judge composed highland, wooded and coastal
    production views. Leaf-mask consistency is already accepted.
-2. **Campaign reference quality (04/05/07/10):** test the bounded source-rock/slope
-   gate on fixed geometry, then judge actual mountain hierarchy, green foothills,
+2. **Campaign reference quality (04/05/07/10):** improve valley-floor width and intermediate shelves, then judge mountain hierarchy, green foothills,
    woods and lighting together. Recoloring alone cannot accept deficient form.
    Do not repeat rejected geometry or size-only vegetation trials without new evidence.
 3. **Campaign presentation and shores (08/11/12/14):** complete owner-aware label
@@ -40,9 +42,8 @@ separate projects or duplicate capture runs:
    review, choices consolidation and closeout. Reuse evidence across slice owners
    when it proves the same requirement, without narrowing any gate.
 
-Before relying on them, reconcile the traversal camera-readiness check and the
-battle shadow/turf scenes' retired stats/frame-settlement hooks with current
-production contracts. Replace the legacy whole-frame label brightness oracle
+Finish the turf scene's migration to current completed-frame and residency
+contracts. Replace the legacy whole-frame label brightness oracle
 only after missing-name and missing-card controls prove its owner-aware successor.
 
 | Accepted checkpoint | Evidence | Acceptance still open |

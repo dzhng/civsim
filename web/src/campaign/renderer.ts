@@ -329,7 +329,11 @@ export class CampaignRenderer {
     this.setFrameCamera(opts.cam);
     const buildStart = performance.now();
     const animTime = this.fixedTime ?? performance.now() / 1000;
-    const buildOpts = { ...opts, controlledStage: isControlledStage(this.data) };
+    const buildOpts = {
+      ...opts,
+      cam: { ...opts.cam, scale: opts.cam.scale / (window.devicePixelRatio || 1) },
+      controlledStage: isControlledStage(this.data),
+    };
     const frame = buildEntityFrame(
       this.data,
       this.field,
@@ -389,7 +393,7 @@ export class CampaignRenderer {
       campaignScenery(
         this.sceneryCandidates,
         frame.sceneryReservations,
-        opts.cam.scale,
+        buildOpts.cam.scale,
         sceneryView,
       ).concat(campaignRoadCarts(this.data, this.field, sceneryTime, buildOpts)),
     );
@@ -467,7 +471,7 @@ export class CampaignRenderer {
     const { min, max } = this.campaignZoomRange();
     const z = Math.max(scale, min + 0.25 * (max - min));
     const t = Math.max(0, Math.min(1, (z - min) / Math.max(1e-6, max - min)));
-    return (600 / z) * (12 - 11.5 * t);
+    return (600 / (z / (window.devicePixelRatio || 1))) * (12 - 11.5 * t);
   }
 
   /** Verification probe: the full static scenery candidate set (world km). */

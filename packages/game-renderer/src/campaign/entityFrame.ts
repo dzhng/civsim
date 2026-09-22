@@ -90,6 +90,7 @@ interface CampaignFactionLabel {
 }
 
 export interface CampaignFrameOptions {
+  /** Presentation policy uses CSS pixels per world kilometre. */
   cam: { x: number; y: number; scale: number };
   armies: ArmyView[];
   cities: Map<number, CityView>;

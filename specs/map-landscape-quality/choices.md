@@ -510,3 +510,11 @@ confidence medium rather than establishing final landscape acceptance.
   are diagnostic inputs rather than an alternate natural rendering mode. This
   deliberately accepts the production world's water and outer-terrain response
   instead of preserving a prettier but divergent preview.
+
+## Display-density policy
+
+- **Sound, high confidence — pixel density changes resolution, not map detail or input speed.**
+  Keep the projection contract in backing pixels, and normalize at visibility
+  and input policy boundaries. The same CSS camera chooses the same entities,
+  scenery and label sizes on either display. Implicit label callers must obey
+  the same units as explicit callers; no alternate density-specific thresholds.

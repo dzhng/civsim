@@ -18,9 +18,9 @@ click selects a real raised Aguntum city at both densities. This is scoped input
 and camera evidence; broader lifecycle, label/scenery DPR policy and final art
 remain open. The [regional natural preview](assets/slice-14-production/preview-owner/README.md)
 now uses the production world, with matched visual review and exact repeats of both regional images.
-Clay/surface controls remain explicit diagnostics. The remaining CSS-density
-policy correction has passed its full browser comparison and strict six-image
-repeat; baseline/evidence closeout is the immediate pickup.
+Clay/surface controls remain explicit diagnostics. The [CSS-density policy](assets/slice-12/css-density/README.md) now preserves
+labels, cards, scenery, figures and input speed across DPR, with six exact
+repeated images. Next: corrected turf readiness and remaining mountain form.
 
 The [joined water pass](assets/slice-08/battle-ocean-join/README.md) now removes
 the mapC field/ocean intersection, shares their near-edge response, and passes
@@ -30,8 +30,7 @@ for distant glints. Flat water detail, soft coastal fringes and final compositio
 remain open; do not spend another spectrum-polish pass before the mountain test.
 The direction shuffle was rejected on actual images despite better isotropy.
 
-The capture lane is comparing the pending preview-owner and CSS-density fixes
-against matched controls on5193. Both builds use symlinks to existing public
+The preview-owner and CSS-density comparisons on5193 are complete. Both builds use symlinks to existing public
 assets; the retired shelf build is removed. The turf software run completed its
 functional/cold-boot gates, but canonical images and a corrected grass-bearing
 isolation wait remain unaccepted. Inspect `throwaway/active-pickup.txt` and live

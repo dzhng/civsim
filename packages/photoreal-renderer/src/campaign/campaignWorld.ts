@@ -563,6 +563,7 @@ export class PhotorealCampaignWorld {
     this.markerInputs = markers;
   }
 
+  /** Explicit zoom is backing pixels per world kilometre, matching CameraSnapshot. */
   setLabels(labels: CampaignLabel[], placement?: CampaignLabelPlacementStyle, scale?: number) {
     this.labelInputs = labels;
     this.labelPlacement = placement;
@@ -603,7 +604,7 @@ export class PhotorealCampaignWorld {
         camera3d: pose,
         x: pose.target[0],
         y: pose.target[1],
-        zoom: this.labelScale ?? height / (2 * pose.distance * Math.tan(pose.fovY / 2)),
+        zoom: this.labelScale ?? (height * dpr) / (2 * pose.distance * Math.tan(pose.fovY / 2)),
         width: width * dpr,
         height: height * dpr,
       },

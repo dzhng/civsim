@@ -329,38 +329,39 @@ export function visibleLabels(
   dpr: number,
   project?: CampaignLabelProjection,
 ): VisibleCampaignLabel[] {
+  const zoom = camera.zoom / dpr;
   const visible: VisibleCampaignLabel[] = [];
   for (const label of labels) {
     let opacity = 1;
     let resolved = label;
     if (label.kind === "city") {
-      const minTier = camera.zoom < 0.6 ? 3 : camera.zoom < 0.85 ? 2 : 1;
+      const minTier = zoom < 0.6 ? 3 : zoom < 0.85 ? 2 : 1;
       if (label.priority < minTier) continue;
-      const size = Math.min(15, 9.5 + camera.zoom) * (label.priority >= 3 ? 1.15 : 1);
+      const size = Math.min(15, 9.5 + zoom) * (label.priority >= 3 ? 1.15 : 1);
       resolved = { ...label, size };
     } else if (label.kind === "army") {
-      if (camera.zoom <= 0.35) continue;
-      const size = Math.min(14, 9 + camera.zoom);
+      if (zoom <= 0.35) continue;
+      const size = Math.min(14, 9 + zoom);
       resolved = { ...label, size };
     } else if (label.kind === "sea") {
-      opacity = (1 - clamp01((camera.zoom - 0.26) / 0.16)) * 0.8;
+      opacity = (1 - clamp01((zoom - 0.26) / 0.16)) * 0.8;
       if (opacity <= 0.02) continue;
     } else if (label.kind === "faction") {
       // Faction/league names are SOLID — no opacity anywhere (only sea names
       // fade). Density is by VISIBILITY, not transparency: an engraving is shown
       // at full strength or not at all. Retire engravings at close zoom, where
       // the city labels carry the detail view.
-      if (camera.zoom > FACTION_RETIRE_ZOOM) continue;
+      if (zoom > FACTION_RETIRE_ZOOM) continue;
       if (label.factionMinor) {
         // Leagues declutter by owned-city power (not territory area): a league
         // keeps its name once its power clears the zoom-scaled bar — high at
         // overview so only the strong leagues show, falling as the camera comes
         // in (where the tighter viewport already thins the count) — else hidden.
-        const bar = LEAGUE_IMPORTANCE_BAR_HI * (1 - clamp01((camera.zoom - 0.3) / 0.5));
+        const bar = LEAGUE_IMPORTANCE_BAR_HI * (1 - clamp01((zoom - 0.3) / 0.5));
         if ((label.importance ?? 0) < bar) continue;
       }
       const radius = label.factionRadiusKm ?? 0;
-      const screenR = radius * camera.zoom;
+      const screenR = radius * zoom;
       const size = label.factionMinor
         ? Math.min(22, Math.max(9, screenR * 0.4))
         : Math.min(34, Math.max(17, screenR * 0.5));
@@ -370,10 +371,10 @@ export function visibleLabels(
     if (!anchor) continue;
     const [screenX, screenY] = anchor;
     if (
-      screenX < -180 ||
-      screenY < -80 ||
-      screenX > camera.width + 180 ||
-      screenY > camera.height + 80
+      screenX < -180 * dpr ||
+      screenY < -80 * dpr ||
+      screenX > camera.width + 180 * dpr ||
+      screenY > camera.height + 80 * dpr
     )
       continue;
     visible.push({

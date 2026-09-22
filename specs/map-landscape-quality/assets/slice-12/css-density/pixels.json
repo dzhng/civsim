@@ -1,0 +1,38 @@
+[
+  {
+    "name": "campaign-density-overview-dpr1",
+    "changedPixels": 0,
+    "rgbMae": 0,
+    "maxChannelDelta": 0
+  },
+  {
+    "name": "campaign-density-overview-dpr2",
+    "changedPixels": 942196,
+    "rgbMae": 9.419650960286459,
+    "maxChannelDelta": 241
+  },
+  {
+    "name": "campaign-density-regional-dpr1",
+    "changedPixels": 0,
+    "rgbMae": 0,
+    "maxChannelDelta": 0
+  },
+  {
+    "name": "campaign-density-regional-dpr2",
+    "changedPixels": 445968,
+    "rgbMae": 1.5965956217447916,
+    "maxChannelDelta": 231
+  },
+  {
+    "name": "campaign-landscape-interaction-dpr1",
+    "changedPixels": 0,
+    "rgbMae": 0,
+    "maxChannelDelta": 0
+  },
+  {
+    "name": "campaign-landscape-interaction-dpr2",
+    "changedPixels": 3,
+    "rgbMae": 2.44140625e-7,
+    "maxChannelDelta": 1
+  }
+]

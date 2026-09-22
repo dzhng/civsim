@@ -540,9 +540,10 @@ export class CampaignScene implements Scene {
     const hud = this.campaignHud;
     if (!hud) return { positions: [], rects: [], culls: [] };
     const dpr = window.devicePixelRatio || 1;
+    const zoom = this.cam.scale / dpr;
     const width = this.canvas.clientWidth || window.innerWidth || 1;
     const height = this.canvas.clientHeight || window.innerHeight || 1;
-    const cityMinTier = this.cam.scale < 0.6 ? 3 : this.cam.scale < 0.85 ? 2 : 1;
+    const cityMinTier = zoom < 0.6 ? 3 : zoom < 0.85 ? 2 : 1;
     const pf = this.playerFaction();
     for (const [id, size] of hud.measureMapCards()) this.cardSizeCache.set(id, size);
     const cardSizes = this.cardSizeCache;
@@ -557,7 +558,7 @@ export class CampaignScene implements Scene {
       const ay = sy / dpr;
       const baseY =
         Math.max(ay, this.renderer.cityBodyBottomY(node) ?? ay) +
-        cityCardOffsetY(this.cam.scale, mapNode.tier);
+        cityCardOffsetY(zoom, mapNode.tier);
       const size = cardSizes.get(id);
       const x = ax;
       const y = baseY;
@@ -590,10 +591,10 @@ export class CampaignScene implements Scene {
         x,
         y,
         size: cardSizes.get(id),
-        visible: this.cam.scale > 0.35 && onScreen(x, y, width, height),
+        visible: zoom > 0.35 && onScreen(x, y, width, height),
       });
     }
-    const { culls } = resolveMapCards(entries, this.cam.scale >= CAMPAIGN_FULL_TILT_ZOOM);
+    const { culls } = resolveMapCards(entries, zoom >= CAMPAIGN_FULL_TILT_ZOOM);
     return {
       positions: entries.map(({ id, x, y, visible }) => ({ id, x, y, visible })),
       rects: entries
@@ -676,8 +677,9 @@ export class CampaignScene implements Scene {
           // View-relative drag: a screen delta maps through the user yaw so
           // the map follows the cursor whatever way the chart is rotated.
           const yaw = this.cam.yaw ?? 0;
-          const sx = e.movementX / this.cam.scale;
-          const sy = e.movementY / this.cam.scale;
+          const zoom = this.cam.scale / (window.devicePixelRatio || 1);
+          const sx = e.movementX / zoom;
+          const sy = e.movementY / zoom;
           this.cam.x -= sx * Math.cos(yaw) + sy * Math.sin(yaw);
           this.cam.y -= sx * Math.sin(yaw) - sy * Math.cos(yaw);
           return;
@@ -770,8 +772,8 @@ export class CampaignScene implements Scene {
     const best = this.nearestRenderedArmy(px, py);
     this.selected = best;
     if (best >= 0) this.selectedCity = -1; // an army takes the selection from a city
-    const loc =
-      best < 0 ? nearestLoc(this.cfg.data.map, wx, wy, Math.max(8, 18 / this.cam.scale)) : null;
+    const zoom = this.cam.scale / (window.devicePixelRatio || 1);
+    const loc = best < 0 ? nearestLoc(this.cfg.data.map, wx, wy, Math.max(8, 18 / zoom)) : null;
     if (loc && loc.kind === 0 && this.cfg.data.map.nodes[loc.a].kind === "city") {
       this.openCityPanel(loc.a);
     } else if (loc && loc.kind === 0 && this.cfg.data.map.nodes[loc.a].kind === "junction") {
@@ -823,7 +825,8 @@ export class CampaignScene implements Scene {
     if (this.selected < 0) return;
     const [wx, wy] = this.renderer.toWorld(px, py);
     // Right-clicking an enemy army latches onto it — chase it across the map.
-    const rKm = 14 / this.cam.scale;
+    const zoom = this.cam.scale / (window.devicePixelRatio || 1);
+    const rKm = 14 / zoom;
     let foe = -1;
     let foeD = rKm;
     for (const a of this.armies) {
@@ -840,7 +843,7 @@ export class CampaignScene implements Scene {
       return;
     }
     // Otherwise, march to the clicked location.
-    const loc = nearestLoc(this.cfg.data.map, wx, wy, 60 / this.cam.scale);
+    const loc = nearestLoc(this.cfg.data.map, wx, wy, 60 / zoom);
     if (!loc) return;
     this.cfg.campaign.order_move(this.selected, loc.kind, loc.a, loc.b);
     this.refreshViews();

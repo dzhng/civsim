@@ -12,7 +12,7 @@ describe("raised campaign label projection", () => {
       camera3d: chartCamera3d({ x: 0, y: 0, zoom: 2 }, 800),
       x: 0,
       y: 0,
-      zoom: 2,
+      zoom: 2 * dpr,
       width: 1280 * dpr,
       height: 800 * dpr,
     };
@@ -52,4 +52,81 @@ describe("raised campaign label projection", () => {
     expect(vertices[0] + vertices[2]).toBeCloseTo(projected[0] - 50 * dpr, 3);
     expect(visibleLabels([label], camera, dpr, () => null)).toEqual([]);
   });
+});
+
+describe("campaign label CSS zoom policy", () => {
+  it.each([0.3, 0.4, 0.59, 0.6, 0.84, 0.85, 0.96, 2.5])(
+    "preserves label choices, CSS size and opacity at zoom %s across DPR",
+    (zoom) => {
+      const labels: CampaignLabel[] = [
+        ...[1, 2, 3].map(
+          (priority): CampaignLabel => ({
+            text: `City ${priority}`,
+            kind: "city",
+            priority,
+            x: 0,
+            y: 0,
+            size: 12,
+          }),
+        ),
+        { text: "Army", kind: "army", priority: 4, x: 0, y: 0, size: 12 },
+        { text: "Sea", kind: "sea", priority: 1, x: 0, y: 0, size: 20 },
+        { text: "Major", kind: "faction", priority: 1, x: 0, y: 0, size: 20, factionRadiusKm: 120 },
+        {
+          text: "League",
+          kind: "faction",
+          priority: 1,
+          x: 0,
+          y: 0,
+          size: 20,
+          factionRadiusKm: 60,
+          factionMinor: true,
+          importance: 10,
+        },
+      ];
+      const render = (dpr: number) =>
+        visibleLabels(
+          labels,
+          {
+            camera3d: chartCamera3d({ x: 0, y: 0, zoom }, 800),
+            x: 0,
+            y: 0,
+            zoom: zoom * dpr,
+            width: 1280 * dpr,
+            height: 800 * dpr,
+          },
+          dpr,
+        ).map(({ label, opacity, screenX, screenY }) => ({
+          text: label.text,
+          size: label.size,
+          opacity,
+          x: screenX / dpr,
+          y: screenY / dpr,
+        }));
+      const standard = render(1);
+      expect(standard.some((label) => label.text === "City 3")).toBe(true);
+      expect(render(2)).toEqual(standard);
+    },
+  );
+});
+
+it.each([1, 2])("keeps the same CSS label overscan at DPR%s", (dpr) => {
+  const labels: CampaignLabel[] = [
+    { text: "Near edge", kind: "city", priority: 3, x: 0, y: 0, size: 12 },
+    { text: "Outside", kind: "city", priority: 3, x: 0, y: 0, size: 12 },
+  ];
+  const camera = {
+    camera3d: chartCamera3d({ x: 0, y: 0, zoom: 1 }, 800),
+    x: 0,
+    y: 0,
+    zoom: dpr,
+    width: 1280 * dpr,
+    height: 800 * dpr,
+  };
+  expect(
+    visibleLabels(labels, camera, dpr, (label) => [
+      (label.text === "Near edge" ? -150 : -190) * dpr,
+      400 * dpr,
+    ]).map(({ label }) => label.text),
+  ).toEqual(["Near edge"]);
 });

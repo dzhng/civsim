@@ -1,4 +1,5 @@
 import { test, expect } from "vitest";
+import type { CampaignLabelLayer } from "@packages/photoreal-renderer/src/campaign/labelLayer";
 import { campaignPhysicalViewWeight } from "@packages/game-renderer/src/campaign/cameraPolicy";
 
 test("campaign aerial perspective uses chart/detail endpoints without changing detailed views", () => {
@@ -13,13 +14,14 @@ test("campaign aerial perspective uses chart/detail endpoints without changing d
 
 // Exercise the live frame boundary as well as the scalar transition: lab callers
 // keep the shared default until the application changes the atmosphere policy.
-test("drawing consumes chart strength after camera preparation and preserves full-depth default", async () => {
+test("drawing preserves atmosphere policy and CSS label framing at its frame boundary", async () => {
   const THREE = await import("three/webgpu");
   const { PhotorealCampaignWorld } =
     await import("@packages/photoreal-renderer/src/campaign/campaignWorld");
   const { chartCamera3d } = await import("@packages/renderer-core/src/camera3d");
   const aerialStrength = { value: 1 };
   const consumed: number[] = [];
+  const labelZooms: number[] = [];
   const world = Object.assign(Object.create(PhotorealCampaignWorld.prototype), {
     world: {
       resize() {},
@@ -31,7 +33,12 @@ test("drawing consumes chart strength after camera preparation and preserves ful
     },
     standards: { upload() {} },
     scenery: { prepareRender() {} },
-    labels: { update() {} },
+    labels: {
+      update(...args: Parameters<CampaignLabelLayer["update"]>) {
+        const [, camera, dpr] = args;
+        labelZooms.push(camera.zoom / dpr);
+      },
+    },
     markers: { update() {} },
     labelInputs: [],
     markerInputs: [],
@@ -46,7 +53,10 @@ test("drawing consumes chart strength after camera preparation and preserves ful
   world.render(pose, 1280, 800);
   world.setAerialStrength(campaignPhysicalViewWeight(3));
   world.render(pose, 1280, 800);
-  expect(consumed).toEqual([1, 0, 1]);
+  world.render(pose, 1280, 800, 2);
+  expect(consumed).toEqual([1, 0, 1, 1]);
+  expect(labelZooms[0]).toBeGreaterThan(0);
+  expect(labelZooms[3]).toBe(labelZooms[0]);
 });
 
 test("the same campaign view supplies identical atmospheric depth at either DPR", async () => {

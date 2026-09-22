@@ -47,6 +47,11 @@ Human checkpoints are non-blocking. Show the artifact, allow a short response wi
 | Categorical forest material boundary | [Forest-cover evidence](../assets/slice-07/forest-cover/README.md) accepts removal of false rock at grass/forest transitions. [Current TypeGPU coverage evidence](../assets/slice-13/coverage-shadow/README.md) proves the migrated consumer. Preserve independent cover weights before interpolation; physical tint remains unchanged. |
 | Detached campaign rock removal | [Production comparison](../assets/slice-07/campaign-rock-removal/README.md) accepts continuity without changing tree records. Generic battle/authored rocks remain; this does not supply intermediate ground detail. |
 
+The [budget-edge checkpoint](../assets/slice-07/budget-edges/README.md) adds small
+world-stable variation to final selection, softening some clump boundaries while
+preserving the existing cap and eligibility. Both production regions repeat
+exactly. Full-size outliers and missing intermediate growth remain unresolved.
+
 ## Remaining ecological quality
 
 Resolve oversized geometric conifers, isolated planted clumps, exposed slope

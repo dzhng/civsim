@@ -1,0 +1,26 @@
+{
+  "status": "pass",
+  "gpuAdapter": "swiftshader",
+  "checks": [
+    {
+      "region": "alps",
+      "cameraExactlyMatchesControl": true,
+      "submittedScenery": 2456
+    },
+    {
+      "name": "snapshot landscape-alps",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "region": "italy",
+      "cameraExactlyMatchesControl": true,
+      "submittedScenery": 1240
+    },
+    {
+      "name": "snapshot landscape-italy",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    }
+  ]
+}

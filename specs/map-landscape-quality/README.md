@@ -32,8 +32,8 @@ The direction shuffle was rejected on actual images despite better isotropy.
 The [turf consumer](assets/slice-13/turf-current/README.md) now follows the
 TypeGPU camera and grass publication. Its full52-check run, exact cold boots,
 edge repeats and post-review readiness correction are scoped verification;
-material/composition quality remains open. The capture lane on5193 is now the
-forest-edge candidate. Raw whole-map retirement and its migrated production
+material/composition quality remains open. The [budget-edge pass](assets/slice-07/budget-edges/README.md) now softens
+woodland selection boundaries, with two exact regional repeats. Raw whole-map retirement and its migrated production
 water film are implemented but await browser acceptance. A separate sharper
 rock-projection control has passed CPU checks but has not been rendered.
 Inspect `throwaway/active-pickup.txt` and live processes before changing the single

@@ -526,3 +526,12 @@ confidence medium rather than establishing final landscape acceptance.
   Wait for the next completed frame of the same generation. Retain the current
   thin, knee-height grass direction; old broad-blade screenshots must not undo
   that later user choice merely to recover a historical baseline.
+
+## Woodland budget boundaries
+
+- **Sound, moderate confidence — feather selection within the existing tree budget.**
+  Ranking only by smooth spatial noise creates hard clump boundaries unrelated
+  to the underlying cover. A small deterministic score variation admits sparse
+  outliers while retaining dense interiors. Keep the same lattice, exclusions,
+  species and size policy; this does not claim to supply understory or forest-floor
+  variation. Broader ecological integration remains open.

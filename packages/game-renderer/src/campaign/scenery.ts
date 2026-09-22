@@ -148,7 +148,8 @@ export function buildCampaignWoodlandCandidates(
           kind: fringe ? "bush" : campaignTreeSpecies(hash2(seed, 5), y > temperateYKm),
           shade: hash2(seed, 6),
           yaw: hash2(seed, 7) * Math.PI * 2,
-          score: campaignNoise(x / 50 + 6, y / 50 + 3),
+          // Feather the budget cutoff while retaining coherent forest interiors.
+          score: campaignNoise(x / 50 + 6, y / 50 + 3) + (hash2(seed, 8) - 0.5) * 0.1,
           gx: Math.floor((x - field.minX) / field.cell),
           gy: Math.floor((field.maxY - y) / field.cell),
         });

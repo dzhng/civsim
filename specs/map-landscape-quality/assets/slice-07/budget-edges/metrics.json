@@ -1,0 +1,40 @@
+{
+  "fixture": "Uniform eligible flat forest 1536km square; isolates budget selection, not real-map acceptance",
+  "eligible": 147456,
+  "exactRepeat": true,
+  "scoreQuantiles": [
+    0.05317571054309678,
+    0.3035966515397534,
+    0.3951601567044546,
+    0.4990064323675312,
+    0.6042690192779275,
+    0.696427908255315,
+    0.9533700947662527
+  ],
+  "beforeCount": 32000,
+  "afterCount": 32000,
+  "retained": 28226,
+  "replaced": 3774,
+  "neighborHistogramBefore": [
+    18,
+    53,
+    208,
+    1173,
+    3040,
+    4397,
+    3035,
+    4169,
+    15907
+  ],
+  "neighborHistogramAfter": [
+    234,
+    669,
+    1295,
+    2030,
+    2869,
+    3527,
+    3716,
+    4392,
+    13268
+  ]
+}

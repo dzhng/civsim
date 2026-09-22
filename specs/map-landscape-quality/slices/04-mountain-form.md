@@ -9,9 +9,9 @@ Status: in progress. Dependencies: [01](01-surface-contract.md), [03](03-bounded
 | Existing geographic envelope and downward-only saddle articulation; unchanged production sampling | Distinct range hierarchy, readable valleys and broad foothills in the final regional composition | [Saddle pass](../assets/slice-04/downward-saddles/README.md) |
 | Road-width correction after changed terrain seating | Judge form separately from source rock coverage, planting and lighting; a material recolor alone does not close this slice | [Road pass](../assets/slice-11/road-surface-width/README.md), [integrated matrix](15-acceptance.md) |
 
-Current pickup is the combined campaign reference pass in the README. Test source
-rock exposure on fixed geometry first; if form still fails, target the visible
-remaining defect. The investigations below are historical evidence, not an active
+Current pickup is the combined campaign reference pass in the README. The source-rock/slope gate was rejected as thin green edging on unchanged
+rounded ridges. Target broader valley floors/intermediate shelves inside the
+accepted geographic envelope; see [the control](../assets/slice-04/source-slope-control/README.md). The investigations below are historical evidence, not an active
 queue of algorithms or parameter sweeps.
 
 ## Contract and owner

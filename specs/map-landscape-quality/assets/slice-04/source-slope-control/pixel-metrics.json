@@ -1,0 +1,14 @@
+{
+  "alps": {
+    "changedPixels": 37046,
+    "rgbMAE": 0.40574739583333336
+  },
+  "italy": {
+    "changedPixels": 9166,
+    "rgbMAE": 0.101115234375
+  },
+  "alps-close": {
+    "changedPixels": 66650,
+    "rgbMAE": 0.7746884765625
+  }
+}

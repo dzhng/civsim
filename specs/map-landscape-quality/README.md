@@ -10,10 +10,14 @@ Work in `/Users/david/dev/game/.worktrees/map-landscape-quality` on
 `codex/map-landscape-quality`. Keep this one worktree and a single GPU capture
 lane; inspect live processes before starting captures or replacing their build.
 
-**Current pickup: finish battle tree variants/detail and migrated scene gates.**
-The bitmap rock checkpoint is accepted: 1,072 tests, typecheck/build, five exact
-battle repeats, three unchanged campaign views and independent review. See
-[bitmap evidence](assets/slice-13/bitmap-rock/README.md). The [water conversion checkpoint](assets/slice-13/water-linear/README.md) also passes four exact repeats with unchanged dry ground. In06, the campaign detail thresholds were visually rejected for battle because they removed too much leaf silhouette; the refined battle profile is under verification. Keep shared selection logic and placement identity.
+**Current pickup: broader campaign valley floors/intermediate shelves.**
+The isolated source-rock slope gate was rejected: it added green ribbons and
+flecks without changing the rounded, tightly packed landforms. Code was removed;
+see [the control](assets/slice-04/source-slope-control/README.md). Keep accepted
+saddles/roads and target this specific remaining shape defect inside the geographic
+envelope. Battle tree adoption7fe24610 passes exact near/far/return and unchanged
+campaign views. Migrated scene gates still need baseline provenance review and
+turf runtime verification; their functional traversal checks now pass.
 
 Campaign keeps Three and battle keeps main's TypeGPU renderer: share neutral
 policy/data/assets, not backend wrappers or a restored battle backend.

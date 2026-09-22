@@ -80,5 +80,5 @@ validation. The current browser run passes actual requested-camera admissions,
 idle stability and repeated memory plateau; historical image baselines still
 require review. This does not establish hardware performance.
 
-Production source for this consumer pass adds 356 lines and deletes 147 (including
-comments), net 209. This includes the shared policy helper and scene telemetry.
+Production source for this consumer pass adds 348 lines and deletes 147 (including
+comments), net 201. This includes the shared policy helper and scene telemetry.

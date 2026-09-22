@@ -518,3 +518,11 @@ confidence medium rather than establishing final landscape acceptance.
   and input policy boundaries. The same CSS camera chooses the same entities,
   scenery and label sizes on either display. Implicit label callers must obey
   the same units as explicit callers; no alternate density-specific thresholds.
+
+## Turf verification consumer
+
+- **Sound, high confidence — capture published grass only after its render consumes it.**
+  CPU residency completion can precede the image that uses the final records.
+  Wait for the next completed frame of the same generation. Retain the current
+  thin, knee-height grass direction; old broad-blade screenshots must not undo
+  that later user choice merely to recover a historical baseline.

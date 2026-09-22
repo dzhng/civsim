@@ -5,7 +5,7 @@ import { turfTelemetry } from "./turf-telemetry-lib.js";
 export const meta = {
   name: "battle-ground-turf",
   kind: "visual",
-  world: "production-photoreal-battle",
+  world: "production-typegpu-battle",
   tier: "full",
   snapshots: [
     "ground-turf/full-close",
@@ -61,7 +61,8 @@ const PROFILES = [
   {
     name: "close",
     grassEnabled: true,
-    camera: { ...VISTA_CAMERA, zoom: 7.86, cx: 0, cy: -360 },
+    // The production rig's nearest endpoint exposes individual foreground blades.
+    camera: { ...VISTA_CAMERA, zoom: 8, cx: 0, cy: -360 },
   },
   {
     name: "rts",
@@ -76,6 +77,9 @@ const PROFILES = [
 ];
 
 export async function run(ctx) {
+  const requestedEdgeProfile = process.env.TURF_EDGE_PROFILE;
+  if (requestedEdgeProfile && !EDGE_PROFILES.some(({ name }) => name === requestedEdgeProfile))
+    throw Error(`Unknown turf edge profile: ${requestedEdgeProfile}`);
   if (process.env.VERIFY_GPU !== "1") {
     ctx.check("turf production proof requires browser GPU flags", true, "set VERIFY_GPU=1");
     return;
@@ -97,11 +101,15 @@ export async function run(ctx) {
         ctx.check(
           `${profile.name} full-production frame keeps blade-field ownership and its production cutoff`,
           full.isolation?.grassVisible === true &&
-            full.grass?.recordCount > 0 &&
-            full.grass?.enabled === profile.grassEnabled,
+            full.grass?.layers?.some((layer) => layer.recordCount > 0) &&
+            (full.grass?.visibility?.base || full.grass?.visibility?.ring) === profile.grassEnabled,
           JSON.stringify({ isolation: full.isolation, grass: full.grass }),
         );
-        await ctx.snap(null, `ground-turf/full-${profile.name}`, { shot: full.shot });
+        await ctx.snap(null, `ground-turf/full-${profile.name}`, {
+          shot: full.shot,
+          threshold: 0,
+          maxDiffRatio: 0,
+        });
 
         const groundOnly = await captureProfile(ctx, page, {
           ...profile.camera,
@@ -127,10 +135,11 @@ export async function run(ctx) {
         );
         await ctx.snap(null, `ground-turf/ground-only-${profile.name}`, {
           shot: groundOnly.shot,
+          threshold: 0,
+          maxDiffRatio: 0,
         });
       }
     }
-    const requestedEdgeProfile = process.env.TURF_EDGE_PROFILE;
     for (const profile of EDGE_PROFILES.filter(
       ({ name }) => !requestedEdgeProfile || name === requestedEdgeProfile,
     )) {
@@ -138,11 +147,11 @@ export async function run(ctx) {
       const widths = edge.edgeFixture;
       ctx.check(
         `${profile.name} uses the single playable-ground RG8 earth-edge resource`,
-        edge.groundDetail?.earthEdges?.owner === "playable-ground" &&
-          edge.groundDetail?.earthEdges?.format === "rg8-unorm" &&
-          edge.groundDetail?.earthEdges?.textureResources === 1 &&
-          edge.groundDetail?.earthEdges?.vistaSamples === 0,
-        JSON.stringify(edge.groundDetail?.earthEdges),
+        edge.earthEdges?.owner === "playable-ground" &&
+          edge.earthEdges?.format === "rg8-unorm" &&
+          edge.earthEdges?.textureResources === 1 &&
+          edge.earthEdges?.vistaSamples === 0,
+        JSON.stringify(edge.earthEdges),
       );
       ctx.check(
         `${profile.name} keeps every measured 10-90 edge feather within 1-2m`,
@@ -151,7 +160,11 @@ export async function run(ctx) {
         ) && widths?.detachedIslands === 0,
         JSON.stringify(widths),
       );
-      await ctx.snap(null, `ground-turf/${profile.name}`, { shot: edge.shot });
+      await ctx.snap(null, `ground-turf/${profile.name}`, {
+        shot: edge.shot,
+        threshold: 0,
+        maxDiffRatio: 0,
+      });
     }
     if (process.env.TURF_EDGE_ONLY !== "1") await checkPhaseReturn(ctx, page);
   } finally {
@@ -161,23 +174,49 @@ export async function run(ctx) {
 
 async function checkPhaseReturn(ctx, page) {
   const initial = await captureProfile(ctx, page, { ...VISTA_CAMERA, only: GROUND_LAYERS });
-  await page.evaluate(() => {
-    window.__cam?.setViewCenter(260, -650);
-    window.__cam?.clampView();
-  });
-  await page.waitForTimeout(400);
-  await page.evaluate(() => window.__photorealBattleWorld?.settlePresentedFrame?.());
-  await page.evaluate(() => {
-    window.__cam?.setViewCenter(0, -650);
-    window.__cam?.clampView();
-  });
-  await page.waitForTimeout(400);
-  await page.evaluate(() => window.__photorealBattleWorld?.settlePresentedFrame?.());
+  await moveAndWait(page, 260, -650);
+  await moveAndWait(page, 0, -650);
   const returned = await page.locator("#renderer-canvas").screenshot({ timeout: 180000 });
   ctx.check(
     "ground substrate returns pixel-identically after a camera pan",
     changedPixelCount(initial.shot, returned) === 0,
   );
+}
+
+async function moveAndWait(page, x, y) {
+  const previous = await page.evaluateHandle(() => window.__rendererLabStats);
+  try {
+    const requested = await page.evaluate(
+      ([x, y]) => {
+        window.__cam.setViewCenter(x, y);
+        window.__cam.clampView();
+        const [actualX, actualY] = window.__cam.viewCenter();
+        return { x: actualX, y: actualY, zoom: window.__cam.zoom };
+      },
+      [x, y],
+    );
+    // The route replaces this object only after its GPU queue completes.
+    // Read the published camera, not the live world's in-flight preparation.
+    await page.waitForFunction(
+      ({ previous, requested }) => {
+        const frame = window.__rendererLabStats;
+        if (frame?.ok === false) throw Error(`Turf route failed: ${JSON.stringify(frame.error)}`);
+        const camera = frame?.renderStats?.preparedCamera;
+        return (
+          frame !== previous &&
+          frame?.ok === true &&
+          camera &&
+          Math.abs(camera.x - requested.x) < 1e-6 &&
+          Math.abs(camera.y - requested.y) < 1e-6 &&
+          camera.zoom === requested.zoom
+        );
+      },
+      { previous, requested },
+      { timeout: 180000 },
+    );
+  } finally {
+    await previous.dispose();
+  }
 }
 
 async function captureProfile(ctx, page, profile) {
@@ -197,37 +236,117 @@ async function captureProfile(ctx, page, profile) {
   if (profile.terrain) params.set("terrain", profile.terrain);
   await page.goto(`${ctx.target}/renderer/photoreal-battle?${params}`);
   await page.waitForFunction(
-    () =>
-      window.__rendererLabReady === true &&
-      window.__rendererLabStats?.ok === true &&
-      window.__rendererLabStats?.route === "photoreal-battle" &&
-      window.__rendererLabStats?.stats?.renderStats?.terrain,
+    () => {
+      const stats = window.__rendererLabStats;
+      if (stats?.ok === false) throw Error(`Turf route failed: ${stats.error}`);
+      return (
+        window.__rendererLabReady === true &&
+        stats?.ok === true &&
+        stats.route === "photoreal-battle" &&
+        stats.renderStats?.terrain
+      );
+    },
     undefined,
     { timeout: 180000 },
   );
-  if (!profile.only) {
-    await page.waitForFunction(
-      () => {
-        const grass = window.__rendererLabStats?.stats?.renderStats?.terrain?.grass;
-        return grass?.recordCount > 0 && grass?.rebuild?.pending !== true;
-      },
-      undefined,
-      { timeout: 30000 },
-    );
-  }
-  await page.waitForTimeout(400);
-  await page.evaluate(() => window.__photorealBattleWorld?.settlePresentedFrame?.());
+  const grassVisible = await page.evaluate(() => window.__rendererLabStats.isolation.grassVisible);
+  if (grassVisible) await waitForGrassResidency(page);
+  const camera = await page.evaluate(() => ({
+    actual: { center: window.__cam.viewCenter(), zoom: window.__cam.zoom },
+    stats: window.__rendererLabStats.renderStats,
+  }));
+  ctx.check(
+    "turf capture uses a completed production TypeGPU camera",
+    camera.stats.substrate === "typegpu" &&
+      Math.abs(camera.stats.preparedCamera.x - camera.actual.center[0]) < 1e-6 &&
+      Math.abs(camera.stats.preparedCamera.y - camera.actual.center[1]) < 1e-6 &&
+      camera.stats.preparedCamera.zoom === camera.actual.zoom,
+    JSON.stringify(camera.stats.preparedCamera),
+  );
   return {
     shot: await page.locator("#renderer-canvas").screenshot({ timeout: 180000 }),
-    groundDetail: await page.evaluate(
-      () => window.__rendererLabStats?.stats?.renderStats?.groundDetail ?? null,
+    earthEdges: await page.evaluate(
+      () => window.__rendererLabStats?.renderStats?.terrain?.earthEdges ?? null,
     ),
-    grass: await page.evaluate(
-      () => window.__rendererLabStats?.stats?.renderStats?.terrain?.grass ?? null,
-    ),
-    isolation: await page.evaluate(() => window.__rendererLabStats?.stats?.isolation ?? null),
-    edgeFixture: await page.evaluate(() => window.__rendererLabStats?.stats?.edgeFixture ?? null),
+    grass: await page.evaluate(() => window.__rendererLabStats?.renderStats?.grass ?? null),
+    isolation: await page.evaluate(() => window.__rendererLabStats?.isolation ?? null),
+    edgeFixture: await page.evaluate(() => window.__rendererLabStats?.edgeFixture ?? null),
   };
+}
+
+async function waitForGrassResidency(page) {
+  const budget = process.env.VERIFY_GPU_ADAPTER === "hardware" ? 180000 : 600000;
+  const deadline = Date.now() + budget;
+  let stalledFrames = 0;
+  let previousProgress = null;
+  let completedGeneration = null;
+  let diagnostic = null;
+  while (Date.now() < deadline) {
+    const frame = await page.evaluateHandle(() => window.__rendererLabStats);
+    try {
+      const state = await frame.evaluate((published) => {
+        const grass = published?.renderStats?.grass;
+        const rebuild = grass?.residency?.rebuild;
+        return {
+          ok: published?.ok,
+          error: published?.error,
+          pending: rebuild?.pending,
+          generation: rebuild?.requestedGeneration,
+          required: rebuild?.requiredTiles,
+          resident: rebuild?.residentTiles,
+          missing: rebuild?.missingTiles,
+          sampled: rebuild?.sampledCells,
+          published: rebuild?.publishedRecords,
+          uploads: grass?.uploads,
+          ranges: grass?.ringRecordRanges,
+        };
+      });
+      diagnostic = state;
+      if (state.ok !== true) throw Error(`Turf route failed: ${JSON.stringify(state)}`);
+      // Empty blade buffers at a distant camera are valid; their required
+      // visibility and content remain separate assertions in the caller.
+      // Sampling can finish during GPU submission. A later completed frame must
+      // consume the final publication before its pixels are ready to capture.
+      if (state.pending === false) {
+        if (completedGeneration === state.generation) return;
+        completedGeneration = state.generation;
+      } else completedGeneration = null;
+      const progress = JSON.stringify([
+        state.generation,
+        state.required,
+        state.resident,
+        state.missing,
+        state.sampled,
+        state.published,
+        state.uploads,
+        state.ranges,
+      ]);
+      stalledFrames = progress === previousProgress ? stalledFrames + 1 : 0;
+      if (stalledFrames >= 8)
+        throw Error(
+          `Turf residency made no progress across 8 completed frames: ${JSON.stringify(state)}`,
+        );
+      previousProgress = progress;
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) break;
+      try {
+        const next = await page.waitForFunction(
+          (previous) =>
+            window.__rendererLabStats !== previous || window.__rendererLabStats?.ok === false,
+          frame,
+          { timeout: Math.min(60000, remaining) },
+        );
+        await next.dispose();
+      } catch (error) {
+        throw Error(`Turf completed-frame wait failed: ${JSON.stringify(diagnostic)}`, {
+          cause: error,
+        });
+      }
+    } finally {
+      await frame.dispose();
+    }
+  }
+  throw Error(`Turf residency exceeded ${budget / 1000}s: ${JSON.stringify(diagnostic)}`);
 }
 
 function finiteTelemetry(buffer) {

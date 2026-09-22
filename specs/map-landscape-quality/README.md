@@ -29,13 +29,15 @@ for distant glints. Flat water detail, soft coastal fringes and final compositio
 remain open; do not spend another spectrum-polish pass before the mountain test.
 The direction shuffle was rejected on actual images despite better isotropy.
 
-The preview-owner and CSS-density comparisons on5193 are complete. The current build uses symlinks to existing public
-assets; the retired shelf and matched-control builds are removed. The turf software run completed its
-functional/cold-boot gates, but canonical images and a corrected grass-bearing
-isolation wait remain unaccepted. Inspect `throwaway/active-pickup.txt` and live
-processes before switching the single capture lane. Obsolete previews
-on5188–5192 and their builds are removed; committed evidence retains comparisons.
-Inspect live processes before capturing or rebuilding; keep one GPU lane.
+The [turf consumer](assets/slice-13/turf-current/README.md) now follows the
+TypeGPU camera and grass publication. Its full52-check run, exact cold boots,
+edge repeats and post-review readiness correction are scoped verification;
+material/composition quality remains open. The capture lane on5193 is now the
+forest-edge candidate. Raw whole-map retirement and its migrated production
+water film are implemented but await browser acceptance. A separate sharper
+rock-projection control has passed CPU checks but has not been rendered.
+Inspect `throwaway/active-pickup.txt` and live processes before changing the single
+capture lane; keep public assets linked rather than duplicating build trees.
 
 Continue the remaining mountain, presentation and coast gates and
 one integrated acceptance matrix. Reuse each matched capture across the slices
@@ -49,7 +51,7 @@ data/policy and backend-local adapters: Three campaign, TypeGPU battle.
 | [Label-owner controls](assets/slice-12/label-owners/README.md) | Broader presentation/interaction matrix |
 | [Joined water](assets/slice-08/battle-ocean-join/README.md), lake and motion controls | Flat detail, shoreline fringe, other shores and composed quality |
 | [Native adapter/liveness](assets/slice-15/adapter-identity/README.md) | Headful release timing and common hardware budget |
-| Turf native functional/framing checks | Visual/software baseline acceptance; its scene edit is still uncommitted |
+| [Current turf consumer](assets/slice-13/turf-current/README.md), exact scoped captures | Final composed art and hardware acceptance |
 
 Recent mountain amplitude, scalar valley-remap and dominant-support controls were
 rejected. New CPU-only Gaussian-support and base-slope-gated detail controls also

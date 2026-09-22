@@ -1,0 +1,37 @@
+{
+  "gpuAdapter": "swiftshader",
+  "status": "pass",
+  "checks": [
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":-69,\"y\":-35,\"zoom\":10.526315789473685,\"zoomT\":1,\"camera3d\":{\"target\":[-69,-35,0],\"distance\":10,\"pitch\":0.3,\"yaw\":-1.5707963267948966,\"fovY\":0.85,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "dirt-edge uses the single playable-ground RG8 earth-edge resource",
+      "ok": true,
+      "detail": "{\"width\":320,\"height\":240,\"owner\":\"playable-ground\",\"format\":\"rg8-unorm\",\"rangeMeters\":32,\"channels\":[\"earth-union\",\"road\"],\"filters\":[\"linear\",\"linear\"],\"textureResources\":1,\"vistaSamples\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "dirt-edge keeps every measured 10-90 edge feather within 1-2m",
+      "ok": true,
+      "detail": "{\"mudWidthMeters\":1.7468950124429483,\"roadLeftWidthMeters\":1.431255304382419,\"roadRightWidthMeters\":1.1416124979513569,\"displacementBoundMeters\":2.5,\"detachedIslands\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/dirt-edge",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": []
+}

@@ -57,3 +57,9 @@ The pre-merge Three [authored material and cover checkpoint](../assets/slice-13/
 The pre-merge composed critique identified forest density/boundary transitions (07), water/vista seams (08), heavy distant haze (10), isolated cool rock props on beige patches and a weak playable-field/distant-relief join. Reassess these in current production while preserving physical terrain and gameplay. The [density checkpoint](../assets/slice-07/battle-density/README.md) records historical woodland presence and bounded cost, including unresolved full-frame hardware cardbar raster drift.
 
 The old close-camera zoom mismatch and Three readout `depthTest`/`toneMapped` discrepancy describe the retired battle adapter. Main's TypeGPU migration supersedes those implementation diagnoses. Use current production camera telemetry, readout depth/output contracts and performance evidence for new verdicts; do not carry the old findings forward as present-tense defects or infer that final landscape acceptance has passed.
+
+The [current turf harness](../assets/slice-13/turf-current/README.md) replaces
+retired Three readiness/stats with the production TypeGPU owner and exact
+images. Its full run and subsequent publication-race hardening are distinguished
+in the evidence. This closes the stale consumer gate, not the remaining ground
+material, woodland or composed-world quality requirements.

@@ -1,0 +1,319 @@
+{
+  "gpuAdapter": "swiftshader",
+  "status": "pass",
+  "checks": [
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":-360,\"zoom\":8,\"zoomT\":1,\"camera3d\":{\"target\":[0,-360,0],\"distance\":10,\"pitch\":0.3,\"yaw\":-1.5707963267948966,\"fovY\":0.85,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":-360,\"zoom\":8,\"zoomT\":1,\"camera3d\":{\"target\":[0,-360,0],\"distance\":10,\"pitch\":0.3,\"yaw\":-1.5707963267948966,\"fovY\":0.85,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "close full-production frame is deterministic across cold boots",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "close full-production frame keeps blade-field ownership and its production cutoff",
+      "ok": true,
+      "detail": "Full renderer statistics omitted; required assertion result retained."
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/full-close",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":-360,\"zoom\":8,\"zoomT\":1,\"camera3d\":{\"target\":[0,-360,0],\"distance\":10,\"pitch\":0.3,\"yaw\":-1.5707963267948966,\"fovY\":0.85,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":-360,\"zoom\":8,\"zoomT\":1,\"camera3d\":{\"target\":[0,-360,0],\"distance\":10,\"pitch\":0.3,\"yaw\":-1.5707963267948966,\"fovY\":0.85,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "close ground-only control is deterministic across cold boots",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "close ground-only control persistently disables blade geometry",
+      "ok": true,
+      "detail": "{\"only\":\"photoreal-sky,battle-backdrop,battle-terrain,battle-ground,battle-vista,battle-horizon\",\"grassVisible\":false}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "close ground-only frame telemetry is finite",
+      "ok": true,
+      "detail": "{\"sampleCount\":1024000,\"meanLuma\":0.27771573857331894,\"lumaP10\":0.2068417434198494,\"lumaP90\":0.5901820005345266,\"lumaSpanP90P10\":0.38334025711467723,\"midBandRms\":0.008564413788454019,\"oklab\":{\"meanHueDeg\":115.54145013568575,\"meanChroma\":0.04241726436103348,\"hueSpreadDeg\":13.101853807566217,\"chromaSpread\":0.018162240426517918}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/ground-only-close",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":-650,\"zoom\":7.76,\"zoomT\":0.967887323943662,\"camera3d\":{\"target\":[0,-650,0],\"distance\":197.69521904964176,\"pitch\":0.8363559729427115,\"yaw\":-1.5707963267948966,\"fovY\":0.6115695836867723,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":-650,\"zoom\":7.76,\"zoomT\":0.967887323943662,\"camera3d\":{\"target\":[0,-650,0],\"distance\":197.69521904964176,\"pitch\":0.8363559729427115,\"yaw\":-1.5707963267948966,\"fovY\":0.6115695836867723,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "rts full-production frame is deterministic across cold boots",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "rts full-production frame keeps blade-field ownership and its production cutoff",
+      "ok": true,
+      "detail": "Full renderer statistics omitted; required assertion result retained."
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/full-rts",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":-650,\"zoom\":7.76,\"zoomT\":0.967887323943662,\"camera3d\":{\"target\":[0,-650,0],\"distance\":197.69521904964176,\"pitch\":0.8363559729427115,\"yaw\":-1.5707963267948966,\"fovY\":0.6115695836867723,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":-650,\"zoom\":7.76,\"zoomT\":0.967887323943662,\"camera3d\":{\"target\":[0,-650,0],\"distance\":197.69521904964176,\"pitch\":0.8363559729427115,\"yaw\":-1.5707963267948966,\"fovY\":0.6115695836867723,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "rts ground-only control is deterministic across cold boots",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "rts ground-only control persistently disables blade geometry",
+      "ok": true,
+      "detail": "{\"only\":\"photoreal-sky,battle-backdrop,battle-terrain,battle-ground,battle-vista,battle-horizon\",\"grassVisible\":false}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "rts ground-only frame telemetry is finite",
+      "ok": true,
+      "detail": "{\"sampleCount\":1024000,\"meanLuma\":0.21781108378537564,\"lumaP10\":0.2040462771712836,\"lumaP90\":0.22955614186789555,\"lumaSpanP90P10\":0.025509864696611956,\"midBandRms\":0.00440731310423356,\"oklab\":{\"meanHueDeg\":114.68912729499914,\"meanChroma\":0.0550508180585244,\"hueSpreadDeg\":0.5760625331930217,\"chromaSpread\":0.0012595992856310673}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/ground-only-rts",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":0,\"zoom\":1,\"zoomT\":0.06338028169014083,\"camera3d\":{\"target\":[0,0,0],\"distance\":3200,\"pitch\":1.35,\"yaw\":-1.5707963267948966,\"fovY\":0.5,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":0,\"zoom\":1,\"zoomT\":0.06338028169014083,\"camera3d\":{\"target\":[0,0,0],\"distance\":3200,\"pitch\":1.35,\"yaw\":-1.5707963267948966,\"fovY\":0.5,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "topdown full-production frame is deterministic across cold boots",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "topdown full-production frame keeps blade-field ownership and its production cutoff",
+      "ok": true,
+      "detail": "Full renderer statistics omitted; required assertion result retained."
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/full-topdown",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":0,\"zoom\":1,\"zoomT\":0.06338028169014083,\"camera3d\":{\"target\":[0,0,0],\"distance\":3200,\"pitch\":1.35,\"yaw\":-1.5707963267948966,\"fovY\":0.5,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":0,\"zoom\":1,\"zoomT\":0.06338028169014083,\"camera3d\":{\"target\":[0,0,0],\"distance\":3200,\"pitch\":1.35,\"yaw\":-1.5707963267948966,\"fovY\":0.5,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "topdown ground-only control is deterministic across cold boots",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "topdown ground-only control persistently disables blade geometry",
+      "ok": true,
+      "detail": "{\"only\":\"photoreal-sky,battle-backdrop,battle-terrain,battle-ground,battle-vista,battle-horizon\",\"grassVisible\":false}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "topdown ground-only frame telemetry is finite",
+      "ok": true,
+      "detail": "{\"sampleCount\":1024000,\"meanLuma\":0.3347890979570854,\"lumaP10\":0.26606678708188763,\"lumaP90\":0.37963158982870776,\"lumaSpanP90P10\":0.11356480274682013,\"midBandRms\":0.004572356686815406,\"oklab\":{\"meanHueDeg\":150.16720856031827,\"meanChroma\":0.013457871692471946,\"hueSpreadDeg\":62.93559084457467,\"chromaSpread\":0.009770354518272035}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/ground-only-topdown",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":-69,\"y\":-35,\"zoom\":10.526315789473685,\"zoomT\":1,\"camera3d\":{\"target\":[-69,-35,0],\"distance\":10,\"pitch\":0.3,\"yaw\":-1.5707963267948966,\"fovY\":0.85,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "dirt-edge uses the single playable-ground RG8 earth-edge resource",
+      "ok": true,
+      "detail": "{\"width\":320,\"height\":240,\"owner\":\"playable-ground\",\"format\":\"rg8-unorm\",\"rangeMeters\":32,\"channels\":[\"earth-union\",\"road\"],\"filters\":[\"linear\",\"linear\"],\"textureResources\":1,\"vistaSamples\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "dirt-edge keeps every measured 10-90 edge feather within 1-2m",
+      "ok": true,
+      "detail": "{\"mudWidthMeters\":1.7468950124429483,\"roadLeftWidthMeters\":1.431255304382419,\"roadRightWidthMeters\":1.1416124979513569,\"displacementBoundMeters\":2.5,\"detachedIslands\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/dirt-edge",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":-35,\"zoom\":10.526315789473685,\"zoomT\":1,\"camera3d\":{\"target\":[0,-35,0],\"distance\":10,\"pitch\":0.3,\"yaw\":-1.5707963267948966,\"fovY\":0.85,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "road-edge uses the single playable-ground RG8 earth-edge resource",
+      "ok": true,
+      "detail": "{\"width\":320,\"height\":240,\"owner\":\"playable-ground\",\"format\":\"rg8-unorm\",\"rangeMeters\":32,\"channels\":[\"earth-union\",\"road\"],\"filters\":[\"linear\",\"linear\"],\"textureResources\":1,\"vistaSamples\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "road-edge keeps every measured 10-90 edge feather within 1-2m",
+      "ok": true,
+      "detail": "{\"mudWidthMeters\":1.7468950124429483,\"roadLeftWidthMeters\":1.431255304382419,\"roadRightWidthMeters\":1.1416124979513569,\"displacementBoundMeters\":2.5,\"detachedIslands\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/road-edge",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":20,\"y\":0,\"zoom\":9,\"zoomT\":0.826,\"camera3d\":{\"target\":[20,0,0],\"distance\":781.8756296836552,\"pitch\":1.3088490125583994,\"yaw\":0,\"fovY\":0.5079053690308625,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "road-scree-rts uses the single playable-ground RG8 earth-edge resource",
+      "ok": true,
+      "detail": "{\"width\":320,\"height\":240,\"owner\":\"playable-ground\",\"format\":\"rg8-unorm\",\"rangeMeters\":32,\"channels\":[\"earth-union\",\"road\"],\"filters\":[\"linear\",\"linear\"],\"textureResources\":1,\"vistaSamples\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "road-scree-rts keeps every measured 10-90 edge feather within 1-2m",
+      "ok": true,
+      "detail": "{\"mudWidthMeters\":1.7468950124429483,\"roadLeftWidthMeters\":1.431255304382419,\"roadRightWidthMeters\":1.1416124979513569,\"displacementBoundMeters\":2.5,\"detachedIslands\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/road-scree-rts",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":-69,\"y\":-10,\"zoom\":10.526315789473685,\"zoomT\":1,\"camera3d\":{\"target\":[-69,-10,0],\"distance\":10,\"pitch\":0.3,\"yaw\":-1.5707963267948966,\"fovY\":0.85,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "edge-ruler uses the single playable-ground RG8 earth-edge resource",
+      "ok": true,
+      "detail": "{\"width\":320,\"height\":240,\"owner\":\"playable-ground\",\"format\":\"rg8-unorm\",\"rangeMeters\":32,\"channels\":[\"earth-union\",\"road\"],\"filters\":[\"linear\",\"linear\"],\"textureResources\":1,\"vistaSamples\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "edge-ruler keeps every measured 10-90 edge feather within 1-2m",
+      "ok": true,
+      "detail": "{\"mudWidthMeters\":1.7468950124429483,\"roadLeftWidthMeters\":1.431255304382419,\"roadRightWidthMeters\":1.1416124979513569,\"displacementBoundMeters\":2.5,\"detachedIslands\":0}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "snapshot ground-turf/edge-ruler",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "turf capture uses a completed production TypeGPU camera",
+      "ok": true,
+      "detail": "{\"x\":0,\"y\":-650,\"zoom\":7.76,\"zoomT\":0.967887323943662,\"camera3d\":{\"target\":[0,-650,0],\"distance\":197.69521904964176,\"pitch\":0.8363559729427115,\"yaw\":-1.5707963267948966,\"fovY\":0.6115695836867723,\"aspect\":1.6,\"near\":1}}"
+    },
+    {
+      "scenario": "battle-ground-turf",
+      "name": "ground substrate returns pixel-identically after a camera pan",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": []
+}

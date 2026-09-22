@@ -500,3 +500,13 @@ confidence medium rather than establishing final landscape acceptance.
   Use a fixed Aguntum pixel from the reviewed image, not a projected coordinate
   produced by the code under test. The gate therefore fails if the visible city
   and the input target diverge, even when a projection helper shares that bug.
+
+## Regional preview ownership
+
+- **Sound, high confidence — natural preview follows the game; diagnostic clay stays controlled.**
+  A regional beauty preview must display the production terrain/material/lighting
+  owner, so fixing the game also fixes its preview. Keep fixed-resolution clay
+  and adjacent-surface fixtures for isolating geometry; their sampling controls
+  are diagnostic inputs rather than an alternate natural rendering mode. This
+  deliberately accepts the production world's water and outer-terrain response
+  instead of preserving a prettier but divergent preview.

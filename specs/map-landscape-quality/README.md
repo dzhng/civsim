@@ -16,10 +16,11 @@ fault injection now follows snapshots so it cannot perturb later card paint.
 The camera uses CSS zoom consistently across DPR, and an independent fixed-pixel
 click selects a real raised Aguntum city at both densities. This is scoped input
 and camera evidence; broader lifecycle, label/scenery DPR policy and final art
-remain open. The regional lab preview now delegates natural mode to the production world
-in the pending source diff; clay/surface controls remain explicit diagnostics.
-Typecheck, build and independent code review pass. Visual comparison and exact
-repeat are required before committing or accepting that retirement.
+remain open. The [regional natural preview](assets/slice-14-production/preview-owner/README.md)
+now uses the production world, with matched visual review and exact repeats of both regional images.
+Clay/surface controls remain explicit diagnostics. The remaining CSS-density
+policy correction has passed its full browser comparison and strict six-image
+repeat; baseline/evidence closeout is the immediate pickup.
 
 The [joined water pass](assets/slice-08/battle-ocean-join/README.md) now removes
 the mapC field/ocean intersection, shares their near-edge response, and passes
@@ -29,10 +30,12 @@ for distant glints. Flat water detail, soft coastal fringes and final compositio
 remain open; do not spend another spectrum-polish pass before the mountain test.
 The direction shuffle was rejected on actual images despite better isotropy.
 
-Server5193 contains the current rebuilt shelf/camera checkpoint. The pending
-preview-owner build is under `throwaway/preview-owner-dist`, with symlinks to
-existing public assets instead of copied assets. Finish the active turf software
-run before switching the single capture lane to that build. Obsolete previews
+The capture lane is comparing the pending preview-owner and CSS-density fixes
+against matched controls on5193. Both builds use symlinks to existing public
+assets; the retired shelf build is removed. The turf software run completed its
+functional/cold-boot gates, but canonical images and a corrected grass-bearing
+isolation wait remain unaccepted. Inspect `throwaway/active-pickup.txt` and live
+processes before switching the single capture lane. Obsolete previews
 on5188–5192 and their builds are removed; committed evidence retains comparisons.
 Inspect live processes before capturing or rebuilding; keep one GPU lane.
 

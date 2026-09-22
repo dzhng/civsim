@@ -1,5 +1,6 @@
 import * as THREE from "three/webgpu";
 import { vec3 } from "three/tsl";
+import { PhotorealCampaignWorld } from "@packages/photoreal-renderer/src/campaign/campaignWorld";
 import { PhotorealWorld } from "@packages/photoreal-renderer/src/world";
 import { applyCivsimEnvironment } from "@packages/photoreal-renderer/src/environment";
 import { applyCamera3d } from "@packages/photoreal-renderer/src/cameraBridge";
@@ -13,20 +14,23 @@ import { loadRockDetailMap } from "@packages/photoreal-renderer/src/landscape/ro
 import { PhotorealScenery } from "@packages/photoreal-renderer/src/landscape/sceneryLayer";
 import { CIVSIM_ENVIRONMENTS } from "@packages/game-renderer/src/environment/environment";
 import { buildCampaignLandscape } from "@packages/game-renderer/src/terrain/campaignLandscape";
-import { campaignMountainBandRaster } from "@packages/game-renderer/src/terrain/campaignSource";
+import {
+  campaignMountainBandRaster,
+  snapshotCampaignLandscape,
+} from "@packages/game-renderer/src/terrain/campaignSource";
 import { createSurfaceView } from "@packages/game-renderer/src/terrain/surface";
 import { LANDSCAPE_REGIONS, coastalRidgeFixture } from "./landscapeFixtures";
 import { chartCamera3d, screenRay } from "@packages/renderer-core/src/camera3d";
 import { TerrainField, TEMPERATE_Y_KM } from "../../../../web/src/campaign/terrain";
 import {
   buildCampaignSceneryCandidates,
+  campaignScenery,
   buildCampaignWoodlandCandidates,
 } from "@packages/game-renderer/src/campaign/scenery";
 import { loadCampaignData } from "../../../../web/src/campaign/data";
 import { type LabContext, labRouteLifetime, numberParam, publish, reportTable } from "../labShell";
 
-/** Regional migration spike. Reuses the shared terrain material, physical environment,
- * camera bridge and trees over real campaign geography; no game state needed. */
+/** Natural regions use the production world; fixed meshes remain clay/surface controls. */
 export async function route(ctx: LabContext) {
   const scope = labRouteLifetime();
   try {
@@ -42,6 +46,14 @@ export async function route(ctx: LabContext) {
     center[0] = numberParam(ctx.params, "x", center[0]);
     center[1] = numberParam(ctx.params, "y", center[1]);
     const clay = ctx.params.get("clay") === "1";
+    const candidates = data
+      ? buildCampaignSceneryCandidates(data, field, false, TEMPERATE_Y_KM)
+      : buildCampaignWoodlandCandidates(field, TEMPERATE_Y_KM);
+    if (data && !clay) {
+      await naturalRegion(ctx, scope, field, candidates, center, preset.zoom);
+      return;
+    }
+    // Fixed sampling is a diagnostic control; natural views use production residency.
     const cell = numberParam(ctx.params, "cell", 2);
     const landscapes = (isFixture ? [-preset.radius, preset.radius] : [0]).map((offset) =>
       buildCampaignLandscape(field, [center[0] + offset, center[1]], preset.radius, cell),
@@ -50,9 +62,7 @@ export async function route(ctx: LabContext) {
       landscapes[0].surface,
       landscapes.slice(1).map((s) => s.surface),
     );
-    const candidates = data
-      ? buildCampaignSceneryCandidates(data, field, false, TEMPERATE_Y_KM)
-      : buildCampaignWoodlandCandidates(field, TEMPERATE_Y_KM);
+
     const trees = candidates.flatMap((tree) => {
       const hit = surface.sampleRendered(tree.x, tree.y);
       return hit ? [{ ...tree, z: hit.position[2] }] : [];
@@ -163,7 +173,7 @@ export async function route(ctx: LabContext) {
     scope.own(() => window.removeEventListener("resize", draw));
     ctx.status.innerHTML = reportTable({
       route: "campaign-landscape",
-      status: "terrain migration spike",
+      status: clay ? "fixed-sampling clay control" : "adjacent-surface control",
       terrainTriangles,
       trees: trees.length,
       mountains: "continuous height field",
@@ -174,4 +184,120 @@ export async function route(ctx: LabContext) {
     scope.release();
     throw error;
   }
+}
+
+async function naturalRegion(
+  ctx: LabContext,
+  scope: ReturnType<typeof labRouteLifetime>,
+  field: Parameters<typeof snapshotCampaignLandscape>[0],
+  candidates: Parameters<typeof campaignScenery>[0],
+  center: [number, number],
+  defaultZoom: number,
+) {
+  const world = await PhotorealCampaignWorld.createLandscape(
+    ctx.canvas,
+    snapshotCampaignLandscape(field),
+    {
+      objects: [],
+      geography: {
+        roadMeshVertices: new Float32Array(),
+        roadAnchors: new Float32Array(),
+        lineVertices: new Float32Array(),
+        borderVertices: new Float32Array(),
+      },
+      territory: [0.48, 0.48, 0.35],
+      fogAt: () => 0,
+    },
+  );
+  scope.own(() => world.dispose());
+  world.world.sunLight!.castShadow = ctx.params.get("shadows") !== "0";
+  const zoom = numberParam(ctx.params, "zoom", defaultZoom);
+  let frame = 0,
+    generation = 0,
+    stopped = false;
+  scope.own(() => {
+    stopped = true;
+    cancelAnimationFrame(frame);
+  });
+  const draw = async () => {
+    if (stopped) return;
+    const current = generation;
+    const width = ctx.canvas.clientWidth,
+      height = ctx.canvas.clientHeight;
+    world.prepareTerrain({ x: center[0], y: center[1], zoom, width, height });
+    const residency = world.residencyStats()!;
+    if (residency.failed.length || residency.budgetBlockedKeys.length)
+      throw new Error(`Campaign preview terrain failed: ${JSON.stringify(residency)}`);
+    const pose = chartCamera3d(
+      { x: center[0], y: center[1], zoom, pitch: numberParam(ctx.params, "pitch", 0.55) },
+      height,
+    );
+    pose.aspect = width / height;
+    pose.target = [
+      center[0],
+      center[1],
+      numberParam(ctx.params, "targetZ", world.surface.sampleRendered(...center)!.position[2]),
+    ];
+    world.setScenery(
+      campaignScenery(candidates, [], zoom, {
+        x: center[0],
+        y: center[1],
+        radiusKm: Math.hypot(
+          width / (2 * zoom),
+          height / (2 * zoom * Math.max(0.2, Math.cos(pose.pitch))),
+        ),
+      }),
+    );
+    world.render(pose, width, height, 1, 0);
+    if (!residency.ready) {
+      frame = requestAnimationFrame(redraw);
+      return;
+    }
+    const revision = world.stats().surfaceRevision;
+    // Shadow nodes update once per animation frame. Draw the completed resident
+    // set again on a fresh frame before waiting for its actual GPU submission.
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    if (stopped || current !== generation) return;
+    world.render(pose, width, height, 1, 0);
+    await world.world.settlePresentedFrame();
+    if (stopped || current !== generation) return;
+    if (revision !== world.stats().surfaceRevision)
+      throw new Error("Campaign preview terrain changed while settling its frame");
+    const stats = world.stats();
+    publish("campaign-landscape", true, {
+      ...stats,
+      residency,
+      surface: {
+        revision: world.surface.ownerAt(...center).revision,
+        centerRay: world.surface.raycastRendered(screenRay(pose, 0, 0)),
+      },
+      camera: {
+        pose,
+        worldMatrix: world.camera.matrixWorld.toArray(),
+        projectionMatrix: world.camera.projectionMatrix.toArray(),
+      },
+      center,
+    });
+    ctx.status.innerHTML = reportTable({
+      route: "campaign-landscape",
+      status: "production landscape composition",
+      terrain: "production residency",
+      trees: stats.sceneryAnchors.length,
+    });
+  };
+  const redraw = () => {
+    void draw().catch((error) => {
+      scope.release();
+      throw error;
+    });
+  };
+  const resize = () => {
+    generation++;
+    window.__rendererLabReady = false;
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(redraw);
+  };
+  window.addEventListener("resize", resize);
+  scope.own(() => window.removeEventListener("resize", resize));
+  await draw();
 }

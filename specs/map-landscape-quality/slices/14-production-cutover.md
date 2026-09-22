@@ -93,6 +93,8 @@ rendered behavior changes are intended.
 
 The [test-only vista/join wrappers](../assets/slice-14-production/retired-vista/README.md)
 are also removed; their meaningful texture/seam checks follow current consumers.
-The regional campaign preview's independent composition remains to migrate.
+The [regional natural preview](../assets/slice-14-production/preview-owner/README.md)
+now delegates to the production composition and repeats exactly. Fixed clay and
+adjacent-surface controls retain their explicit diagnostic purpose.
 Registered raw model/UI labs are live consumers and must not be deleted as if
 they were dead production code.

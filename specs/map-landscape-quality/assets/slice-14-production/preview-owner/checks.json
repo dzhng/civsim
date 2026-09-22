@@ -1,0 +1,225 @@
+{
+  "gpuAdapter": "swiftshader",
+  "headful": false,
+  "checks": [
+    {
+      "scenario": "campaign-landscape",
+      "name": "alps: production terrain residency and seated trees render",
+      "ok": true,
+      "detail": {
+        "substrate": "threejs-webgpu-tsl",
+        "projection": "camera3d",
+        "depth": {
+          "owner": "three-webgpu",
+          "reversed": true
+        },
+        "camera": {
+          "pose": {
+            "target": [
+              -450,
+              990,
+              30.683677673339844
+            ],
+            "distance": 567.0770340724023,
+            "pitch": 1.0207963267948965,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.55,
+            "aspect": 1.6,
+            "near": 1
+          },
+          "worldMatrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0.8525245220595057,
+            0.5226872289306593,
+            0,
+            0,
+            -0.5226872289306593,
+            0.8525245220595057,
+            0,
+            -450,
+            693.596076470479,
+            514.1307551168366,
+            1
+          ],
+          "projectionMatrix": [
+            2.2151446643453205,
+            0,
+            0,
+            0,
+            0,
+            3.544231462952513,
+            0,
+            0,
+            0,
+            0,
+            1.00000010000001e-07,
+            -1,
+            0,
+            0,
+            1.00000010000001,
+            0
+          ]
+        },
+        "terrain": {
+          "allocationBytes": 104837379,
+          "cpuBytes": 65749947,
+          "gpuBytes": 39087432,
+          "peakAllocationBytes": 126204363,
+          "revision": 16,
+          "residentTiles": 16,
+          "geometryBytes": 39087432,
+          "lastAdmissionUploadBytes": 10594724,
+          "lastAdmissionCpuMs": 8.390000000596046
+        },
+        "sceneryCount": 2454,
+        "ready": true,
+        "failed": [],
+        "centerRay": {
+          "position": [
+            -450,
+            989.8886341111776,
+            30.792212301610608
+          ],
+          "normal": [
+            0.30878579447555754,
+            0.6638373602473826,
+            0.6811543821116366
+          ],
+          "revision": "-4:7:2:9",
+          "triangle": 5950,
+          "barycentric": [
+            0.055682944411216795,
+            0.9443170555887832,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "campaign-landscape",
+      "name": "alps: GPU validation is clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-landscape",
+      "name": "snapshot landscape-alps",
+      "ok": true,
+      "detail": "baseline created"
+    },
+    {
+      "scenario": "campaign-landscape",
+      "name": "italy: production terrain residency and seated trees render",
+      "ok": true,
+      "detail": {
+        "substrate": "threejs-webgpu-tsl",
+        "projection": "camera3d",
+        "depth": {
+          "owner": "three-webgpu",
+          "reversed": true
+        },
+        "camera": {
+          "pose": {
+            "target": [
+              -325,
+              640,
+              0
+            ],
+            "distance": 567.0770340724023,
+            "pitch": 1.0207963267948965,
+            "yaw": -1.5707963267948966,
+            "fovY": 0.55,
+            "aspect": 1.6,
+            "near": 1
+          },
+          "worldMatrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0.8525245220595057,
+            0.5226872289306593,
+            0,
+            0,
+            -0.5226872289306593,
+            0.8525245220595057,
+            0,
+            -325,
+            343.59607647047903,
+            483.44707744349677,
+            1
+          ],
+          "projectionMatrix": [
+            2.2151446643453205,
+            0,
+            0,
+            0,
+            0,
+            3.544231462952513,
+            0,
+            0,
+            0,
+            0,
+            1.00000010000001e-07,
+            -1,
+            0,
+            0,
+            1.00000010000001,
+            0
+          ]
+        },
+        "terrain": {
+          "allocationBytes": 104901862,
+          "cpuBytes": 65721130,
+          "gpuBytes": 39180732,
+          "peakAllocationBytes": 126889174,
+          "revision": 16,
+          "residentTiles": 16,
+          "geometryBytes": 39180732,
+          "lastAdmissionUploadBytes": 10598124,
+          "lastAdmissionCpuMs": 12.034999996423721
+        },
+        "sceneryCount": 1243,
+        "ready": true,
+        "failed": [],
+        "centerRay": {
+          "position": [
+            -325,
+            639.9977355931635,
+            0
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "revision": "-3:4:2:11",
+          "triangle": 9999,
+          "barycentric": [
+            0.0011322034182512652,
+            0.49886779658174873,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "scenario": "campaign-landscape",
+      "name": "italy: GPU validation is clean",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-landscape",
+      "name": "snapshot landscape-italy",
+      "ok": true,
+      "detail": "baseline created"
+    }
+  ],
+  "pageErrors": []
+}

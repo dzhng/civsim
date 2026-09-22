@@ -441,7 +441,11 @@ export async function createTypegpuBattleScene(
             sun,
           );
           check();
-          terrain.setFrame(input.camera.zoom, grass.snapshot().terrainDetailStrength);
+          terrain.setFrame(
+            input.camera.zoom,
+            grass.snapshot().terrainDetailStrength,
+            camera.projection,
+          );
           rememberCamera(input.camera, input.time, true);
           prepared = true;
         });

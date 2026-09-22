@@ -1,8 +1,10 @@
+import type { ProjectionFootprint } from "../../../renderer-core/src/camera3d";
 import { BATTLE_REVIEW_VISIBILITY } from "../sceneTypes";
 import {
   prepareBattleTerrain,
   terrainPickingMeshes,
   battleGroundInputs,
+  battleEarthEdges,
 } from "../terrainScenePreparation";
 import type { BattleTerrainInput, BattleReviewVisibility } from "../sceneTypes";
 import {
@@ -197,6 +199,7 @@ export async function createTypegpuBattleTerrainScene(
           scenery: null,
           vistaBands: null,
           groundCover: null,
+          earthEdges: null,
           groundStyle: null,
           slopeBands: null,
           rockDetail: null,
@@ -208,9 +211,10 @@ export async function createTypegpuBattleTerrainScene(
         generation,
         replacing: pending,
         groundTriangles: committed.ground.stats().groundTriangles,
-        scenery: committed.scenery.stats().scenery,
+        ...committed.scenery.stats(),
         vistaBands: committed.opaqueVista.length + committed.transparentVista.length,
         groundCover: committed.cover,
+        earthEdges: battleEarthEdges(committed.data.ground.earthDistance),
         groundStyle: clay ? ("clay" as const) : ("beauty" as const),
         rockDetail: { ...rockDetail!.stats },
         slopeBands: committed.slopeBands ? { ...committed.slopeBands } : null,
@@ -229,11 +233,12 @@ export async function createTypegpuBattleTerrainScene(
         water: committed.water.stats(),
       };
     },
-    setFrame(nextZoom: number, terrainDetailStrength: number) {
+    setFrame(nextZoom: number, terrainDetailStrength: number, projection: ProjectionFootprint) {
       check();
       zoom = nextZoom;
       strength = terrainDetailStrength;
       current().setFrame(zoom, strength);
+      current().scenery.prepare(projection);
     },
     drawOpaque(pass: TgpuRenderPass, visible: BattleReviewVisibility = BATTLE_REVIEW_VISIBILITY) {
       const s = current();

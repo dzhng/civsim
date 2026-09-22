@@ -345,3 +345,35 @@ full rock faces or adding gameplay slope metadata. Authored scree still excludes
 turf. This carries the accepted Three interpretation across the backend boundary
 and leaves physical height, passability and recipe identity with their existing
 owners.
+
+
+## Projected tree detail adoption
+
+### Sound — medium confidence: different detail profiles, one selection rule
+
+A tree that occupies a modest part of a battle view still needs leaf edges to
+read as a tree. Reusing campaign's larger activation threshold made nearby battle
+conifers look like smooth cones, so that candidate was rejected. Both worlds now
+use the same projected-size calculation and hysteresis (a separate enter/leave
+threshold that prevents toggling near a boundary), with battle retaining leaves
+at smaller sizes. Campaign's accepted profile stays unchanged. The spec delegated
+mode-specific thresholds; this record preserves the rejected shared-threshold
+assumption and the reason for the correction. Hardware cost remains to be measured.
+
+### Sound — medium confidence: permanent canopies and preallocated leaf buckets
+
+Each species keeps its closed canopy drawn while a second bucket adds only leaf
+triangles nearby. Three shape variants share each draw through instance selection,
+rather than multiplying species draws. This spends more static geometry and
+instance capacity but avoids rebuilding or allocating while the camera moves.
+The plan left batching and capacity ownership open. The existing atlas and leaf
+cutout remain shared by visible and shadow passes; no new texture pool is needed.
+
+### Sound — high confidence: derive verification from committed owners
+
+The terrain report exposes existing earth-distance metadata and actual scenery
+counts from the installed generation. It does not recreate those values in a
+preview cache. Camera checks read the completed frame's camera and the actual
+clamped camera separately, so a requested URL position cannot masquerade as the
+rendered view. These are verification boundaries required by the migrated renderer,
+not new game state.

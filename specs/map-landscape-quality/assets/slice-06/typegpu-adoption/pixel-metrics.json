@@ -1,0 +1,14 @@
+{
+  "forest-near": {
+    "changedPixels": 399038,
+    "rgbMAE": 5.403814778645834
+  },
+  "forest-far": {
+    "changedPixels": 72295,
+    "rgbMAE": 1.2518444010416667
+  },
+  "forest-close": {
+    "changedPixels": 271427,
+    "rgbMAE": 2.4658720703125
+  }
+}

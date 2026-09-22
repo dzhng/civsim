@@ -55,6 +55,7 @@ vi.mock("../../../packages/battle-renderer/src/world/backdrop", () => ({
   createTypegpuBackdrop: async () => layer(),
 }));
 vi.mock("../../../packages/battle-renderer/src/terrainScenePreparation", () => ({
+  battleEarthEdges: () => null,
   prepareBattleTerrain: (input: {
     grid: object;
     cover: string;
@@ -157,6 +158,7 @@ test("committed terrain content is read from the generation's own owners", async
     scenery: 3,
     vistaBands: 3,
     groundCover: "green-grass",
+    earthEdges: null,
     groundStyle: "beauty",
     slopeBands: null,
     rockDetail: state.rock.stats,
@@ -178,6 +180,7 @@ test("committed terrain content is read from the generation's own owners", async
     scenery: 5,
     vistaBands: 1,
     groundCover: "green-grass",
+    earthEdges: null,
     groundStyle: "beauty",
     slopeBands: null,
     rockDetail: state.rock.stats,
@@ -208,6 +211,7 @@ test("committed terrain content is read from the generation's own owners", async
     scenery: null,
     vistaBands: null,
     groundCover: null,
+    earthEdges: null,
     groundStyle: null,
     slopeBands: null,
     vista: null,

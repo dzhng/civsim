@@ -67,3 +67,31 @@ describe("shared tree crown coverage", () => {
     expect(scene.children).toHaveLength(0);
   });
 });
+
+it("placed tree variants survive reorder and subset uploads in the campaign consumer", () => {
+  const scene = new THREE.Scene(),
+    scenery = new PhotorealScenery(scene, "canopy");
+  const trees = Array.from({ length: 8 }, (_, i) => ({
+    kind: "broadleaf" as const,
+    x: i * 1.137,
+    y: i * -0.319,
+    size: 1,
+  }));
+  const assignments = () => {
+    const mesh = scene.children.find(
+      (child) => child.name === "landscape-scenery-broadleaf-canopy",
+    ) as THREE.Mesh;
+    const pose = mesh.geometry.getAttribute("instPose"),
+      shape = mesh.geometry.getAttribute("instShape");
+    return Array.from(
+      { length: (mesh.geometry as THREE.InstancedBufferGeometry).instanceCount },
+      (_, i) => [pose.getX(i), shape.getX(i)] as const,
+    );
+  };
+  scenery.upload(trees);
+  const original = new Map(assignments());
+  expect(new Set(original.values()).size).toBeGreaterThan(1);
+  scenery.upload([...trees].reverse().slice(0, 4));
+  for (const [x, variant] of assignments()) expect(variant).toBe(original.get(x));
+  scenery.dispose();
+});

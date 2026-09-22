@@ -33,16 +33,25 @@ export function battleGroundInputs(ground: ReturnType<typeof buildBattleTerrainD
     surfaceColor: ground.surfaceColor,
     earthDistance: {
       data: sdf.data,
-      width: sdf.width,
-      height: sdf.height,
-      owner: "playable-ground",
-      format: "rg8-unorm",
-      rangeMeters: sdf.rangeMeters,
-      channels: ["earth-union", "road"],
-      filters: ["linear", "linear"],
-      textureResources: 1,
-      vistaSamples: 0,
+      ...battleEarthEdges(sdf),
     },
+  };
+}
+
+/** Cheap metadata only: no geometry copies or pixel payload in frame reports. */
+export function battleEarthEdges(
+  sdf: ReturnType<typeof buildBattleTerrainData>["ground"]["earthDistance"],
+) {
+  return {
+    width: sdf.width,
+    height: sdf.height,
+    owner: "playable-ground",
+    format: "rg8-unorm",
+    rangeMeters: sdf.rangeMeters,
+    channels: ["earth-union", "road"],
+    filters: ["linear", "linear"],
+    textureResources: 1,
+    vistaSamples: 0,
   };
 }
 

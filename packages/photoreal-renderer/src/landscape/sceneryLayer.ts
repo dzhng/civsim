@@ -1,3 +1,13 @@
+import {
+  CAMPAIGN_SCENERY_DETAIL,
+  sceneryVariant,
+  sceneryPixels,
+  sceneryDetailActive,
+  sceneryLeafFade,
+  sceneryShapes,
+  sceneryLeafIndices,
+} from "../../../game-renderer/src/terrain/sceneryDetail";
+import { projectionFootprint } from "../../../renderer-core/src/camera3d";
 import type { SceneryInstance } from "../../../game-renderer/src/terrain/scenery";
 import { RENDER_ORDER } from "../renderOrder";
 import type { MeshData } from "../../../game-renderer/src/models/shared/meshBuilder";
@@ -54,7 +64,6 @@ export class PhotorealScenery {
   private detailActive: boolean[] = [];
   private leafFade: number[] = [];
   private readonly modelHeights = new Map<SceneryPropId, number>();
-  private readonly center = new THREE.Vector3();
   private readonly leafMap: THREE.DataTexture;
   private readonly material: THREE.MeshStandardNodeMaterial;
   private total = 0;
@@ -105,19 +114,19 @@ export class PhotorealScenery {
    * A return through the threshold band retains the same representation. */
   prepareRender(camera: THREE.PerspectiveCamera, viewportHeight: number): void {
     if (this.detail) return;
-    const pixelsPerUnit = viewportHeight * camera.projectionMatrix.elements[5] * 0.5;
+    const projection = projectionFootprint(
+      camera.matrixWorldInverse.elements,
+      camera.projectionMatrix.elements,
+      viewportHeight,
+      camera.near,
+    );
     let changed = false;
     for (let i = 0; i < this.instances.length; i++) {
       const inst = this.instances[i];
       if (SCENERY_PROP_MODELS[inst.kind].family !== "tree") continue;
-      this.center.set(inst.x, inst.y, inst.z ?? 0).applyMatrix4(camera.matrixWorldInverse);
-      const pixels =
-        this.center.z < 0
-          ? ((inst.height ?? inst.size) * this.modelHeights.get(inst.kind)! * pixelsPerUnit) /
-            Math.max(0.01, -this.center.z)
-          : 0;
-      const next = pixels > (this.detailActive[i] ? 55 : 70);
-      this.leafFade[i] = Math.min(1, Math.max(0, (pixels - 50) / 70));
+      const pixels = sceneryPixels(inst, this.modelHeights.get(inst.kind)!, projection);
+      const next = sceneryDetailActive(pixels, this.detailActive[i], CAMPAIGN_SCENERY_DETAIL);
+      this.leafFade[i] = sceneryLeafFade(pixels, CAMPAIGN_SCENERY_DETAIL);
       if (next !== this.detailActive[i]) {
         this.detailActive[i] = next;
         changed = true;
@@ -220,14 +229,6 @@ export class PhotorealScenery {
   }
 }
 
-/** Identity comes from the placed tree, never its current tile-array index. */
-function sceneryVariant(inst: SceneryInstance): number {
-  let h =
-    Math.imul(Math.round(inst.x * 1000), 73856093) ^ Math.imul(Math.round(inst.y * 1000), 19349663);
-  h ^= h >>> 16;
-  return (h >>> 0) % TREE_VARIANTS;
-}
-
 function sceneryGeometry(
   models: MeshData["opaque"][],
   leavesOnly = false,
@@ -246,12 +247,9 @@ function sceneryGeometry(
     colors.set(vertices.subarray(o + 6, o + 10), i * 4);
   }
   const shapeStride = (TREE_VARIANTS - 1) * 6;
-  const shapeData = new THREE.InterleavedBuffer(new Float32Array(count * shapeStride), shapeStride);
+  const shapeData = new THREE.InterleavedBuffer(sceneryShapes(models), shapeStride);
   for (let variant = 1; variant < TREE_VARIANTS; variant++) {
-    const model = models[variant] ?? models[0];
     const offset = (variant - 1) * 6;
-    for (let i = 0; i < count; i++)
-      shapeData.array.set(model.vertices.subarray(i * 10, i * 10 + 6), i * shapeStride + offset);
     geo.setAttribute(
       `shapePosition${variant}`,
       new THREE.InterleavedBufferAttribute(shapeData, 3, offset),
@@ -273,11 +271,7 @@ function sceneryGeometry(
     new THREE.BufferAttribute(uvs ?? new Float32Array(count * 2).fill(-1), 2),
   );
   if (leavesOnly) {
-    const leafIndices: number[] = [];
-    for (let i = 0; i < indices.length; i += 3)
-      if ((uvs?.[indices[i] * 2] ?? -1) >= 0)
-        leafIndices.push(indices[i], indices[i + 1], indices[i + 2]);
-    indices = new Uint16Array(leafIndices);
+    indices = sceneryLeafIndices(models[0]);
   }
   geo.setIndex(new THREE.BufferAttribute(indices, 1));
   geo.instanceCount = 0;

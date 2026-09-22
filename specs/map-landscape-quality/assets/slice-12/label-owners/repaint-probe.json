@@ -1,0 +1,98 @@
+[
+  {
+    "boot": 0,
+    "cycle": 0,
+    "mode": "visibility",
+    "preDrift": 0,
+    "hidden": 7572,
+    "restored": 0
+  },
+  {
+    "boot": 0,
+    "cycle": 1,
+    "mode": "visibility",
+    "preDrift": 0,
+    "hidden": 7572,
+    "restored": 0
+  },
+  {
+    "boot": 0,
+    "cycle": 2,
+    "mode": "visibility",
+    "preDrift": 0,
+    "hidden": 7572,
+    "restored": 0
+  },
+  {
+    "boot": 0,
+    "cycle": 3,
+    "mode": "paint",
+    "preDrift": 0,
+    "hidden": 7572,
+    "restored": 0
+  },
+  {
+    "boot": 0,
+    "cycle": 4,
+    "mode": "paint",
+    "preDrift": 0,
+    "hidden": 7572,
+    "restored": 0
+  },
+  {
+    "boot": 0,
+    "cycle": 5,
+    "mode": "paint",
+    "preDrift": 0,
+    "hidden": 7572,
+    "restored": 0
+  },
+  {
+    "boot": 1,
+    "cycle": 0,
+    "mode": "visibility",
+    "preDrift": 0,
+    "hidden": 7572,
+    "restored": 0
+  },
+  {
+    "boot": 1,
+    "cycle": 1,
+    "mode": "visibility",
+    "preDrift": 0,
+    "hidden": 7572,
+    "restored": 0
+  },
+  {
+    "boot": 1,
+    "cycle": 2,
+    "mode": "visibility",
+    "preDrift": 0,
+    "hidden": 7572,
+    "restored": 0
+  },
+  {
+    "boot": 1,
+    "cycle": 3,
+    "mode": "paint",
+    "preDrift": 0,
+    "hidden": 7572,
+    "restored": 0
+  },
+  {
+    "boot": 1,
+    "cycle": 4,
+    "mode": "paint",
+    "preDrift": 0,
+    "hidden": 7572,
+    "restored": 0
+  },
+  {
+    "boot": 1,
+    "cycle": 5,
+    "mode": "paint",
+    "preDrift": 0,
+    "hidden": 7572,
+    "restored": 0
+  }
+]

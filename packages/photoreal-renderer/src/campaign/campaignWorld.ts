@@ -112,6 +112,7 @@ export class PhotorealCampaignWorld {
   private residency?: CampaignTerrainResidency;
   readonly camera = new THREE.PerspectiveCamera();
   private readonly frame = createLandscapeFrameUniforms();
+  private readonly aerialStrength = uniform(1);
   private readonly standards: PhotorealStandardLayer;
   private readonly scenery: PhotorealScenery;
   private readonly cities: CampaignCityLayer;
@@ -189,6 +190,11 @@ export class PhotorealCampaignWorld {
     return this.terrain.surface;
   }
 
+  /** Persistent world policy: camera preparation and drawing share this depth. */
+  setAerialStrength(strength: number) {
+    this.aerialStrength.value = strength;
+  }
+
   setFrameCamera(pose: Camera3DParams, width: number, height: number, dpr = 1) {
     this.pose = pose;
     this.width = width;
@@ -239,6 +245,7 @@ export class PhotorealCampaignWorld {
     this.markers = new CampaignMarkerLayer(world.screenUi);
     const environment = applyCivsimEnvironment(world, CIVSIM_ENVIRONMENTS.golden, {
       aerialObserver: vec3(this.frame.focus, 0),
+      aerialStrength: this.aerialStrength,
     });
     const sun = world.sunLight!;
     const domain = composition.surface.domain;

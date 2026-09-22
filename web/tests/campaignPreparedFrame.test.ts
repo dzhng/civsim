@@ -22,6 +22,7 @@ test("a newly revealed city has presented body bounds before its first card layo
     camera: new THREE.PerspectiveCamera(),
     world: { resize() {} },
     frame: { focus: { value: new THREE.Vector2() } },
+    aerialStrength: { value: 1 },
     setEntityFrame(frame: CampaignEntityFrame) {
       cities.upload(frame.entities, surface);
     },

@@ -1,3 +1,7 @@
+import {
+  campaignPitch,
+  campaignPhysicalViewWeight,
+} from "@packages/game-renderer/src/campaign/cameraPolicy";
 import { campaignFactionBorderVertices } from "@packages/game-renderer/src/campaign/borderGeometry";
 import type { SceneryInstance } from "../../../packages/game-renderer/src/terrain/scenery";
 import {
@@ -59,16 +63,9 @@ import {
   campaignScenery,
   tallySceneryCandidates,
 } from "@packages/game-renderer/src/campaign/scenery";
-import { roundMs, smoothstep } from "@packages/renderer-core/src/math";
+import { roundMs } from "@packages/renderer-core/src/math";
 
 export const MAX_CAMPAIGN_ZOOM = 8;
-
-/** Zoom band of the camera tilt: pitch eases in from START and completes at
- * FULL (campaignPitch's smoothstep edges). FULL doubles as the card contract
- * boundary: once the camera rides fully tilted, every on-screen own-city card
- * must be visible (nudged on collision, never culled). */
-export const CAMPAIGN_TILT_START_ZOOM = 0.62;
-export const CAMPAIGN_FULL_TILT_ZOOM = 1.6;
 
 export interface CampaignRendererOptions {
   graphics?: GraphicsSettings;
@@ -582,6 +579,9 @@ export class CampaignRenderer {
       // The real 3D perspective camera — the one projection owner.
       camera3d: this.cameraParamsFor(cam),
     };
+    this.world?.setAerialStrength(
+      campaignPhysicalViewWeight(cam.scale / (window.devicePixelRatio || 1)),
+    );
     this.world?.setFrameCamera(
       this.currentCamera.camera3d,
       this.canvas.clientWidth,
@@ -708,13 +708,6 @@ export class CampaignRenderer {
     this.updateTerritory(territory);
     publishStats(this.stats());
   }
-}
-
-const CAMPAIGN_CLOSE_PITCH = 0.82;
-
-function campaignPitch(zoom: number) {
-  const t = smoothstep(CAMPAIGN_TILT_START_ZOOM, CAMPAIGN_FULL_TILT_ZOOM, zoom);
-  return CAMPAIGN_CLOSE_PITCH * t;
 }
 
 function clamp(value: number, min: number, max: number) {

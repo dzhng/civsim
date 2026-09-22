@@ -89,6 +89,7 @@ export function aerialPerspectiveNode(
   sky: SkyModel,
   env: CivsimEnvironment,
   observer?: Node<"vec3">,
+  strength: Node<"float"> = float(1),
 ): Vec4Node {
   const params = aerialParams(env);
   const { horizonFadeStart, horizonFadeEnd } = aerialHorizonFade(params.visibilityKm);
@@ -120,6 +121,7 @@ export function aerialPerspectiveNode(
       .mul(distKm)
       .add(rangeDepth)
       .add(mistWeight.mul(params.valleyMistOpacityBoost))
+      .mul(strength)
       .negate()
       .exp()
       .toVar();

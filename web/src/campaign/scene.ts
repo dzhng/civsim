@@ -1,3 +1,4 @@
+import { CAMPAIGN_FULL_TILT_ZOOM } from "@packages/game-renderer/src/campaign/cameraPolicy";
 // The campaign scene: EU4-style pausable real time over the ancient world.
 // Owns its canvas + DOM (created on first enter, so the battle UI stays
 // untouched), reads zero-copy army/city arrays from wasm each frame, and
@@ -12,12 +13,7 @@ import { createHudStore } from "../ui/hudStore";
 import { nearestLoc, tilePos, type CampaignData } from "./data";
 import type { CamView } from "./camera";
 import { resolveMapCards, type MapCardCandidate } from "./cardLayout";
-import {
-  CAMPAIGN_FULL_TILT_ZOOM,
-  CampaignRenderer,
-  MAX_CAMPAIGN_ZOOM,
-  type CampaignCardRect,
-} from "./renderer";
+import { CampaignRenderer, MAX_CAMPAIGN_ZOOM, type CampaignCardRect } from "./renderer";
 import { TerrainField } from "./terrain";
 import { Territory } from "./territory";
 import { Allegiance } from "@packages/game-renderer/src/campaign/entityFrame";

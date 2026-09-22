@@ -31,3 +31,22 @@ frames in the final run preserve their evidence scope.
 | Missing card titles | No fault control | Titles fail while canvas names pass | Detects loss of DOM text independently. **moved** |
 | Restored controls | No repeat assertion | Exact normal/restored pixel equality | Fault controls must not alter persistent rendering state. **moved** |
 | Outside-owner world | No isolation proof | Zero changes outside glyph/card surfaces for either control | Confines the fault to its owning surface; does not claim all non-title pixels inside cards unchanged. **moved** |
+
+## Repaint precision boundary
+
+A later complete run showed1,493 card-title fringe pixels changing by at most one
+RGB8 code value per channel (maximum summed RGB2), with zero changed pixels outside
+card bounds. Twelve targeted visibility/paint roundtrips across two boots restored
+exactly, so no causal visibility-style defect was established and production styles
+were not changed. The restoration assertion now keeps all world pixels exact and
+permits at most one RGB8 step inside cards. This is explicitly weaker than byte
+identity only for that owning surface, justified by the observed quantization.
+Missing-title contribution still requires >20 pixels with summed RGB change>10;
+this precision allowance cannot satisfy that test. Synthetic boundary checks reject
+one-step outside-card changes, two-step inside-card changes, and missing titles.
+An independent review found no defects; the CLI review attempt was unavailable
+due model capacity. The targeted probe is retained in `repaint-probe.json`.
+
+| Test | Previous behavior | New behavior | Why |
+| --- | --- | --- | --- |
+| Restored controls | Whole-frame byte equality | Exact outside-card RGB; maximum per-channel delta1 inside cards | Measured one-step fringe changes did not represent missing or moved text; strict missing-owner controls are retained. **moved** |

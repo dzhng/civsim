@@ -414,3 +414,23 @@ expected-name list would hide a missing label, while demanding the entire name
 onscreen would reject legitimate viewport clipping. It remains required to paint
 its visible portion, explicitly marked partial; the six interior names must fit
 fully. Full readability is reserved for those interior cases and visual review.
+
+## Chart atmospheric depth
+
+### Sound — medium confidence: presentation scale governs chart haze
+
+At whole-world zoom, battle-scale aerial depth replaced distant faction colors
+with beige in-scatter and weakened exploration contrast. Campaign now suppresses
+that optical depth at chart scale and restores it through the existing detail
+band, normalized for display pixel density. It changes neither camera projection
+nor exploration rules. All six detailed-view controls are unchanged. The plan
+required coherent lighting but did not choose this scale boundary; it preserves
+strategic readability without introducing a second fog renderer.
+
+### Sound — high confidence: precision tolerance belongs only to the affected UI owner
+
+Repainting titles occasionally changes their RGB8 fringes by one code value while
+world pixels remain identical. The restoration gate allows only that precision
+inside existing card bounds, still requiring exact world pixels and rejecting
+missing titles through independent high-contrast fault controls. It does not apply
+a general screenshot tolerance or pretend every capture was byte-identical.

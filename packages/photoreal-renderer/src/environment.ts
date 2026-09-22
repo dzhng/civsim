@@ -21,6 +21,8 @@ interface PhotorealEnvironmentOptions {
   /** Observer point for aerial optical depth (see aerialPerspectiveNode) —
    *  the battle world passes its camera ground focus. Default: the eye. */
   aerialObserver?: Node<"vec3">;
+  /** World-owned chart/physical transition; other worlds retain full depth. */
+  aerialStrength?: Node<"float">;
 }
 
 export function applyCivsimEnvironment(
@@ -42,7 +44,7 @@ export function applyCivsimEnvironment(
 
   // The ONE aerial-perspective owner (10b): every fog-enabled world material
   // hazes through this hook; the in-scatter colour is the sky itself.
-  scene.fogNode = aerialPerspectiveNode(sky, env, options.aerialObserver);
+  scene.fogNode = aerialPerspectiveNode(sky, env, options.aerialObserver, options.aerialStrength);
   world.atmosphere = { sky: sky.identity(), aerial: aerialIdentity(env) };
 
   // The sun: direction from the preset angles, colour from the SAME sky

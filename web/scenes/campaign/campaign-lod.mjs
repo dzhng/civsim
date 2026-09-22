@@ -633,7 +633,33 @@ async function checkRegionalNames(page, ctx) {
       JSON.stringify(retained),
     );
   }
-  ctx.check("regional name controls restore the exact frame", normal.data.equals(restored.data));
+  // Composited title fringes can vary by one RGB8 step on repaint. Keep the
+  // world exact; missing-title controls still require the full text contribution.
+  let outsideCardChanges = 0;
+  let maximumCardChannelDelta = 0;
+  for (let y = 0; y < normal.height; y++) {
+    for (let x = 0; x < normal.width; x++) {
+      const i = (y * normal.width + x) * 4;
+      const delta = Math.max(
+        Math.abs(normal.data[i] - restored.data[i]),
+        Math.abs(normal.data[i + 1] - restored.data[i + 1]),
+        Math.abs(normal.data[i + 2] - restored.data[i + 2]),
+      );
+      if (delta === 0) continue;
+      if (
+        inventory.cards.some((card) =>
+          contains(card.cardRect, (x + 0.5) / inventory.dpr, (y + 0.5) / inventory.dpr),
+        )
+      ) {
+        maximumCardChannelDelta = Math.max(maximumCardChannelDelta, delta);
+      } else outsideCardChanges++;
+    }
+  }
+  ctx.check(
+    "regional name controls restore exact world pixels and card paint within one RGB8 step",
+    outsideCardChanges === 0 && maximumCardChannelDelta <= 1,
+    JSON.stringify({ outsideCardChanges, maximumCardChannelDelta }),
+  );
   // The canvas quad bounds contain its raster output. DOM titles additionally
   // rasterize font overhang and shadow beyond line boxes; their existing card
   // bounds define the owning UI surface for the unchanged-world check. Actual

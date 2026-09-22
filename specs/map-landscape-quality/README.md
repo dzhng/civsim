@@ -1,6 +1,6 @@
 # Shared landscape quality
 
-Status: implementation active; foundations01–03 complete; campaign crown/water accepted, merged battle consumers and final visual acceptance open. Updated: 2026-09-22.
+Status: implementation active; foundations01–03 and crown owner06 complete; campaign crown/water accepted, merged battle consumers and final visual acceptance open. Updated: 2026-09-22.
 
 Make the campaign landscape meet the supplied reference's quality and bring the same character to battle: connected ridges and valleys, ground that becomes mountain, vegetation that belongs to its slopes, and coherent water and lighting. Battle matches the location's character; it does not reconstruct campaign geography.
 
@@ -10,17 +10,18 @@ Work in `/Users/david/dev/game/.worktrees/map-landscape-quality` on
 `codex/map-landscape-quality`. Keep this one worktree and a single GPU capture
 lane; inspect live processes before starting captures or replacing their build.
 
-**Current pickup: correct whole-map atmosphere contrast.** The campaign overview
-currently inherits battle-distance aerial haze, flattening faction colors and
-exploration darkness. Test strength driven by the existing chart-to-tilt camera
-transition, keeping regional/close output unchanged. Accepted build5188 is frozen;
-the rejected terrain preview is stopped. Keep one GPU lane.
+**Current pickup: remaining material/water gates and hardware identity.** The
+[chart atmosphere correction](assets/slice-10/chart-atmosphere/README.md) is accepted:
+six detailed views unchanged, three overview controls repeat exactly, and all nine
+migrated LOD snapshots pass. The label restoration precision boundary is verified;
+no production typography change was needed. Full campaign-lod still fails only
+the southern-Apennines natural-ground floor0.5444, owned by the remaining material/
+composition work. Candidate build5189 contains this checkpoint;5188 is the older
+accepted control. Both builds are frozen; retain one GPU lane.
 
-The [label-owner check](assets/slice-12/label-owners/README.md) now passes real positive,
-missing-owner, restoration and outside-surface controls. Full campaign-lod remains
-red on nine snapshots and the southern-Apennines coverage floor0.5444. Six regional/
-close baseline migrations are defensible; hold the three overview images for the
-atmosphere fix. The turf scene's corrected nearest-camera profile remains unverified.
+The [label-owner check](assets/slice-12/label-owners/README.md) passes real positive and missing-owner controls. Its restoration and
+outside-surface checks pass with the documented card-only RGB8 precision boundary. Full campaign-lod remains
+red only on the southern-Apennines coverage floor0.5444. The turf scene's corrected nearest-camera profile remains unverified.
 
 Recent [form controls](assets/slice-04/ridge-width-control/README.md) were removed:
 better overview shelves introduced close serrated edges/green seams. Original
@@ -33,9 +34,9 @@ policy/data/assets, not backend wrappers or a restored battle backend.
 Finish through four acceptance passes. Slice numbers identify owners, not twelve
 separate projects or duplicate capture runs:
 
-1. **Battle consumers (05–10/13):** finish rock and water response, stable tree
-   variants and projected detail; judge composed highland, wooded and coastal
-   production views. Leaf-mask consistency is already accepted.
+1. **Battle consumers (05–10/13):** finish rock/water transitions and motion; judge composed highland, wooded and
+   coastal production views. Tree variants/detail and leaf-mask consistency are
+   accepted; reuse their evidence while checking the complete composition.
 2. **Campaign reference quality (04/05/07/10):** improve valley-floor width and intermediate shelves, then judge mountain hierarchy, green foothills,
    woods and lighting together. Recoloring alone cannot accept deficient form.
    Do not repeat rejected geometry or size-only vegetation trials without new evidence.
@@ -55,7 +56,7 @@ while resolving the remaining campaign presentation and snapshot gates.
 | --- | --- | --- |
 | Main renderer integration and campaign→16,000-soldier TypeGPU battle→campaign | [Main integration](assets/main-integration/verification.md) | Final art, current hardware and broader journeys |
 | Connected terrain foundations and bounded campaign residency | 01–03 and [architecture](architecture.md) | Whole-frame reference quality |
-| Downward saddles and crown design | [Saddles](assets/slice-04/downward-saddles/README.md), [crowns](assets/crowns/finish/README.md) | Broad foothills/composition; migrated battle variants/detail |
+| Downward saddles and crown design | [Saddles](assets/slice-04/downward-saddles/README.md), [crowns](assets/crowns/finish/README.md) | Broad foothills/composition; common hardware acceptance |
 | Road surface width, fog update compatibility and settled geographic captures | [Roads](assets/slice-11/road-surface-width/README.md) | Geographic styling and full fog/overview coverage |
 | Categorical terrain coverage and common leaf shadow cutout | [Coverage/shadows](assets/slice-13/coverage-shadow/README.md) | Other TypeGPU appearance consumers and composed acceptance |
 
@@ -71,7 +72,7 @@ other authorized work when unavailable.
 - [x] [03 — Bounded terrain residency and joins](slices/03-bounded-terrain.md)
 - [ ] [04 — Connected mountain form and foothills](slices/04-mountain-form.md)
 - [ ] [05 — Shared rock, scree and grass response](slices/05-terrain-material.md)
-- [ ] [06 — Tree crown representation and scale](slices/06-crown-shapes.md)
+- [x] [06 — Tree crown representation and scale](slices/06-crown-shapes.md)
 - [ ] [07 — Forests, edges and intermediate ground detail](slices/07-ecological-placement.md)
 - [ ] [08 — Coasts, channels and river connections](slices/08-water-boundaries.md)
 - [ ] [09 — Shared water depth, surf and motion](slices/09-water-response.md)

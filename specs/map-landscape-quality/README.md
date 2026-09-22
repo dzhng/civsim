@@ -10,14 +10,19 @@ Work in `/Users/david/dev/game/.worktrees/map-landscape-quality` on
 `codex/map-landscape-quality`. Keep this one worktree and a single GPU capture
 lane; inspect live processes before starting captures or replacing their build.
 
-**Current pickup: remaining material/water gates and hardware identity.** The
-[chart atmosphere correction](assets/slice-10/chart-atmosphere/README.md) is accepted:
-six detailed views unchanged, three overview controls repeat exactly, and all nine
-migrated LOD snapshots pass. The label restoration precision boundary is verified;
-no production typography change was needed. Full campaign-lod still fails only
-the southern-Apennines natural-ground floor0.5444, owned by the remaining material/
-composition work. Candidate build5189 contains this checkpoint;5188 is the older
-accepted control. Both builds are frozen; retain one GPU lane.
+**Current pickup: field-water normal response and phase controls.** A bounded
+TypeGPU candidate now shares the existing Gerstner field between standalone water
+and wet terrain lighting. Dry pixels bypass it; geometry, roughness and shadows
+stay unchanged. Candidate code/tests and an injectable lab-clock seam are uncommitted;
+old-control phase captures are running from frozen5189. Build a separate candidate
+only after its source is frozen, then test wet motion, dry masks and phase return.
+
+The [chart atmosphere correction](assets/slice-10/chart-atmosphere/README.md) is
+committed and its nine migrated snapshots pass. Full campaign-lod remains red only
+on the southern-Apennines coverage0.5444. [Adapter evidence](assets/slice-15/adapter-identity/README.md)
+identifies native Chrome/Apple Metal versus bundled SwiftShader. Native headless
+full-game liveness and turf functional checks pass; release timing and software
+baseline migration remain open. Keep one GPU lane.
 
 The [label-owner check](assets/slice-12/label-owners/README.md) passes real positive and missing-owner controls. Its restoration and
 outside-surface checks pass with the documented card-only RGB8 precision boundary. Full campaign-lod remains

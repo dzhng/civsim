@@ -1,0 +1,22 @@
+[
+  {
+    "channel": "chrome",
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": false
+    }
+  },
+  {
+    "channel": "bundled",
+    "adapter": {
+      "vendor": "google",
+      "architecture": "swiftshader",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": true
+    }
+  }
+]

@@ -63,6 +63,7 @@ algorithm is required if the existing owner can meet the visual contract.
 | Finer sampling of the accepted field | Reduced interpolation/step error but preserved the wrong regional character at greater allocation cost; no production refinement | [Sampling measurements](../assets/slice-04/accepted-field-sampling/README.md), [visual verdict](../assets/slice-04/accepted-field-sampling/visual/README.md) |
 | Raised crest prominence | Clearer peaks amplified walls/fins; keep the accepted height envelope | [Crest control](../assets/slice-04/crest-prominence/README.md) |
 | Scalar floor-width controls | Valley compression steepens recovery flanks; valley fill loses low-floor occupancy. Lower amplitude slightly smooths the apron but retains rock fingers/trenches; visually rejected | [Real-source measurements](../assets/slice-04/floor-width-probes/README.md) |
+| Dominant-ridge support plus slope-based source exposure | Better overview green shelves were outweighed by close triangular teeth/green seams and retaining walls; both changes removed | [Two-stage control](../assets/slice-04/ridge-width-control/README.md) |
 | Downward-only saddles | Accepted bounded articulation in clay, natural regions and production, with exact repeats; whole range/foothill quality stays open | [Adopted pass](../assets/slice-04/downward-saddles/README.md) |
 
 The synthetic coastal ridge fixture isolates sampling/coast defects but imposes a

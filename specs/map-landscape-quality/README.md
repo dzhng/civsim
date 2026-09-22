@@ -23,9 +23,20 @@ rejected because its recovery steepened maximum flanks by 29–80%; pursue wider
 connected floors without that recovery wall. The lower-amplitude control was also visually rejected: its slight outer-apron
 improvement preserved the internal rock fingers/dark trenches. Code is removed;
 see [real-source controls](assets/slice-04/floor-width-probes/README.md).
-The accepted production build remains on5188; the rejected preview is stopped.
-The label scene now tests per-owner missing-name/title controls; syntax, synthetic
-controls and independent review pass, but real browser verification is pending.
+The accepted production build remains on5188. The ridge-width and combined source-exposure controls were also rejected after close
+review found triangular teeth and green seams despite better overview benches.
+Both source changes are removed; see [the control](assets/slice-04/ridge-width-control/README.md).
+Next implementation priority is the whole-map atmosphere contrast regression:
+review found six regional/close LOD images defensibly migrated, but whole-natural,
+whole-political and whole-fog have a broad beige veil that weakens state legibility.
+Diagnose the existing atmosphere owner; keep regional/close composition fixed.
+The label scene's first browser run proved owner controls and exact restoration,
+and the corrected second run now passes all seven map names, thirteen card titles,
+both missing-owner controls, exact restoration and canvas outside-mask zero. DOM
+title masks still miss57 actual pixels; the agent is diagnosing them from saved
+controls. `throwaway/label-owner-bounds-runtime.log` is terminal with11 failures
+(old snapshots plus mask coverage); no baseline refresh is justified by those
+results. Rerun the corrected owner check before committing the scene.
 The turf run proved deterministic close cold boots and complete residency, then
 was deliberately cancelled after image review found lost close framing. Main's
 camera calibration changed the physical pose for the same zoom tuple. The scene's

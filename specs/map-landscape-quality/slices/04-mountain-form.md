@@ -80,3 +80,9 @@ production views repeat exactly; the flagged road disappearance is supported as
 foreground occlusion by presented-surface probes. Lower relief is an explicit
 tradeoff. Gray interiors and inadequate grassy shelf breadth remain open; this
 is not reference-quality completion.
+
+The [equal-height crest cusp](../assets/slice-04/crest-cusp/README.md) is also
+rejected at current sampling: it barely enlarges connected gentle ground while
+more than doubling the worst core interpolation error. No production edit or
+visual acceptance follows. A new form hypothesis must survive the actual mesh
+scale, not merely sharpen a continuous formula.

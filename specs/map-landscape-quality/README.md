@@ -9,16 +9,18 @@ Make the campaign landscape meet the supplied reference's quality and bring the 
 Use `/Users/david/dev/game/.worktrees/map-landscape-quality`, branch
 `codex/map-landscape-quality`. Keep this single worktree and one GPU capture lane.
 
-**Current pickup: repair the terrain-color measurement, then reconcile presentation baselines.**
-The [connected-shelf pass](assets/slice-05/connected-shelves/README.md) improves
-mountain grass integration on the retained simplified form. Three production
-views repeat exactly; terrain return is byte-identical and residency/DPR gates
-pass. Production interaction/collision/LOD has70 passes and12 failures:11 older
-snapshots plus the southern crop's0.545/0.55 ground-color gate. A pixel audit finds
-city cards and dark sea dominate that crop's rejects. A reversible hidden-card
-probe is running; prove isolation before repairing the measurement, keep the
-floor and independent card checks unchanged. Do not recolor terrain to satisfy UI
-contamination. Angular grass edges, painted patches and final quality stay open.
+**Current pickup: finish the shared presentation baseline checkpoint.** The
+[connected-shelf pass](assets/slice-05/connected-shelves/README.md) is committed;
+three production views repeat exactly, and terrain-return/residency/DPR gates pass.
+The [terrain-color oracle](assets/slice-15/canvas-ground/README.md) now reads the
+actual canvas rather than DOM cards/shadows; all original floors pass without
+changing production colors. Its full LOD run has only five old snapshot failures.
+A combined production/collision/LOD/traversal baseline update is running on5193.
+Inspect all20 refreshed images, record baseline provenance, then run a no-update
+repeat before accepting. Preserve any new failures. Synthetic flat-island relief
+was an earlier canonical-lowland fixture correction, documented in14; its images
+prove presentation, not raised-terrain selection. Angular grass edges, painted
+patches, overview forest/haze composition and final reference quality stay open.
 
 The [joined water pass](assets/slice-08/battle-ocean-join/README.md) now removes
 the mapC field/ocean intersection, shares their near-edge response, and passes
@@ -28,8 +30,8 @@ for distant glints. Flat water detail, soft coastal fringes and final compositio
 remain open; do not spend another spectrum-polish pass before the mountain test.
 The direction shuffle was rejected on actual images despite better isotropy.
 
-Server5193 contains the current rebuilt shelf candidate;5191 the accepted form
-before material changes. Obsolete frozen builds on5189/5190/5192 are removed.
+Server5193 contains the current rebuilt shelf candidate. Obsolete previews
+on5188–5192 and their builds are removed; committed evidence retains comparisons.
 Inspect live processes before capturing or rebuilding; keep one GPU lane.
 
 After the mountain verdict, continue the remaining presentation/coast gates and
@@ -40,7 +42,7 @@ data/policy and backend-local adapters: Three campaign, TypeGPU battle.
 | Accepted evidence | Remaining work |
 | --- | --- |
 | Foundations01–03, crown owner06, bounded residency | Complete landscape reference quality |
-| [Chart atmosphere](assets/slice-10/chart-atmosphere/README.md), nine snapshots | Full campaign-lod still fails southern-Apennines natural-ground coverage0.5444 |
+| [Chart atmosphere](assets/slice-10/chart-atmosphere/README.md), nine snapshots | Presentation baselines being reconciled; terrain-color oracle corrected |
 | [Label-owner controls](assets/slice-12/label-owners/README.md) | Broader presentation/interaction matrix |
 | [Joined water](assets/slice-08/battle-ocean-join/README.md), lake and motion controls | Flat detail, shoreline fringe, other shores and composed quality |
 | [Native adapter/liveness](assets/slice-15/adapter-identity/README.md) | Headful release timing and common hardware budget |

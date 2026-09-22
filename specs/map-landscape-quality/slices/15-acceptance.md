@@ -90,3 +90,10 @@ unsupported close dial labels with two physical views through the existing
 camera owner and adds settled-framing assertions. CPU checks and hardware framing assertions pass; the closest 10m view records
 33.74ms rAF p95 against the unchanged 33ms limit, so that historical run did not pass. Current hardware acceptance remains open;
 this measurement does not establish a failure in the migrated TypeGPU renderer.
+
+
+The [canvas-owned terrain oracle](../assets/slice-15/canvas-ground/README.md)
+removes DOM cards and their shadows from terrain coverage measurements. Composed
+screenshots, structures, labels, picking and card checks retain their existing
+owners and thresholds. This resolves the inherited southern crop false failure;
+full presentation baselines and reference-quality acceptance remain separate.

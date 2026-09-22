@@ -286,12 +286,24 @@ async function snapCampaign(
   if (realItalyAlignment) {
     await checkRealItalyAlignment(page, ctx, name, PNG.sync.read(shot), realItalyAlignment);
   }
+  let terrain;
+  if (checkStructure || naturalGroundFloor !== null) {
+    // DOM cards and their shadows are not terrain. Read the actual canvas;
+    // composed screenshots and owner-specific label checks still cover the UI.
+    const pixels = await page.evaluate(() => {
+      const api = window.__campaign;
+      const camera = api.camGet();
+      api.cam(camera.x, camera.y, camera.scale);
+      return document.getElementById("campaign-canvas").toDataURL("image/png").split(",")[1];
+    });
+    terrain = PNG.sync.read(Buffer.from(pixels, "base64"));
+  }
   if (checkStructure) {
-    checkRegionalMapStructure(ctx, PNG.sync.read(shot));
+    checkRegionalMapStructure(ctx, PNG.sync.read(shot), terrain);
     await checkRegionalNames(page, ctx);
   }
   if (naturalGroundFloor !== null) {
-    const metrics = naturalGroundMetrics(PNG.sync.read(shot));
+    const metrics = naturalGroundMetrics(terrain);
     ctx.check(
       `${name} natural terrain keeps its yellow-olive ground coverage`,
       metrics.naturalGroundRatio >= naturalGroundFloor,
@@ -404,7 +416,7 @@ async function checkRealItalyAlignment(page, ctx, name, current, cameraBand) {
 // land, visible roads and labels, and natural terrain not bled over by the
 // political wash. Absolute floors, not a cross-render comparison: the scene
 // renders its own evidence, so deleting baselines never breaks it.
-function checkRegionalMapStructure(ctx, current) {
+function checkRegionalMapStructure(ctx, current, terrain) {
   const m = campaign3dMetrics(current);
   ctx.check(
     "campaign-lod-regional-italy-natural reads as a structured map (sea, land, roads; no political wash)",
@@ -414,7 +426,7 @@ function checkRegionalMapStructure(ctx, current) {
       m.politicalWashRatio <= 0.12,
     JSON.stringify(m),
   );
-  const features = terrainFeatureCropMetrics(current);
+  const features = terrainFeatureCropMetrics(terrain);
   const featureChecks = Object.fromEntries(
     Object.keys(TERRAIN_FEATURE_CROPS).map((name) => {
       const crop = features[name];

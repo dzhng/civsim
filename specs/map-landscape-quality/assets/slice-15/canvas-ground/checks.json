@@ -1,0 +1,311 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-22T11:57:33.518Z",
+  "target": "http://127.0.0.1:5193",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "campaign-lod",
+      "file": "campaign/campaign-lod.mjs",
+      "kind": "visual",
+      "tier": "quick"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "campaign-lod",
+      "name": "natural-ground classifier accepts reference yellow field",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "natural-ground classifier accepts reference olive field",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "natural-ground classifier rejects blue water",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "natural-ground classifier rejects neutral gray rock",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "natural-ground classifier rejects red-brown soil",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "real campaign LoD scene found Roma, Ostia, and player army",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-whole-political stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-whole-political",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-whole-natural stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-whole-natural",
+      "ok": false,
+      "detail": "26534 px differ (2.5912%) \u2014 see shots/diff/campaign-lod-whole-natural.png"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-whole-fog stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-whole-fog",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural semantic mainland Italy cities and roads stay on land",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural rendered mainland Italy anchors do not sit in visible water",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural visible central Italy roads are continuous above terrain",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural reads as a structured map (sea, land, roads; no political wash)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural keeps named mountain and forest crops readable",
+      "ok": true,
+      "detail": "{\"northern-apennines\":{\"crop\":{\"total\":59369,\"mountainRatio\":0.8202,\"darkFeatureRatio\":0.2813,\"naturalGroundRatio\":0.8656},\"ok\":true},\"central-apennines\":{\"crop\":{\"total\":74106,\"mountainRatio\":0.7926,\"darkFeatureRatio\":0.2266,\"naturalGroundRatio\":0.8296},\"ok\":true},\"southern-apennines\":{\"crop\":{\"total\":40762,\"mountainRatio\":0.8097,\"darkFeatureRatio\":0.2567,\"naturalGroundRatio\":0.8706},\"ok\":true}}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional canvas city names contribute visible text",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional missing canvas names fail independently",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional missing canvas preserves cards names",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional cards city names contribute visible text",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional missing cards names fail independently",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional missing cards preserves canvas names",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional name controls restore exact world pixels and card paint within one RGB8 step",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional canvas control leaves pixels outside its owning surface unchanged",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional cards control leaves pixels outside its owning surface unchanged",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-regional-italy-natural",
+      "ok": false,
+      "detail": "34333 px differ (3.3528%) \u2014 see shots/diff/campaign-lod-regional-italy-natural.png"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-political stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-regional-italy-political",
+      "ok": false,
+      "detail": "31748 px differ (3.1004%) \u2014 see shots/diff/campaign-lod-regional-italy-political.png"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-political own-city cards sit directly under their visible city model",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close semantic mainland Italy cities and roads stay on land",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close rendered mainland Italy anchors do not sit in visible water",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close visible central Italy roads are continuous above terrain",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close natural terrain keeps its yellow-olive ground coverage",
+      "ok": true,
+      "detail": "{\"total\":419608,\"naturalGroundRatio\":0.8635}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-rome-close",
+      "ok": false,
+      "detail": "36908 px differ (3.6043%) \u2014 see shots/diff/campaign-lod-rome-close.png"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod rome-close shows own-city map cards incl. Ostia/Portus + garrisoned Roma",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close own-city cards sit directly under their visible city model",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-selected-army-city stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-selected-army-city natural terrain keeps its yellow-olive ground coverage",
+      "ok": true,
+      "detail": "{\"total\":419617,\"naturalGroundRatio\":0.8606}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-selected-army-city",
+      "ok": false,
+      "detail": "36911 px differ (3.6046%) \u2014 see shots/diff/campaign-lod-selected-army-city.png"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-selected-city stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-selected-city",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-border-fog stats match LoD contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-border-fog",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "campaign-lod: snapshot campaign-lod-whole-natural",
+    "campaign-lod: snapshot campaign-lod-regional-italy-natural",
+    "campaign-lod: snapshot campaign-lod-regional-italy-political",
+    "campaign-lod: snapshot campaign-lod-rome-close",
+    "campaign-lod: snapshot campaign-lod-selected-army-city"
+  ],
+  "pageErrors": []
+}

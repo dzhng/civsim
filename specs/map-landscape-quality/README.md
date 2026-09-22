@@ -9,18 +9,15 @@ Make the campaign landscape meet the supplied reference's quality and bring the 
 Use `/Users/david/dev/game/.worktrees/map-landscape-quality`, branch
 `codex/map-landscape-quality`. Keep this single worktree and one GPU capture lane.
 
-**Current pickup: finish the shared presentation baseline checkpoint.** The
-[connected-shelf pass](assets/slice-05/connected-shelves/README.md) is committed;
-three production views repeat exactly, and terrain-return/residency/DPR gates pass.
-The [terrain-color oracle](assets/slice-15/canvas-ground/README.md) now reads the
-actual canvas rather than DOM cards/shadows; all original floors pass without
-changing production colors. Its full LOD run has only five old snapshot failures.
-A combined production/collision/LOD/traversal baseline update is running on5193.
-Inspect all20 refreshed images, record baseline provenance, then run a no-update
-repeat before accepting. Preserve any new failures. Synthetic flat-island relief
-was an earlier canonical-lowland fixture correction, documented in14; its images
-prove presentation, not raised-terrain selection. Angular grass edges, painted
-patches, overview forest/haze composition and final reference quality stay open.
+**Current pickup: finish production-owner retirement, then remaining landscape
+quality and integrated acceptance.** The [presentation checkpoint](assets/slice-12/presentation-checkpoint/README.md)
+reconciles22 campaign captures, with exact repeats across two scoped runs. Label
+fault injection now follows snapshots so it cannot perturb later card paint.
+The camera uses CSS zoom consistently across DPR, and an independent fixed-pixel
+click selects a real raised Aguntum city at both densities. This is scoped input
+and camera evidence; broader lifecycle, label/scenery DPR policy and final art
+remain open. The regional lab preview still assembles its own landscape; make
+its natural mode use the production world while preserving diagnostic controls.
 
 The [joined water pass](assets/slice-08/battle-ocean-join/README.md) now removes
 the mapC field/ocean intersection, shares their near-edge response, and passes
@@ -34,7 +31,7 @@ Server5193 contains the current rebuilt shelf candidate. Obsolete previews
 on5188–5192 and their builds are removed; committed evidence retains comparisons.
 Inspect live processes before capturing or rebuilding; keep one GPU lane.
 
-After the mountain verdict, continue the remaining presentation/coast gates and
+Continue the remaining mountain, presentation and coast gates and
 one integrated acceptance matrix. Reuse each matched capture across the slices
 it proves rather than running duplicate08/09/13/15 reviews. Keep shared neutral
 data/policy and backend-local adapters: Three campaign, TypeGPU battle.
@@ -42,7 +39,7 @@ data/policy and backend-local adapters: Three campaign, TypeGPU battle.
 | Accepted evidence | Remaining work |
 | --- | --- |
 | Foundations01–03, crown owner06, bounded residency | Complete landscape reference quality |
-| [Chart atmosphere](assets/slice-10/chart-atmosphere/README.md), nine snapshots | Presentation baselines being reconciled; terrain-color oracle corrected |
+| [Chart atmosphere](assets/slice-10/chart-atmosphere/README.md), nine snapshots | Presentation checkpoint repeated; final composition remains open |
 | [Label-owner controls](assets/slice-12/label-owners/README.md) | Broader presentation/interaction matrix |
 | [Joined water](assets/slice-08/battle-ocean-join/README.md), lake and motion controls | Flat detail, shoreline fringe, other shores and composed quality |
 | [Native adapter/liveness](assets/slice-15/adapter-identity/README.md) | Headful release timing and common hardware budget |

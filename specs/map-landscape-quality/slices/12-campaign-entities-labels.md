@@ -40,9 +40,11 @@ Do not hide either with terrain flattening, a new UI style or a second camera.
 
 ## Runnable checkpoint
 
-New composition route now supports full campaign presentation and pointer selection; planned campaign-landscape-interaction scene uses existing test and real-map campaigns.
-
-New routes/scenes named here are planned deliverables. Use the existing scene runner and snapshot primitive; do not claim they already exist.
+The [presentation checkpoint](../assets/slice-12/presentation-checkpoint/README.md)
+adds real raised-city selection at DPR1/DPR2 through a fixed visible pixel and
+corrects density-dependent camera pitch/zoom. It reconciles the existing
+production, collision, LOD and traversal captures. Broader grounding, lifecycle
+and density-dependent label/scenery policy remain in the acceptance table above.
 
 ## Verification and review
 

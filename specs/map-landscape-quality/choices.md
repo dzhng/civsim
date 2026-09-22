@@ -482,3 +482,21 @@ strongly altitude should override slope; this pass favors the reference's grass
 integration using existing thresholds, without a new material control. Future
 campaign tuning inherits that distinction; the remaining edge artifacts keep
 confidence medium rather than establishing final landscape acceptance.
+
+## Campaign camera and presentation checkpoint
+
+- **Sound, high confidence — zoom means the same visible framing on both displays.**
+  A high-density screen has more backing pixels for the same visible width.
+  Keep the existing backing-pixel camera contract, but convert pitch and the
+  zoom ceiling through CSS units in the renderer. Scene input uses that clamp
+  rather than imposing another cap. This avoids changing the meaning of every
+  existing camera caller while correcting the actual density bug.
+- **Sound, high confidence — fault controls run after regression images.**
+  Hiding/restoring labels can invalidate browser card paint. Exercise those
+  missing-label checks after capturing normal presentation, with their original
+  assertions intact. The tests still demonstrate failure on missing names while
+  normal snapshots no longer inherit the test's own paint disturbance.
+- **Sound, high confidence — selection stimulus comes from a visible landmark.**
+  Use a fixed Aguntum pixel from the reviewed image, not a projected coordinate
+  produced by the code under test. The gate therefore fails if the visible city
+  and the input target diverge, even when a projection helper shares that bug.

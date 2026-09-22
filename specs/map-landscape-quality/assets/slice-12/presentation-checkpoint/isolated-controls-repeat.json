@@ -1,0 +1,305 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-22T12:46:17.996Z",
+  "target": "http://127.0.0.1:5193",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "campaign-lod",
+      "file": "campaign/campaign-lod.mjs",
+      "kind": "visual",
+      "tier": "quick"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "campaign-lod",
+      "name": "natural-ground classifier accepts reference yellow field",
+      "ok": true,
+      "detail": "[186,164,63]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "natural-ground classifier accepts reference olive field",
+      "ok": true,
+      "detail": "[123,133,46]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "natural-ground classifier rejects blue water",
+      "ok": true,
+      "detail": "[52,84,110]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "natural-ground classifier rejects neutral gray rock",
+      "ok": true,
+      "detail": "[140,140,140]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "natural-ground classifier rejects red-brown soil",
+      "ok": true,
+      "detail": "[154,100,60]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "real campaign LoD scene found Roma, Ostia, and player army",
+      "ok": true,
+      "detail": "{\"roma\":288,\"ostia\":251,\"armyId\":0}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-whole-political stats match LoD contract",
+      "ok": true,
+      "detail": "{\"renderer\":\"renderer-campaign\",\"substrate\":\"threejs-webgpu-tsl\",\"projection\":\"camera3d\",\"environment\":\"golden\",\"depth\":{\"owner\":\"three-webgpu\",\"reversed\":true},\"drawCalls\":2914,\"selections\":0,\"garrisonedArmySelections\":0,\"maxSelectionRadius\":0,\"ready\":true,\"width\":1280,\"height\":800,\"device\":\"google / swiftshader\",\"cameraContract\":\"camera3d-viewProj-reverse-z\",\"cityEntities\":401,\"armyEntities\":12,\"cityEntityAnchors\":[[765.1309495982649,204.35466556474623],[1638.479639634806,-797.5927519292391],[-313.5425711955615,405.9385295795664],[-776.6248527026879,1485.8915545777124],[-394.9378978577421,993.4227894731976],[1583.5226535373706,-421.8128152160658],[-378.7488034834311,463.0244065202387],[1130.7525323636014,-685.831147056577],[696.8028512694668,227.8979574690677],[-436.80805956524114,853.5872207081907],[-861.039954255739,-226.21064917270013],[-364.8327636392278,629.6984108590477],[1260.2536332165546,318.8633388540014],[1616.0102571769262,-41.7682188836964],[1144.6711563387826,115.02216842125604],[1653.4520742951204,-124.65229434781268],[1061.0912557292145,77.90479318481216],[1281.7684001634436,-867.3514173117601],[759.5918950281232,368.5718306021212],[431.9298938506979,909.8373270721632],[-1008.9590520962668,685.5850452368861],[-360.834136087783,873.57729301615],[78.81866729896093,1063.4768383857522],[-1048.822978957121,759.304231839124],[1388.9501786967717,163.50307791354345],[-1071.0246486203064,711.8708414032074],[-753.506872204006,1220.3346124398197],[-436.80805956524114,685.6706133213333],[-495.3484089414735,624.8563105890066],[1558.5070886059025,-569.7059276185041],[-360.9095578027481,548.3982169587354],[-1941.492597127935,757.0183649414204],[-312.85060547044077,501.76194808810874],[501.02254621931513,12.519424371121604],[-828.4893971976613,909.325792961993],[-771. [truncated; verdict retained]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-whole-political",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-whole-natural stats match LoD contract",
+      "ok": true,
+      "detail": "{\"renderer\":\"renderer-campaign\",\"substrate\":\"threejs-webgpu-tsl\",\"projection\":\"camera3d\",\"environment\":\"golden\",\"depth\":{\"owner\":\"three-webgpu\",\"reversed\":true},\"drawCalls\":2256,\"selections\":0,\"garrisonedArmySelections\":0,\"maxSelectionRadius\":0,\"ready\":true,\"width\":1280,\"height\":800,\"device\":\"google / swiftshader\",\"cameraContract\":\"camera3d-viewProj-reverse-z\",\"cityEntities\":401,\"armyEntities\":12,\"cityEntityAnchors\":[[765.1309495982649,204.35466556474623],[1638.479639634806,-797.5927519292391],[-313.5425711955615,405.9385295795664],[-776.6248527026879,1485.8915545777124],[-394.9378978577421,993.4227894731976],[1583.5226535373706,-421.8128152160658],[-378.7488034834311,463.0244065202387],[1130.7525323636014,-685.831147056577],[696.8028512694668,227.8979574690677],[-436.80805956524114,853.5872207081907],[-861.039954255739,-226.21064917270013],[-364.8327636392278,629.6984108590477],[1260.2536332165546,318.8633388540014],[1616.0102571769262,-41.7682188836964],[1144.6711563387826,115.02216842125604],[1653.4520742951204,-124.65229434781268],[1061.0912557292145,77.90479318481216],[1281.7684001634436,-867.3514173117601],[759.5918950281232,368.5718306021212],[431.9298938506979,909.8373270721632],[-1008.9590520962668,685.5850452368861],[-360.834136087783,873.57729301615],[78.81866729896093,1063.4768383857522],[-1048.822978957121,759.304231839124],[1388.9501786967717,163.50307791354345],[-1071.0246486203064,711.8708414032074],[-753.506872204006,1220.3346124398197],[-436.80805956524114,685.6706133213333],[-495.3484089414735,624.8563105890066],[1558.5070886059025,-569.7059276185041],[-360.9095578027481,548.3982169587354],[-1941.492597127935,757.0183649414204],[-312.85060547044077,501.76194808810874],[501.02254621931513,12.519424371121604],[-828.4893971976613,909.325792961993],[-771. [truncated; verdict retained]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-whole-natural",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-whole-fog stats match LoD contract",
+      "ok": true,
+      "detail": "{\"renderer\":\"renderer-campaign\",\"substrate\":\"threejs-webgpu-tsl\",\"projection\":\"camera3d\",\"environment\":\"golden\",\"depth\":{\"owner\":\"three-webgpu\",\"reversed\":true},\"drawCalls\":1530,\"selections\":0,\"garrisonedArmySelections\":0,\"maxSelectionRadius\":0,\"ready\":true,\"width\":1280,\"height\":800,\"device\":\"google / swiftshader\",\"cameraContract\":\"camera3d-viewProj-reverse-z\",\"cityEntities\":44,\"armyEntities\":2,\"cityEntityAnchors\":[[-313.5425711955615,405.9385295795664],[-378.7488034834311,463.0244065202387],[-364.8327636392278,629.6984108590477],[-436.80805956524114,685.6706133213333],[-495.3484089414735,624.8563105890066],[-360.9095578027481,548.3982169587354],[-312.85060547044077,501.76194808810874],[-271.27223465555943,353.57962417123866],[-527.7864002457744,741.2830700496863],[-160.4713344852447,669.6501196221718],[-161.88614857711724,359.82512846718265],[-314.95280257588604,349.46587790824356],[-347.31128796399025,396.16907846168755],[-336.84237077911166,551.7371288580068],[-492.0709807407154,574.0422203824452],[-343.06244257019904,466.20353268454625],[-550.7689447814287,515.7549987036803],[-402.8197253779572,659.6835193209865],[-394.19194948737874,420.7295818738817],[-541.5070173953305,661.3783800572089],[-216.8835442357563,685.6706133213333],[-255.5248265944577,427.4522231431261],[-636.5088743794101,702.3079985938912],[-353.81003808190644,368.5287294289866],[-559.9077969790789,760.6927165570553],[-449.4942032644211,515.9507716139437],[-470.7963937525251,433.7957022410476],[-610.8681703075088,661.0073905319895],[-569.104909450723,682.0194420968049],[-326.8458019004988,773.6269314763538],[-296.1700801768298,311.2167798441427],[-324.846488124776,323.8503045472719],[-459.9225679167933,728.6596612102525],[-422.0373650593875,501.30921436822496],[-456.3745149621212,446.40354088110536], [truncated; verdict retained]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-whole-fog",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural stats match LoD contract",
+      "ok": true,
+      "detail": "{\"renderer\":\"renderer-campaign\",\"substrate\":\"threejs-webgpu-tsl\",\"projection\":\"camera3d\",\"environment\":\"golden\",\"depth\":{\"owner\":\"three-webgpu\",\"reversed\":true},\"drawCalls\":199,\"selections\":0,\"garrisonedArmySelections\":0,\"maxSelectionRadius\":0,\"ready\":true,\"width\":1280,\"height\":800,\"device\":\"google / swiftshader\",\"cameraContract\":\"camera3d-viewProj-reverse-z\",\"cityEntities\":401,\"armyEntities\":12,\"cityEntityAnchors\":[[765.1309495982649,204.35466556474623],[1638.479639634806,-797.5927519292391],[-313.5425711955615,405.9385295795664],[-776.6248527026879,1485.8915545777124],[-394.9378978577421,993.4227894731976],[1583.5226535373706,-421.8128152160658],[-378.7488034834311,463.0244065202387],[1130.7525323636014,-685.831147056577],[696.8028512694668,227.8979574690677],[-436.80805956524114,853.5872207081907],[-861.039954255739,-226.21064917270013],[-364.8327636392278,629.6984108590477],[1260.2536332165546,318.8633388540014],[1616.0102571769262,-41.7682188836964],[1144.6711563387826,115.02216842125604],[1653.4520742951204,-124.65229434781268],[1061.0912557292145,77.90479318481216],[1281.7684001634436,-867.3514173117601],[759.5918950281232,368.5718306021212],[431.9298938506979,909.8373270721632],[-1008.9590520962668,685.5850452368861],[-360.834136087783,873.57729301615],[78.81866729896093,1063.4768383857522],[-1048.822978957121,759.304231839124],[1388.9501786967717,163.50307791354345],[-1071.0246486203064,711.8708414032074],[-753.506872204006,1220.3346124398197],[-436.80805956524114,685.6706133213333],[-495.3484089414735,624.8563105890066],[1558.5070886059025,-569.7059276185041],[-360.9095578027481,548.3982169587354],[-1941.492597127935,757.0183649414204],[-312.85060547044077,501.76194808810874],[501.02254621931513,12.519424371121604],[-828.4893971976613,909.325792961993],[-771.2 [truncated; verdict retained]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural semantic mainland Italy cities and roads stay on land",
+      "ok": true,
+      "detail": "{\"badSemanticCities\":[],\"badSemanticRoads\":[],\"checkedCities\":12,\"checkedRoadSamples\":69}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural rendered mainland Italy anchors do not sit in visible water",
+      "ok": true,
+      "detail": "{\"width\":1280,\"height\":800,\"visibleCities\":12,\"visibleRoads\":69,\"badCities\":[],\"badRoads\":[]}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural visible central Italy roads are continuous above terrain",
+      "ok": true,
+      "detail": "{\"visibleRoads\":69,\"roadColorSamples\":64,\"roadHitRatio\":0.928,\"missingRoads\":[{\"name\":\"Roma-Ferentinum\",\"sx\":670.3,\"sy\":445.9},{\"name\":\"Roma-Ferentinum\",\"sx\":640.9,\"sy\":442},{\"name\":\"Roma-Ferentinum\",\"sx\":619.6,\"sy\":435.2},{\"name\":\"Clusium-Volsinii\",\"sx\":464.3,\"sy\":57.6},{\"name\":\"Clusium-Volsinii\",\"sx\":471.5,\"sy\":110.4}]}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural reads as a structured map (sea, land, roads; no political wash)",
+      "ok": true,
+      "detail": "{\"width\":1280,\"height\":800,\"waterRatio\":0.4284,\"landRatio\":0.3584,\"roadRatio\":0.0172,\"labelRatio\":0.0012,\"modelRatio\":0.0329,\"politicalWashRatio\":0.0053}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-natural keeps named mountain and forest crops readable",
+      "ok": true,
+      "detail": "{\"northern-apennines\":{\"crop\":{\"total\":59369,\"mountainRatio\":0.8202,\"darkFeatureRatio\":0.2813,\"naturalGroundRatio\":0.8656},\"ok\":true},\"central-apennines\":{\"crop\":{\"total\":74106,\"mountainRatio\":0.7926,\"darkFeatureRatio\":0.2266,\"naturalGroundRatio\":0.8296},\"ok\":true},\"southern-apennines\":{\"crop\":{\"total\":40762,\"mountainRatio\":0.8097,\"darkFeatureRatio\":0.2567,\"naturalGroundRatio\":0.8706},\"ok\":true}}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-regional-italy-natural",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-political stats match LoD contract",
+      "ok": true,
+      "detail": "{\"renderer\":\"renderer-campaign\",\"substrate\":\"threejs-webgpu-tsl\",\"projection\":\"camera3d\",\"environment\":\"golden\",\"depth\":{\"owner\":\"three-webgpu\",\"reversed\":true},\"drawCalls\":213,\"selections\":0,\"garrisonedArmySelections\":0,\"maxSelectionRadius\":0,\"ready\":true,\"width\":1280,\"height\":800,\"device\":\"google / swiftshader\",\"cameraContract\":\"camera3d-viewProj-reverse-z\",\"cityEntities\":401,\"armyEntities\":12,\"cityEntityAnchors\":[[765.1309495982649,204.35466556474623],[1638.479639634806,-797.5927519292391],[-313.5425711955615,405.9385295795664],[-776.6248527026879,1485.8915545777124],[-394.9378978577421,993.4227894731976],[1583.5226535373706,-421.8128152160658],[-378.7488034834311,463.0244065202387],[1130.7525323636014,-685.831147056577],[696.8028512694668,227.8979574690677],[-436.80805956524114,853.5872207081907],[-861.039954255739,-226.21064917270013],[-364.8327636392278,629.6984108590477],[1260.2536332165546,318.8633388540014],[1616.0102571769262,-41.7682188836964],[1144.6711563387826,115.02216842125604],[1653.4520742951204,-124.65229434781268],[1061.0912557292145,77.90479318481216],[1281.7684001634436,-867.3514173117601],[759.5918950281232,368.5718306021212],[431.9298938506979,909.8373270721632],[-1008.9590520962668,685.5850452368861],[-360.834136087783,873.57729301615],[78.81866729896093,1063.4768383857522],[-1048.822978957121,759.304231839124],[1388.9501786967717,163.50307791354345],[-1071.0246486203064,711.8708414032074],[-753.506872204006,1220.3346124398197],[-436.80805956524114,685.6706133213333],[-495.3484089414735,624.8563105890066],[1558.5070886059025,-569.7059276185041],[-360.9095578027481,548.3982169587354],[-1941.492597127935,757.0183649414204],[-312.85060547044077,501.76194808810874],[501.02254621931513,12.519424371121604],[-828.4893971976613,909.325792961993],[-771.2 [truncated; verdict retained]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-regional-italy-political",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-regional-italy-political own-city cards sit directly under their visible city model",
+      "ok": true,
+      "detail": "{\"bad\":[],\"audited\":15}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close stats match LoD contract",
+      "ok": true,
+      "detail": "{\"renderer\":\"renderer-campaign\",\"substrate\":\"threejs-webgpu-tsl\",\"projection\":\"camera3d\",\"environment\":\"golden\",\"depth\":{\"owner\":\"three-webgpu\",\"reversed\":true},\"drawCalls\":169,\"selections\":0,\"garrisonedArmySelections\":0,\"maxSelectionRadius\":0,\"ready\":true,\"width\":1280,\"height\":800,\"device\":\"google / swiftshader\",\"cameraContract\":\"camera3d-viewProj-reverse-z\",\"cityEntities\":401,\"armyEntities\":12,\"cityEntityAnchors\":[[765.1309495982649,204.35466556474623],[1638.479639634806,-797.5927519292391],[-313.5425711955615,405.9385295795664],[-776.6248527026879,1485.8915545777124],[-394.9378978577421,993.4227894731976],[1583.5226535373706,-421.8128152160658],[-378.7488034834311,463.0244065202387],[1130.7525323636014,-685.831147056577],[696.8028512694668,227.8979574690677],[-436.80805956524114,853.5872207081907],[-861.039954255739,-226.21064917270013],[-364.8327636392278,629.6984108590477],[1260.2536332165546,318.8633388540014],[1616.0102571769262,-41.7682188836964],[1144.6711563387826,115.02216842125604],[1653.4520742951204,-124.65229434781268],[1061.0912557292145,77.90479318481216],[1281.7684001634436,-867.3514173117601],[759.5918950281232,368.5718306021212],[431.9298938506979,909.8373270721632],[-1008.9590520962668,685.5850452368861],[-360.834136087783,873.57729301615],[78.81866729896093,1063.4768383857522],[-1048.822978957121,759.304231839124],[1388.9501786967717,163.50307791354345],[-1071.0246486203064,711.8708414032074],[-753.506872204006,1220.3346124398197],[-436.80805956524114,685.6706133213333],[-495.3484089414735,624.8563105890066],[1558.5070886059025,-569.7059276185041],[-360.9095578027481,548.3982169587354],[-1941.492597127935,757.0183649414204],[-312.85060547044077,501.76194808810874],[501.02254621931513,12.519424371121604],[-828.4893971976613,909.325792961993],[-771.2 [truncated; verdict retained]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close semantic mainland Italy cities and roads stay on land",
+      "ok": true,
+      "detail": "{\"badSemanticCities\":[],\"badSemanticRoads\":[],\"checkedCities\":12,\"checkedRoadSamples\":69}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close rendered mainland Italy anchors do not sit in visible water",
+      "ok": true,
+      "detail": "{\"width\":1280,\"height\":800,\"visibleCities\":8,\"visibleRoads\":62,\"badCities\":[],\"badRoads\":[]}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close visible central Italy roads are continuous above terrain",
+      "ok": true,
+      "detail": "{\"visibleRoads\":62,\"roadColorSamples\":58,\"roadHitRatio\":0.935,\"missingRoads\":[{\"name\":\"Roma-Narnia\",\"sx\":641.1,\"sy\":217.1},{\"name\":\"Roma-Ferentinum\",\"sx\":869.9,\"sy\":467.5},{\"name\":\"Roma-Ferentinum\",\"sx\":806.1,\"sy\":465.6},{\"name\":\"Clusium-Volsinii\",\"sx\":492.1,\"sy\":67.6}]}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close natural terrain keeps its yellow-olive ground coverage",
+      "ok": true,
+      "detail": "{\"total\":419608,\"naturalGroundRatio\":0.8635}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-rome-close",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod rome-close shows own-city map cards incl. Ostia/Portus + garrisoned Roma",
+      "ok": true,
+      "detail": "[\"ALBA FUCENS\",\"ASCULUM\",\"CASINUM\",\"CLUSIUM\",\"COSA\",\"FERENTINUM\",\"NARNIA\",\"OSTIA/PORTUS\",\"REATE\",\"ROMA\",\"TARRACINA\",\"TIBUR\",\"VOLSINII\"]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-rome-close own-city cards sit directly under their visible city model",
+      "ok": true,
+      "detail": "{\"bad\":[],\"audited\":13}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-selected-army-city stats match LoD contract",
+      "ok": true,
+      "detail": "{\"renderer\":\"renderer-campaign\",\"substrate\":\"threejs-webgpu-tsl\",\"projection\":\"camera3d\",\"environment\":\"golden\",\"depth\":{\"owner\":\"three-webgpu\",\"reversed\":true},\"drawCalls\":270,\"selections\":1,\"garrisonedArmySelections\":1,\"maxSelectionRadius\":11.8,\"ready\":true,\"width\":1280,\"height\":800,\"device\":\"google / swiftshader\",\"cameraContract\":\"camera3d-viewProj-reverse-z\",\"cityEntities\":401,\"armyEntities\":12,\"cityEntityAnchors\":[[765.1309495982649,204.35466556474623],[1638.479639634806,-797.5927519292391],[-313.5425711955615,405.9385295795664],[-776.6248527026879,1485.8915545777124],[-394.9378978577421,993.4227894731976],[1583.5226535373706,-421.8128152160658],[-378.7488034834311,463.0244065202387],[1130.7525323636014,-685.831147056577],[696.8028512694668,227.8979574690677],[-436.80805956524114,853.5872207081907],[-861.039954255739,-226.21064917270013],[-364.8327636392278,629.6984108590477],[1260.2536332165546,318.8633388540014],[1616.0102571769262,-41.7682188836964],[1144.6711563387826,115.02216842125604],[1653.4520742951204,-124.65229434781268],[1061.0912557292145,77.90479318481216],[1281.7684001634436,-867.3514173117601],[759.5918950281232,368.5718306021212],[431.9298938506979,909.8373270721632],[-1008.9590520962668,685.5850452368861],[-360.834136087783,873.57729301615],[78.81866729896093,1063.4768383857522],[-1048.822978957121,759.304231839124],[1388.9501786967717,163.50307791354345],[-1071.0246486203064,711.8708414032074],[-753.506872204006,1220.3346124398197],[-436.80805956524114,685.6706133213333],[-495.3484089414735,624.8563105890066],[1558.5070886059025,-569.7059276185041],[-360.9095578027481,548.3982169587354],[-1941.492597127935,757.0183649414204],[-312.85060547044077,501.76194808810874],[501.02254621931513,12.519424371121604],[-828.4893971976613,909.325792961993],[-77 [truncated; verdict retained]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-selected-army-city natural terrain keeps its yellow-olive ground coverage",
+      "ok": true,
+      "detail": "{\"total\":419617,\"naturalGroundRatio\":0.8606}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-selected-army-city",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-selected-city stats match LoD contract",
+      "ok": true,
+      "detail": "{\"renderer\":\"renderer-campaign\",\"substrate\":\"threejs-webgpu-tsl\",\"projection\":\"camera3d\",\"environment\":\"golden\",\"depth\":{\"owner\":\"three-webgpu\",\"reversed\":true},\"drawCalls\":270,\"selections\":1,\"garrisonedArmySelections\":0,\"maxSelectionRadius\":10.8,\"ready\":true,\"width\":1280,\"height\":800,\"device\":\"google / swiftshader\",\"cameraContract\":\"camera3d-viewProj-reverse-z\",\"cityEntities\":401,\"armyEntities\":12,\"cityEntityAnchors\":[[765.1309495982649,204.35466556474623],[1638.479639634806,-797.5927519292391],[-313.5425711955615,405.9385295795664],[-776.6248527026879,1485.8915545777124],[-394.9378978577421,993.4227894731976],[1583.5226535373706,-421.8128152160658],[-378.7488034834311,463.0244065202387],[1130.7525323636014,-685.831147056577],[696.8028512694668,227.8979574690677],[-436.80805956524114,853.5872207081907],[-861.039954255739,-226.21064917270013],[-364.8327636392278,629.6984108590477],[1260.2536332165546,318.8633388540014],[1616.0102571769262,-41.7682188836964],[1144.6711563387826,115.02216842125604],[1653.4520742951204,-124.65229434781268],[1061.0912557292145,77.90479318481216],[1281.7684001634436,-867.3514173117601],[759.5918950281232,368.5718306021212],[431.9298938506979,909.8373270721632],[-1008.9590520962668,685.5850452368861],[-360.834136087783,873.57729301615],[78.81866729896093,1063.4768383857522],[-1048.822978957121,759.304231839124],[1388.9501786967717,163.50307791354345],[-1071.0246486203064,711.8708414032074],[-753.506872204006,1220.3346124398197],[-436.80805956524114,685.6706133213333],[-495.3484089414735,624.8563105890066],[1558.5070886059025,-569.7059276185041],[-360.9095578027481,548.3982169587354],[-1941.492597127935,757.0183649414204],[-312.85060547044077,501.76194808810874],[501.02254621931513,12.519424371121604],[-828.4893971976613,909.325792961993],[-77 [truncated; verdict retained]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-selected-city",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "campaign-lod-border-fog stats match LoD contract",
+      "ok": true,
+      "detail": "{\"renderer\":\"renderer-campaign\",\"substrate\":\"threejs-webgpu-tsl\",\"projection\":\"camera3d\",\"environment\":\"golden\",\"depth\":{\"owner\":\"three-webgpu\",\"reversed\":true},\"drawCalls\":229,\"selections\":1,\"garrisonedArmySelections\":0,\"maxSelectionRadius\":10.8,\"ready\":true,\"width\":1280,\"height\":800,\"device\":\"google / swiftshader\",\"cameraContract\":\"camera3d-viewProj-reverse-z\",\"cityEntities\":44,\"armyEntities\":2,\"cityEntityAnchors\":[[-313.5425711955615,405.9385295795664],[-378.7488034834311,463.0244065202387],[-364.8327636392278,629.6984108590477],[-436.80805956524114,685.6706133213333],[-495.3484089414735,624.8563105890066],[-360.9095578027481,548.3982169587354],[-312.85060547044077,501.76194808810874],[-271.27223465555943,353.57962417123866],[-527.7864002457744,741.2830700496863],[-160.4713344852447,669.6501196221718],[-161.88614857711724,359.82512846718265],[-314.95280257588604,349.46587790824356],[-347.31128796399025,396.16907846168755],[-336.84237077911166,551.7371288580068],[-492.0709807407154,574.0422203824452],[-343.06244257019904,466.20353268454625],[-550.7689447814287,515.7549987036803],[-402.8197253779572,659.6835193209865],[-394.19194948737874,420.7295818738817],[-541.5070173953305,661.3783800572089],[-216.8835442357563,685.6706133213333],[-255.5248265944577,427.4522231431261],[-636.5088743794101,702.3079985938912],[-353.81003808190644,368.5287294289866],[-559.9077969790789,760.6927165570553],[-449.4942032644211,515.9507716139437],[-470.7963937525251,433.7957022410476],[-610.8681703075088,661.0073905319895],[-569.104909450723,682.0194420968049],[-326.8458019004988,773.6269314763538],[-296.1700801768298,311.2167798441427],[-324.846488124776,323.8503045472719],[-459.9225679167933,728.6596612102525],[-422.0373650593875,501.30921436822496],[-456.3745149621212,446.40354088110536 [truncated; verdict retained]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "snapshot campaign-lod-border-fog",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional canvas city names contribute visible text",
+      "ok": true,
+      "detail": "[{\"name\":\"SPOLETIUM\",\"valid\":true,\"partial\":false,\"pixels\":1021},{\"name\":\"ATERNUM\",\"valid\":true,\"partial\":false,\"pixels\":871},{\"name\":\"CORFINIUM\",\"valid\":true,\"partial\":false,\"pixels\":1018},{\"name\":\"LARINUM\",\"valid\":true,\"partial\":false,\"pixels\":834},{\"name\":\"AESERNIA\",\"valid\":true,\"partial\":false,\"pixels\":863},{\"name\":\"BENEVENTUM\",\"valid\":true,\"partial\":false,\"pixels\":1264},{\"name\":\"PUTEOLI\",\"valid\":true,\"partial\":true,\"pixels\":766}]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional missing canvas names fail independently",
+      "ok": true,
+      "detail": "[{\"name\":\"SPOLETIUM\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"ATERNUM\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"CORFINIUM\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"LARINUM\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"AESERNIA\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"BENEVENTUM\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"PUTEOLI\",\"valid\":true,\"partial\":true,\"pixels\":0}]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional missing canvas preserves cards names",
+      "ok": true,
+      "detail": "[{\"name\":\"ALBA FUCENS\",\"valid\":true,\"partial\":false,\"pixels\":549},{\"name\":\"ASCULUM\",\"valid\":true,\"partial\":false,\"pixels\":469},{\"name\":\"CASINUM\",\"valid\":true,\"partial\":false,\"pixels\":418},{\"name\":\"COSA\",\"valid\":true,\"partial\":false,\"pixels\":263},{\"name\":\"FERENTINUM\",\"valid\":true,\"partial\":false,\"pixels\":592},{\"name\":\"MINTURNAE\",\"valid\":true,\"partial\":false,\"pixels\":589},{\"name\":\"NARNIA\",\"valid\":true,\"partial\":false,\"pixels\":348},{\"name\":\"OSTIA/PORTUS\",\"valid\":true,\"partial\":false,\"pixels\":686},{\"name\":\"REATE\",\"valid\":true,\"partial\":false,\"pixels\":277},{\"name\":\"ROMA\",\"valid\":true,\"partial\":false,\"pixels\":295},{\"name\":\"TARRACINA\",\"valid\":true,\"partial\":false,\"pixels\":539},{\"name\":\"TIBUR\",\"valid\":true,\"partial\":false,\"pixels\":251},{\"name\":\"VOLSINII\",\"valid\":true,\"partial\":false,\"pixels\":428}]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional cards city names contribute visible text",
+      "ok": true,
+      "detail": "[{\"name\":\"ALBA FUCENS\",\"valid\":true,\"partial\":false,\"pixels\":549},{\"name\":\"ASCULUM\",\"valid\":true,\"partial\":false,\"pixels\":469},{\"name\":\"CASINUM\",\"valid\":true,\"partial\":false,\"pixels\":418},{\"name\":\"COSA\",\"valid\":true,\"partial\":false,\"pixels\":263},{\"name\":\"FERENTINUM\",\"valid\":true,\"partial\":false,\"pixels\":592},{\"name\":\"MINTURNAE\",\"valid\":true,\"partial\":false,\"pixels\":589},{\"name\":\"NARNIA\",\"valid\":true,\"partial\":false,\"pixels\":348},{\"name\":\"OSTIA/PORTUS\",\"valid\":true,\"partial\":false,\"pixels\":686},{\"name\":\"REATE\",\"valid\":true,\"partial\":false,\"pixels\":277},{\"name\":\"ROMA\",\"valid\":true,\"partial\":false,\"pixels\":295},{\"name\":\"TARRACINA\",\"valid\":true,\"partial\":false,\"pixels\":539},{\"name\":\"TIBUR\",\"valid\":true,\"partial\":false,\"pixels\":251},{\"name\":\"VOLSINII\",\"valid\":true,\"partial\":false,\"pixels\":428}]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional missing cards names fail independently",
+      "ok": true,
+      "detail": "[{\"name\":\"ALBA FUCENS\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"ASCULUM\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"CASINUM\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"COSA\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"FERENTINUM\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"MINTURNAE\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"NARNIA\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"OSTIA/PORTUS\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"REATE\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"ROMA\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"TARRACINA\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"TIBUR\",\"valid\":true,\"partial\":false,\"pixels\":0},{\"name\":\"VOLSINII\",\"valid\":true,\"partial\":false,\"pixels\":0}]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional missing cards preserves canvas names",
+      "ok": true,
+      "detail": "[{\"name\":\"SPOLETIUM\",\"valid\":true,\"partial\":false,\"pixels\":1021},{\"name\":\"ATERNUM\",\"valid\":true,\"partial\":false,\"pixels\":871},{\"name\":\"CORFINIUM\",\"valid\":true,\"partial\":false,\"pixels\":1018},{\"name\":\"LARINUM\",\"valid\":true,\"partial\":false,\"pixels\":834},{\"name\":\"AESERNIA\",\"valid\":true,\"partial\":false,\"pixels\":863},{\"name\":\"BENEVENTUM\",\"valid\":true,\"partial\":false,\"pixels\":1264},{\"name\":\"PUTEOLI\",\"valid\":true,\"partial\":true,\"pixels\":766}]"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional name controls restore exact world pixels and card paint within one RGB8 step",
+      "ok": true,
+      "detail": "{\"outsideCardChanges\":0,\"maximumCardChannelDelta\":0}"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional canvas control leaves pixels outside its owning surface unchanged",
+      "ok": true,
+      "detail": "0 outside pixels; first: []"
+    },
+    {
+      "scenario": "campaign-lod",
+      "name": "regional cards control leaves pixels outside its owning surface unchanged",
+      "ok": true,
+      "detail": "0 outside pixels; first: []"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

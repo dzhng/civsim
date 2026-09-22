@@ -135,13 +135,7 @@ export async function run(ctx) {
   });
 
   await snapCampaign(page, ctx, "campaign-lod-regional-italy-natural", {
-    before: () =>
-      page.evaluate((camera) => {
-        window.__campaign.fogOfWar(false);
-        window.__campaign.factionView(false);
-        window.__campaign.select(-1);
-        window.__campaign.cam(...camera);
-      }, REGIONAL_ITALY_CAMERA),
+    before: () => regionalNaturalView(page),
     stats: (stats) =>
       stats.visibleLabels >= 8 &&
       stats.cityEntities > 20 &&
@@ -250,7 +244,24 @@ export async function run(ctx) {
       hasTerrainFeatureDensity(stats),
   });
 
+  // Fault injection can invalidate composited card paint. Keep it after all
+  // regression captures so its restoration does not influence later baselines.
+  await regionalNaturalView(page);
+  await campaignPresentationReady(page);
+  await page.mouse.click(100, 400); // open sea in this fixed view closes the city panel
+  await page.locator("#cmp-city").waitFor({ state: "hidden" });
+  await campaignPresentationReady(page);
+  await checkRegionalNames(page, ctx);
   await page.close();
+}
+
+async function regionalNaturalView(page) {
+  await page.evaluate((camera) => {
+    window.__campaign.fogOfWar(false);
+    window.__campaign.factionView(false);
+    window.__campaign.select(-1);
+    window.__campaign.cam(...camera);
+  }, REGIONAL_ITALY_CAMERA);
 }
 
 function hasTerrainFeatureDensity(stats) {
@@ -300,7 +311,6 @@ async function snapCampaign(
   }
   if (checkStructure) {
     checkRegionalMapStructure(ctx, PNG.sync.read(shot), terrain);
-    await checkRegionalNames(page, ctx);
   }
   if (naturalGroundFloor !== null) {
     const metrics = naturalGroundMetrics(terrain);

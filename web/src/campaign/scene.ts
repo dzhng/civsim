@@ -13,7 +13,7 @@ import { createHudStore } from "../ui/hudStore";
 import { nearestLoc, tilePos, type CampaignData } from "./data";
 import type { CamView } from "./camera";
 import { resolveMapCards, type MapCardCandidate } from "./cardLayout";
-import { CampaignRenderer, MAX_CAMPAIGN_ZOOM, type CampaignCardRect } from "./renderer";
+import { CampaignRenderer, type CampaignCardRect } from "./renderer";
 import { TerrainField } from "./terrain";
 import { Territory } from "./territory";
 import { Allegiance } from "@packages/game-renderer/src/campaign/entityFrame";
@@ -746,7 +746,7 @@ export class CampaignScene implements Scene {
           const canvasX = px - rect.left * dpr;
           const canvasY = py - rect.top * dpr;
           const [wx, wy] = this.renderer.toWorld(canvasX, canvasY);
-          this.cam.scale = Math.min(MAX_CAMPAIGN_ZOOM, this.cam.scale * campaignFactor);
+          this.cam.scale *= campaignFactor;
           this.clampCam();
           const [nx, ny] = this.renderer.toWorld(canvasX, canvasY);
           this.cam.x += wx - nx;
@@ -760,7 +760,7 @@ export class CampaignScene implements Scene {
   }
 
   private zoomBy(factor: number) {
-    this.cam.scale = Math.min(MAX_CAMPAIGN_ZOOM, this.cam.scale * factor);
+    this.cam.scale *= factor;
     this.clampCam();
   }
 

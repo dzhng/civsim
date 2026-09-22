@@ -65,7 +65,8 @@ import {
 } from "@packages/game-renderer/src/campaign/scenery";
 import { roundMs } from "@packages/renderer-core/src/math";
 
-export const MAX_CAMPAIGN_ZOOM = 8;
+/** CSS pixels per world kilometre; the frame camera stores backing-pixel scale. */
+const MAX_CAMPAIGN_ZOOM = 8;
 
 export interface CampaignRendererOptions {
   graphics?: GraphicsSettings;
@@ -186,7 +187,7 @@ export class CampaignRenderer {
       : Math.max(cssW / (rect.max[0] - rect.min[0]), cssH / ((rect.max[1] - rect.min[1]) * cosP)) *
         (window.devicePixelRatio || 1);
     let minZoom = controlled ? fillZoom * 0.78 : fillZoom;
-    const maxZoom = controlled ? Math.max(MAX_CAMPAIGN_ZOOM, minZoom * 2.2) : MAX_CAMPAIGN_ZOOM;
+    const maxZoom = this.campaignZoomRange().max;
     if (!controlled) {
       const mapW = rect.max[0] - rect.min[0];
       const mapH = rect.max[1] - rect.min[1];
@@ -456,7 +457,7 @@ export class CampaignRenderer {
   }
 
   pitchForScale(scale: number) {
-    return campaignPitch(scale);
+    return campaignPitch(scale / (window.devicePixelRatio || 1));
   }
 
   /** Keyboard/edge pan speed, world km/s: the battle camera's curve
@@ -611,7 +612,7 @@ export class CampaignRenderer {
     const fillZoom =
       Math.max(cssW / (rect.max[0] - rect.min[0]), cssH / (rect.max[1] - rect.min[1])) * dpr;
     const min = controlled ? fillZoom * 0.78 : fillZoom;
-    const max = controlled ? Math.max(MAX_CAMPAIGN_ZOOM, min * 2.2) : MAX_CAMPAIGN_ZOOM;
+    const max = controlled ? Math.max(MAX_CAMPAIGN_ZOOM * dpr, min * 2.2) : MAX_CAMPAIGN_ZOOM * dpr;
     return { min, max };
   }
 

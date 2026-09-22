@@ -62,7 +62,7 @@ algorithm is required if the existing owner can meet the visual contract.
 | Measured elevation, filtering and scale controls | Regional branching gains did not survive final natural-composition review; no loader, source asset or schema adoption followed | [Elevation control](../assets/slice-04/elevation-control/README.md), [natural review](../assets/slice-04/elevation-natural/README.md) |
 | Finer sampling of the accepted field | Reduced interpolation/step error but preserved the wrong regional character at greater allocation cost; no production refinement | [Sampling measurements](../assets/slice-04/accepted-field-sampling/README.md), [visual verdict](../assets/slice-04/accepted-field-sampling/visual/README.md) |
 | Raised crest prominence | Clearer peaks amplified walls/fins; keep the accepted height envelope | [Crest control](../assets/slice-04/crest-prominence/README.md) |
-| Scalar floor-width controls | Valley compression steepens recovery flanks; valley fill loses low-floor occupancy. A lower-amplitude control remains visually unverified | [Real-source measurements](../assets/slice-04/floor-width-probes/README.md) |
+| Scalar floor-width controls | Valley compression steepens recovery flanks; valley fill loses low-floor occupancy. Lower amplitude slightly smooths the apron but retains rock fingers/trenches; visually rejected | [Real-source measurements](../assets/slice-04/floor-width-probes/README.md) |
 | Downward-only saddles | Accepted bounded articulation in clay, natural regions and production, with exact repeats; whole range/foothill quality stays open | [Adopted pass](../assets/slice-04/downward-saddles/README.md) |
 
 The synthetic coastal ridge fixture isolates sampling/coast defects but imposes a

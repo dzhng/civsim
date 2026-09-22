@@ -21,3 +21,18 @@ fall 18–20%; longest gentle low intervals change from 11 to 31.75km, 4 to 5km,
 mountain relief by 20%. It is a height-exaggeration control, not a new valley
 structure, and must earn acceptance in unchanged regional and close production
 views. No production candidate has been accepted from these numbers.
+
+## Lower-amplitude visual verdict: rejected
+
+All three control views repeated exactly on the accepted production build. The
+2.0 multiplier candidate changed 933,696 Alps pixels, 464,710 Italy pixels and
+944,403 close Alps pixels, with RGB mean absolute differences10.337,4.879,13.104.
+The regional [candidate](lower-amplitude-alps.png) compared against the unchanged
+[source-slope control](../source-slope-control/control/alps.png) shows a slightly
+smoother southern apron but the same thick rounded rock fingers and dark trenches.
+Root and unprimed review judge the overall result effectively equal and both
+inadequate. Broad green interior valleys and varied ridge hierarchy remain absent;
+reduced southern relief is a small tradeoff rather than the intended structure.
+The candidate code is removed. Its16 focused tests passed, but no acceptance
+repeat is needed for a rejected visual. Neither scalar valley remapping nor global
+height reduction provides the missing internal structure.

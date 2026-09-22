@@ -20,7 +20,18 @@ campaign views. Shadow and traversal gates now pass update and no-update runs, w
 provenance recorded in [scene contracts](assets/scene-contracts/README.md). Turf
 runtime verification is in progress. A real-source valley-compression probe was
 rejected because its recovery steepened maximum flanks by 29–80%; pursue wider
-connected floors without that recovery wall.
+connected floors without that recovery wall. The lower-amplitude control was also visually rejected: its slight outer-apron
+improvement preserved the internal rock fingers/dark trenches. Code is removed;
+see [real-source controls](assets/slice-04/floor-width-probes/README.md).
+The accepted production build remains on5188; the rejected preview is stopped.
+The label scene now tests per-owner missing-name/title controls; syntax, synthetic
+controls and independent review pass, but real browser verification is pending.
+The turf run proved deterministic close cold boots and complete residency, then
+was deliberately cancelled after image review found lost close framing. Main's
+camera calibration changed the physical pose for the same zoom tuple. The scene's
+close profile now uses the existing nearest endpoint (zoom8); it needs new visual
+verification. No turf baseline has been refreshed.
+
 
 Campaign keeps Three and battle keeps main's TypeGPU renderer: share neutral
 policy/data/assets, not backend wrappers or a restored battle backend.

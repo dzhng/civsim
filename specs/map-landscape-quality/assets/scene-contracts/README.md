@@ -63,3 +63,15 @@ resources or dependencies. Scene waits consume existing completion owners rather
 than adding a second frame lifecycle. Independent reviews found the original
 submission/completion gap and turf terminal-error gap; both were corrected. The
 scoped shadow/traversal repeat proves the corrected runtime contract.
+
+### Close turf camera finding
+
+The partial runtime passed full and ground-only cold-boot determinism, and all476
+requested focus tiles became resident. Both old close snapshots failed. Image
+inspection and history establish a framing change: c90f905a's close baseline used
+a low horizon view, while main's distance-based camera calibration produces a
+75.673m, pitch0.497603 view for the same zoom7.86. Current grass is tiny stippling
+and the horizon is outside the image. This is not an appearance-only baseline
+migration. The run was deliberately cancelled after this evidence; the close
+profile now selects the existing nearest endpoint, zoom8, for foreground blade
+inspection. Its image acceptance and the remaining turf matrix are pending.

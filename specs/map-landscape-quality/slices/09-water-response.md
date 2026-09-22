@@ -69,3 +69,12 @@ reduced distant glints in the current production lake. It changes only lake norm
 detail attenuation from ground-focus distance to eye distance. The same source
 wave field remains in use. Ripple regularity, shore treatment, motion, and the
 software baseline migration remain open; this does not close09.
+
+## Joined battle ocean checkpoint
+
+The [wet boundary pass](../assets/slice-08/battle-ocean-join/README.md) removes
+opaque field/ocean intersections and shares their near-edge response. Six
+software snapshots repeat exactly; geometry, masks, native/software motion and
+phase-return checks pass. Its one sequence also supplies the corresponding13/15
+controls. Flat distant detail, coastal fringe and full composed quality remain
+open; this bounded checkpoint does not close the slice.

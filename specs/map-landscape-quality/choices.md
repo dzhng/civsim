@@ -444,3 +444,26 @@ contrast. Standalone lakes now use distance to the camera eye for the existing
 detail falloff; distance to the ground focus ignored camera altitude. This is a
 simple viewing-distance approximation at the existing FOV, not an exact pixel
 footprint filter. Ocean policy and the water spectrum remain unchanged.
+
+## Joined battle water
+
+### Sound — medium confidence: retain boundary knots across the ocean grid
+
+Ocean geometry includes every rendered field-edge knot, even where its regular
+grid would skip one. This prevents cracks and removes the need for an overlapping
+strip. It costs about3.38MiB more geometry on mapC and retains one draw; the common
+hardware budget still governs final acceptance. The existing offshore depth band
+also controls the gradual displacement transition, avoiding another tuning owner.
+
+### Sound — high confidence: verification samples the running world
+
+The lake check requests a detached tint copy through the existing terrain debug
+owner instead of regenerating another map. Ordinary diagnostics do not allocate
+that copy. Lab phase captures advance the route-owned clock and await a completed
+revision, rather than writing a time value that the next frame overwrites.
+
+### Sound — high confidence: precise review media is opt-in
+
+Water GIFs use full RGB source buckets before selecting their shared palette,
+because coarse buckets hid the small changes being reviewed. Existing GIF callers
+keep their previous default behavior; this adds no production rendering option.

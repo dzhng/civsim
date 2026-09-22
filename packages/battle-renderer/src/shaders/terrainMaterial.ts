@@ -4,19 +4,7 @@ import {
 } from "../../../game-renderer/src/terrain/materialProfile";
 import { MEADOW } from "../../../game-renderer/src/battle/meadowPalette";
 import { TURF_CONTRAST, TURF_SHAPE } from "../../../game-renderer/src/battle/groundMaterialPolicy";
-import {
-  WATER_SHALLOW_ALBEDO,
-  WATER_DEEP_ALBEDO,
-  WATER_FOAM_ALBEDO,
-  WATER_ROUGHNESS,
-  WATER_FOAM_ROUGHNESS,
-  LAKE_NORMAL_DETAIL_FADE_START,
-  LAKE_NORMAL_DETAIL_FADE_END,
-} from "../../../game-renderer/src/water/physicalWaterPolicy";
-import {
-  FIELD_WATER_RAMP,
-  TERRAIN_WATER_BLEND,
-} from "../../../game-renderer/src/water/waterShoreRamp";
+import { TERRAIN_WATER_BLEND } from "../../../game-renderer/src/water/waterShoreRamp";
 import type { BattleSlopeBands } from "../../../game-renderer/src/battle/terrainFeatures";
 import type { PhotorealEarthDistanceField } from "../../../game-renderer/src/battle/photorealEarthDistance";
 
@@ -117,14 +105,9 @@ export function terrainMaterialFunctions(options: TerrainMaterialOptions) {
  albedo=mix(albedo,scree,screeMask*0.78);albedo=mix(albedo,rock,rockMask);albedo=mix(albedo,mix(${rgb(rock.bench)},inputAlbedo,${f(rock.benchBaseMix)}),bench);
  roughness=mix(roughness,0.985,clamp((rockMask+screeMask)*0.62,0.0,1.0));
  roughness=mix(roughness,${f(rock.roughnessBase)}+faceHeight*${f(rock.roughnessHeight)},rockMask);
- let swash=smoothstep(0.16,0.02,rawWater)*smoothstep(0.006,0.03,rawWater);
- let waterDetail=1.0-smoothstep(${f(LAKE_NORMAL_DETAIL_FADE_START)},${f(LAKE_NORMAL_DETAIL_FADE_END)},length(world-focus));
- let lace=terrainWaterNoise(world*1.2+vec2f(time*0.05,0))*0.28+0.72;
- let foam=clamp(swash*lace*0.7*waterDetail,0.0,1.0);
- let depth=smoothstep(${f(FIELD_WATER_RAMP.depthNear)},${f(FIELD_WATER_RAMP.depthFar)},rawWater);
- let waterAlbedo=terrainLinear(mix(mix(${rgb(WATER_SHALLOW_ALBEDO)},${rgb(WATER_DEEP_ALBEDO)},depth),${rgb(WATER_FOAM_ALBEDO)},foam));
- albedo=mix(terrainLinear(clamp(albedo,vec3f(0),vec3f(1))),waterAlbedo,waterBlend);
- roughness=mix(${options.vistaBand ? `max(roughness,${f(options.vistaBand === "farFog" ? 0.995 : 0.985)})` : "roughness"},mix(${f(WATER_ROUGHNESS)},${f(WATER_FOAM_ROUGHNESS)},foam),waterBlend);
+ let fieldWater=fieldWaterResponse(world,rawWater,time,length(world-focus));
+ albedo=mix(terrainLinear(clamp(albedo,vec3f(0),vec3f(1))),fieldWater.albedo,waterBlend);
+ roughness=mix(${options.vistaBand ? `max(roughness,${f(options.vistaBand === "farFog" ? 0.995 : 0.985)})` : "roughness"},fieldWater.roughness,waterBlend);
  return vec4f(albedo,roughness);
 }`,
   };

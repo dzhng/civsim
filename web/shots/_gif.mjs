@@ -8,13 +8,21 @@
 import { PNG } from "pngjs";
 
 // Quantise a set of RGBA frames to one shared ≤256-colour palette.
-export function quantize(frames) {
-  // Histogram over RGB444 buckets (4096), then keep the most common as palette.
+export function quantize(frames, colorBits = 4) {
+  if (!Number.isInteger(colorBits) || colorBits < 4 || colorBits > 8) {
+    throw new Error("GIF color precision must be 4–8 bits per channel");
+  }
+  const shift = 8 - colorBits;
+  const mask = (1 << colorBits) - 1;
+  const keyOf = (r, g, b) =>
+    ((r >> shift) << (colorBits * 2)) | ((g >> shift) << colorBits) | (b >> shift);
+  // Keep the most frequent color buckets. Water review can opt into RGB888
+  // so a narrow color range is not collapsed before palette selection.
   const hist = new Map();
   for (const f of frames) {
     const d = f.data;
     for (let i = 0; i < d.length; i += 4) {
-      const key = ((d[i] >> 4) << 8) | ((d[i + 1] >> 4) << 4) | (d[i + 2] >> 4);
+      const key = keyOf(d[i], d[i + 1], d[i + 2]);
       hist.set(key, (hist.get(key) || 0) + 1);
     }
   }
@@ -22,17 +30,17 @@ export function quantize(frames) {
   const palette = new Uint8Array(256 * 3);
   for (let k = 0; k < top.length; k++) {
     const key = top[k][0];
-    // Bucket centre (shift back, + 8 to land mid-cell).
-    palette[k * 3] = ((key >> 8) & 15) * 17;
-    palette[k * 3 + 1] = ((key >> 4) & 15) * 17;
-    palette[k * 3 + 2] = (key & 15) * 17;
+    // Preserve the legacy RGB444 palette by default.
+    palette[k * 3] = ((key >> (colorBits * 2)) & mask) * (255 / mask);
+    palette[k * 3 + 1] = ((key >> colorBits) & mask) * (255 / mask);
+    palette[k * 3 + 2] = (key & mask) * (255 / mask);
   }
   const nColors = Math.max(1, top.length);
-  // Nearest-palette cache, one slot per RGB444 bucket.
-  const cache = new Int16Array(4096).fill(-1);
+  // Cache only observed colors; RGB888 should not allocate a 16-million-slot table.
+  const cache = new Map();
   const nearest = (r, g, b) => {
-    const key = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
-    if (cache[key] >= 0) return cache[key];
+    const key = keyOf(r, g, b);
+    if (cache.has(key)) return cache.get(key);
     let best = 0,
       bestD = Infinity;
     for (let k = 0; k < nColors; k++) {
@@ -45,7 +53,7 @@ export function quantize(frames) {
         best = k;
       }
     }
-    cache[key] = best;
+    cache.set(key, best);
     return best;
   };
   const indexed = frames.map((f) => {
@@ -110,7 +118,7 @@ function lzw(indices, minCode) {
 /** Encode frames ({data: RGBA Buffer}[]) at `width`x`height` into a GIF.
  *  `delayCs` is the per-frame delay in centiseconds. Returns a Buffer. */
 export function encodeGif(frames, width, height, delayCs = 8, opts = {}) {
-  const { palette, indexed } = quantize(frames);
+  const { palette, indexed } = quantize(frames, opts.colorBits);
   const bytes = [];
   const u16 = (v) => {
     bytes.push(v & 0xff, (v >> 8) & 0xff);

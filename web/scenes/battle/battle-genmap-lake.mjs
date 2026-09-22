@@ -47,30 +47,62 @@ async function captureLakeFrame(ctx, page, env) {
   await page.goto(`${ctx.target}/?map=gen&seed=${SEED}&ai=off&env=${env}`);
   await battleRendererReady(page);
   await page.evaluate(() => window.__game.freezeAtTick(60));
-  const pose = await page.evaluate(async (seed) => {
+  const requested = await page.evaluate(() => {
     const debug = window.__game.terrainDebug();
     const lake = debug.generatedMap?.lakeSurfaces?.[0] ?? debug.certificates?.drainage?.lakes?.[0];
     if (!lake) return null;
+    const reliefScale = debug.generatedMap?.reliefScale;
+    if (!Number.isFinite(reliefScale)) throw new Error("Generated lake relief scale missing");
     const cx = (lake.minX + lake.maxX) * 0.5;
     const cy = (lake.minY + lake.maxY) * 0.5;
     const yaw = cx < 0 ? 0 : Math.PI;
     window.__game.setCamera(cx, cy, 7.1, yaw, 0.78);
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
+    return {
+      lake,
+      expectedLevel: lake.level * reliefScale,
+      camera: window.__cam.params(),
+      afterFrame: window.__game.stats().renderStats.presentedFrameId,
+    };
+  });
+  ctx.check("seed-7 generated map exports at least one lake surface", requested !== null);
+  if (!requested) throw new Error("seed-7 generated lake surface missing");
+  await page.waitForFunction(
+    ({ camera, afterFrame }) => {
+      if (window.__gpuFatal) throw new Error(String(window.__gpuFatal));
+      const stats = window.__game.stats().renderStats;
+      const actual = stats.camera?.camera3d;
+      const near = (a, b) => Number.isFinite(a) && Math.abs(a - b) < 1e-6;
+      return (
+        stats.substrate === "typegpu" &&
+        stats.presentedFrameId > afterFrame &&
+        stats.terrain?.installed === true &&
+        stats.terrain.replacing === false &&
+        actual &&
+        camera.target.every((value, i) => near(actual.target[i], value)) &&
+        ["distance", "pitch", "yaw", "fovY", "aspect"].every((key) =>
+          near(actual[key], camera[key]),
+        )
+      );
+    },
+    requested,
+    { timeout: 180000 },
+  );
+  const pose = await page.evaluate(({ lake, expectedLevel }) => {
+    const water = window.__game.stats().renderStats.terrain?.water;
+    const surface = water?.surfaces.find(
+      (entry) => entry.kind === "lake" && Math.abs(entry.level - expectedLevel) < 1e-3,
+    );
+    if (!surface || !Number.isFinite(surface.surfaceLevel)) {
+      throw new Error("Generated lake has no matching installed water surface");
+    }
     const canvas = document.getElementById("battlefield");
     const canvasW = canvas.clientWidth || canvas.width / (window.devicePixelRatio || 1);
     const canvasH = canvas.clientHeight || canvas.height / (window.devicePixelRatio || 1);
-    const wasmModule = await import("/src/wasm/game_wasm.js");
-    const wasm = await wasmModule.default();
-    const game = new wasmModule.Game(0x5eed_c0de);
-    game.start_battle_generated(BigInt(seed));
-    const w = game.terrain_w();
-    const h = game.terrain_h();
-    const cell = game.terrain_cell();
-    const ox = game.terrain_origin_x();
-    const oy = game.terrain_origin_y();
-    const tint = new Uint8Array(wasm.memory.buffer, game.terrain_tint_ptr(), w * h).slice();
-    const screen = (x, y) => window.__cam.worldToScreen(x, y, lake.level);
+    const { w, h, cell, ox, oy, tint } = window.__game.terrainDebug({ includeTint: true });
+    if (!tint || tint.length !== w * h) {
+      throw new Error("Live terrain diagnostic cell mask missing");
+    }
+    const screen = (x, y, z = surface.surfaceLevel) => window.__cam.worldToScreen(x, y, z);
     const corners = [
       screen(lake.minX, lake.minY),
       screen(lake.maxX, lake.minY),
@@ -101,7 +133,11 @@ async function captureLakeFrame(ctx, page, env) {
           const i = sy * w + sx;
           const wx = ox + (sx + 0.5) * cell;
           const wy = oy + (sy + 0.5) * cell;
-          const [px, py] = screen(wx, wy);
+          const [px, py] = screen(
+            wx,
+            wy,
+            tint[i] === 1 ? surface.surfaceLevel : window.__game.heightAt(wx, wy),
+          );
           if (px < 0 || py < 0 || px >= canvasW || py >= canvasH) continue;
           if (tint[i] === 1) water.push([px, py]);
           else dry.push([px, py]);
@@ -110,14 +146,8 @@ async function captureLakeFrame(ctx, page, env) {
       return { water: water.slice(0, 180), dry: dry.slice(0, 180) };
     };
     const samples = buildMask();
-    game.free();
-    return { lake, crop, samples };
-  }, SEED);
-  ctx.check("seed-7 generated map exports at least one lake surface", pose !== null);
-  if (!pose) {
-    throw new Error("seed-7 generated lake surface missing");
-  }
-  await page.waitForTimeout(400);
+    return { lake: { ...lake, level: expectedLevel }, crop, samples };
+  }, requested);
   const shot = await page.locator("#battlefield").screenshot({ timeout: 180000 });
   const image = PNG.sync.read(shot);
   const crop = cropRatio(
@@ -142,7 +172,11 @@ function assertLakeStats(ctx, label, stats, lake) {
   ctx.check(
     `${label}: installed water geometry matches the generated lake and has no ocean`,
     stats?.renderer === "gpu" &&
+      stats?.substrate === "typegpu" &&
       stats?.terrain?.installed === true &&
+      stats?.terrain?.replacing === false &&
+      water?.draws > 0 &&
+      water?.triangles > 0 &&
       stats?.terrain?.vista !== null &&
       lakes?.length >= 1 &&
       water.surfaces.every((surface) => surface.kind === "lake") &&

@@ -1,3 +1,4 @@
+import { fieldWaterResponseBody } from "../shaders/fieldWaterResponse";
 import { tgpu, d } from "typegpu";
 import { terrainNoiseFunctions as noise } from "../shaders/terrainNoise";
 import { terrainMaterialFunctions, type TerrainMaterialOptions } from "../shaders/terrainMaterial";
@@ -13,6 +14,18 @@ export const terrainWaterNoise = tgpu
   )(noise.terrainWaterNoise)
   .$uses({ terrainWaterHash });
 export const terrainLinear = tgpu.fn([d.vec3f], d.vec3f)(noise.terrainLinear);
+const FieldWaterResponse = d.struct({
+  albedo: d.vec3f,
+  foam: d.f32,
+  roughness: d.f32,
+  detail: d.f32,
+});
+export const fieldWaterResponse = tgpu
+  .fn(
+    [d.vec2f, d.f32, d.f32, d.f32],
+    FieldWaterResponse,
+  )(fieldWaterResponseBody)
+  .$uses({ FieldWaterResponse, terrainWaterNoise, terrainLinear });
 export function createTerrainSurface(options: TerrainMaterialOptions) {
   const bodies = terrainMaterialFunctions(options);
   const turfCanopy = tgpu.fn([d.f32, d.f32, d.f32], d.vec3f)(bodies.turfCanopy);
@@ -34,5 +47,12 @@ export function createTerrainSurface(options: TerrainMaterialOptions) {
       ],
       d.vec4f,
     )(bodies.terrainSurface)
-    .$uses({ terrainHash, terrainFbm, terrainRidge, terrainWaterNoise, terrainLinear, turfCanopy });
+    .$uses({
+      terrainHash,
+      terrainFbm,
+      terrainRidge,
+      fieldWaterResponse,
+      terrainLinear,
+      turfCanopy,
+    });
 }

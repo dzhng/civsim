@@ -52,6 +52,7 @@ export function buildBattleTerrainData(
         { ox: grid.ox, oy: grid.oy, w: grid.w, h: grid.h, cell: grid.cell },
         presentation.edges,
         field,
+        groundData.vertices,
       );
   return {
     field,

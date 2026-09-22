@@ -1,14 +1,16 @@
+import { waterField } from "./waterField";
 import { battleWorldDepth } from "../worldDepth";
 import { tgpu, d, type TgpuRenderPass, type TgpuBindGroup } from "typegpu";
 import { prepareWaterSurfaces, type BattleWaterInput } from "../waterData";
 import type { BattleWaterContent } from "../types";
 import { waterShaderBodies } from "../shaders/water";
-import { terrainWaterNoise, terrainLinear } from "./terrainFunctions";
+import { terrainWaterNoise, terrainLinear, fieldWaterResponse } from "./terrainFunctions";
 import { beginGpuAdmission } from "../gpuAdmission";
 import { typegpuCameraLayout } from "./camera";
 import type { TypegpuEnvironment } from "./environment";
 const WaterState = d.struct({ baseZ: d.f32, shoreX: d.f32, pad: d.vec2f });
-const WaterField = d.struct({ height: d.f32, normal: d.vec3f, foam: d.f32 });
+
+// shore is lake distance in metres, or adjoining field coverage for an ocean join.
 const VertexOut = d.struct({ clip: d.vec4f, position: d.vec3f, shore: d.f32 });
 const waterLayout = tgpu.bindGroupLayout({ water: { uniform: WaterState } }).$idx(1);
 const positions = tgpu.vertexLayout(d.disarrayOf(d.vec3f)),
@@ -67,12 +69,6 @@ export async function createTypegpuWater(
       });
     const makePipeline = (lake: boolean) => {
       const body = waterShaderBodies(lake);
-      const waterField = tgpu
-        .fn(
-          [d.vec2f, d.f32],
-          WaterField,
-        )(`(p:vec2f,t:f32)->WaterField{${body.field}}`)
-        .$uses({ WaterField, terrainWaterNoise });
       const vertexBody = tgpu
         .fn(
           [d.vec3f, d.f32],
@@ -105,6 +101,7 @@ export async function createTypegpuWater(
           VertexOut,
           terrainWaterNoise,
           terrainLinear,
+          fieldWaterResponse,
           shadeWorldSurface,
         });
       const vertex = tgpu.vertexFn({

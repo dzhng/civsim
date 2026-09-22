@@ -41,10 +41,8 @@ export const BATTLE_HORIZON_BOUNDS = {
   overhang: 400,
 } as const;
 
-// The ocean edge runs from the shoreline out past the horizon; the plane laps 24 m
-// into the field so it meets the on-field water with no gap.
+// The ocean starts at the drawn ground edge and extends past the horizon.
 const OCEAN_FAR = 7200;
-const OCEAN_LAP = 24;
 const OCEAN_RES = 440;
 
 /** The sealed-edge presentation, CPU-built: blocker mesh (MeshBuilder stride-10
@@ -54,6 +52,8 @@ export interface BattleOceanPlaneSpec {
   rect: { x0: number; y0: number; x1: number; y1: number; res: number };
   baseZ: number;
   shoreX: number;
+  /** Drawn edge knots, preserving the ground mesh's interpolation. */
+  edge: Array<{ y: number; z: number; water: number }>;
 }
 
 export interface BattleHorizonLayout {
@@ -66,6 +66,7 @@ export function buildBattleHorizonLayout(
   bounds: { ox: number; oy: number; w: number; h: number; cell: number },
   edges: BattleEdgeRoles,
   field: TerrainHeightField,
+  groundVertices: Float32Array,
 ): BattleHorizonLayout {
   const builder = new MeshBuilder();
   const layout: BattleHorizonLayout = {
@@ -87,6 +88,7 @@ export function buildBattleHorizonLayout(
     y0,
     y1,
     terrainHeightAt(field, x0, midY),
+    groundVertices,
   );
   buildHorizonEdge(
     builder,
@@ -97,6 +99,7 @@ export function buildBattleHorizonLayout(
     y0,
     y1,
     terrainHeightAt(field, x1, midY),
+    groundVertices,
   );
   // North/south stay open — they read as fog against the scene clear colour.
   const mesh = builder.finish("battle horizon");
@@ -113,6 +116,7 @@ function buildHorizonEdge(
   y0: number,
   y1: number,
   baseZ: number,
+  groundVertices: Float32Array,
 ) {
   if (role === "open-fog") return;
   layout.builtEdges.push({ side, role });
@@ -123,14 +127,21 @@ function buildHorizonEdge(
   const yHi = y1 + 400;
 
   if (role === "ocean") {
-    // The open sea uses the shared animated water plane, seated at
-    // the shoreline height datum and keyed on distance-from-shore (shoreX = edgeX)
-    // so it meets the on-field water in the same shallow→deep grade — the shoreline
-    // seam cannot exist because both sides are one material. It laps OCEAN_LAP into
-    // the field and runs OCEAN_FAR out past the horizon, where the haze dissolves it
-    // into the sky. Depth (read-write) seats it under props/crowd; the plane has its
-    // own pipeline so it draws after the blocker mesh in the same world pass.
-    const inner = edgeX - outward * OCEAN_LAP;
+    // Join the actual sampled ground edge, not the sim bounds or a midpoint
+    // plane. Keeping its knots prevents cracks on non-flat shoreline rows.
+    let inner = side === "west" ? Infinity : -Infinity;
+    for (let i = 0; i < groundVertices.length; i += 10)
+      inner =
+        side === "west" ? Math.min(inner, groundVertices[i]) : Math.max(inner, groundVertices[i]);
+    const edge: BattleOceanPlaneSpec["edge"] = [];
+    for (let i = 0; i < groundVertices.length; i += 10)
+      if (groundVertices[i] === inner)
+        edge.push({
+          y: groundVertices[i + 1],
+          z: groundVertices[i + 2],
+          water: groundVertices[i + 9],
+        });
+    edge.sort((a, b) => a.y - b.y);
     const outer = edgeX + outward * OCEAN_FAR;
     const rect = {
       x0: Math.min(inner, outer),
@@ -139,7 +150,7 @@ function buildHorizonEdge(
       y1: yHi,
       res: OCEAN_RES,
     };
-    layout.oceanPlanes.push({ rect, baseZ, shoreX: edgeX });
+    layout.oceanPlanes.push({ rect, baseZ, shoreX: inner, edge });
     return;
   }
 

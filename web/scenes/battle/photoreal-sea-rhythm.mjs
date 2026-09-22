@@ -2,14 +2,9 @@ import { writeFile, mkdir } from "node:fs/promises";
 import { PNG } from "pngjs";
 import { encodeGif, pngToRGBA, downscaleRGBA } from "../../shots/_gif.mjs";
 
-// The photoreal sea exposes a fixed-time rhythm filmstrip and review GIF.
-// `seaLayer` owns the Gerstner-TSL surface and animates it from the world's
-// `setTime` uniform
-// (the TSL `time` node is banned). This scene proves the sea *travels* rather
-// than teleports: a fixed-t filmstrip, a committed looping GIF for eyeballing
-// the swell rhythm, and a cadence check that every adjacent frame differs
-// (motion, not a frozen field) while its delta stays bounded (a continuous
-// swell, not a per-frame jump). Shore framing matches `photoreal-sea`.
+// Film one admitted TypeGPU ocean while advancing the route-owned clock.
+// The fixed cadence and return to the first phase distinguish animation from
+// renderer reconstruction or a changed camera between independent page loads.
 export const meta = {
   name: "photoreal-sea-rhythm",
   kind: "visual",
@@ -31,9 +26,10 @@ const FRAMES = 16;
 const T0 = 18.0;
 const DT = 0.2;
 const DELAY_CS = 20;
-// Sea band: shore + near swell + horizon, where all the motion lives.
-const CROP = { x: 0, y: 360, width: 1280, height: 340 };
-const GIF_DOWNSCALE = 2; // 1280x340 crop → 640x170 GIF, keeps the tracked artifact small.
+// The real camera looks across the field/ocean join; include both the moving
+// ocean and its near boundary so the cadence check cannot film only flat field water.
+const CROP = { x: 0, y: 0, width: 1280, height: 500 };
+const GIF_DOWNSCALE = 2;
 const FILM_STOPS = [0, 5, 10, 15];
 
 const GIF_DIR = new URL("../../shots/battle/photoreal-sea-rhythm/", import.meta.url);
@@ -41,18 +37,18 @@ const GIF_PATH = new URL("rhythm.gif", GIF_DIR).pathname;
 
 function seaQuery(t) {
   return new URLSearchParams({
-    // Map C = CoastalScrub: stand in the shallows facing the coast so deep blue
+    // Map C = CoastalScrub: face west from the shallows so deep blue
     // sea fills the frame; noon sky keeps the water blue.
     map: "C",
     ref: "1",
     env: "noon",
     t: String(t),
     ticks: "60",
-    zoom: "8.0",
+    zoom: "7.8",
     cx: "-1180",
     cy: "-150",
-    pitch: "0.28",
-    yaw: String(Math.PI),
+    camYaw: "0",
+    only: "battle-ground,battle-horizon,battle-ocean",
   });
 }
 
@@ -68,59 +64,125 @@ export async function run(ctx) {
   });
   try {
     const cropped = [];
-    let seaStats = null;
-    let atmosphere = null;
-    let device = null;
-    for (let i = 0; i < FRAMES; i++) {
-      const t = Number((T0 + i * DT).toFixed(4));
-      // Clean full navigation each frame so waitForFunction can never latch the
-      // previous frame's stats (the lab is an SPA — a bare query change is a soft
-      // nav that leaves the previous context alive mid-teardown).
-      await page.goto("about:blank");
-      await page.goto(`${ctx.target}/renderer/photoreal-battle?${seaQuery(t)}`);
-      // The route applies the fixed `t` param through world.setTime every frame,
-      // so once the sea terrain is present the frame is deterministically at t.
-      await page.waitForFunction(
-        () =>
+    const frames = [];
+    await page.goto(`${ctx.target}/renderer/photoreal-battle?${seaQuery(T0)}`);
+    await page.waitForFunction(
+      () => {
+        const stats = window.__rendererLabStats;
+        if (stats?.ok === false) throw new Error(stats.error);
+        return (
           window.__rendererLabReady === true &&
-          window.__rendererLabStats?.ok === true &&
-          window.__rendererLabStats?.route === "photoreal-battle" &&
-          window.__rendererLabStats?.stats?.renderStats?.terrain?.sea,
-        undefined,
+          stats?.ok === true &&
+          stats.route === "photoreal-battle" &&
+          stats.substrate === "typegpu" &&
+          typeof window.__photorealBattleClock?.setTime === "function"
+        );
+      },
+      undefined,
+      { timeout: 180000 },
+    );
+    const setPhase = async (time) => {
+      const revision = await page.evaluate(
+        (value) => window.__photorealBattleClock.setTime(value),
+        time,
+      );
+      await page.waitForFunction(
+        ({ revision, time }) => {
+          const stats = window.__rendererLabStats;
+          if (stats?.ok === false) throw new Error(stats.error);
+          return stats?.completedClockRevision === revision && stats.completedFrameTime === time;
+        },
+        { revision, time },
         { timeout: 180000 },
       );
-      await page.waitForTimeout(200);
-      await page
-        .evaluate(() => window.__photorealBattleWorld?.settlePresentedFrame?.())
-        .catch(() => {});
-      if (i === 0) {
-        const stats = await page.evaluate(
-          () => window.__rendererLabStats?.stats?.renderStats ?? null,
-        );
-        seaStats = stats?.sea ?? null;
-        atmosphere = stats?.atmosphere ?? null;
-        device = stats?.device ?? null;
-      }
+      return page.evaluate(() => {
+        const stats = window.__rendererLabStats;
+        return {
+          substrate: stats.substrate,
+          prepared: stats.prepared,
+          environment: stats.environment,
+          camera: stats.preparedCamera,
+          visibility: stats.reviewVisibility,
+          terrain: stats.terrain,
+          time: stats.completedFrameTime,
+          revision: stats.completedClockRevision,
+        };
+      });
+    };
+    for (let i = 0; i < FRAMES; i++) {
+      const time = Number((T0 + i * DT).toFixed(4));
+      frames.push(await setPhase(time));
       const full = await page.locator("#renderer-canvas").screenshot({ timeout: 180000 });
       cropped.push(cropPng(full, CROP));
     }
-
-    // Sea owner identity: the rhythm films the ONE photoreal water seam, not a
-    // revived bespoke path.
     ctx.check(
-      "sea-rhythm: Gerstner-TSL is the only active displacement tier",
-      seaStats?.source === "gerstner-tsl" && seaStats?.tier === "gerstner-tsl",
-      JSON.stringify(seaStats),
+      "sea-rhythm: each phase presents the admitted TypeGPU ocean with live geometry buffers",
+      frames.every((frame) => {
+        const terrain = frame.terrain;
+        const water = terrain?.water;
+        return (
+          frame.substrate === "typegpu" &&
+          frame.prepared === true &&
+          frame.visibility?.water === true &&
+          terrain?.installed === true &&
+          terrain.replacing === false &&
+          water?.disposed === false &&
+          water.draws > 0 &&
+          water.triangles > 0 &&
+          water.ownedBuffers === water.draws * 4 &&
+          water.surfaces.length === water.draws &&
+          water.surfaces.every((surface) => surface.kind === "ocean" && surface.triangles > 0) &&
+          water.depth === "read-write" &&
+          water.blending === "opaque"
+        );
+      }),
+      JSON.stringify(
+        frames.map(({ terrain, time, revision }) => ({ time, revision, water: terrain?.water })),
+      ),
     );
     ctx.check(
-      "sea-rhythm: aerial haze still owned by aerialPerspective",
-      atmosphere?.sky?.owner === "skyModel" && atmosphere?.aerial?.owner === "aerialPerspective",
-      JSON.stringify(atmosphere),
+      "sea-rhythm: real camera and admitted water resources stay fixed throughout the film",
+      frames.every(
+        (frame) =>
+          frame.environment === "noon" &&
+          Math.abs(frame.camera?.camera3d?.yaw ?? NaN) < 1e-6 &&
+          JSON.stringify(frame.camera) === JSON.stringify(frames[0].camera) &&
+          JSON.stringify(frame.terrain?.water) === JSON.stringify(frames[0].terrain?.water),
+      ),
+      JSON.stringify({ camera: frames[0].camera, environment: frames[0].environment }),
+    );
+    await setPhase(T0);
+    const returned = cropPng(
+      await page.locator("#renderer-canvas").screenshot({ timeout: 180000 }),
+      CROP,
+    );
+    ctx.check(
+      "sea-rhythm: returning the owned clock to the first phase restores the same pixels",
+      PNG.sync.read(returned).data.equals(PNG.sync.read(cropped[0]).data),
     );
 
-    // Travel-not-teleport cadence: every adjacent frame must differ (the swell
-    // moves — not a frozen field) but the per-frame delta stays bounded (a
-    // continuous swell over the owned time uniform — not a teleport/reseed).
+    // Check aggregate travel and bound every step; stationary instants are allowed.
+    // The interior crop excludes the field/shore join, so its motion cannot
+    // falsely accept a frozen standalone ocean.
+    const oceanFrames = cropped.map((frame) =>
+      PNG.sync.read(
+        cropPng(frame, {
+          x: 64,
+          y: 24,
+          width: 1152,
+          height: 128,
+        }),
+      ),
+    );
+    const oceanDeltas = oceanFrames
+      .slice(1)
+      .map((frame, i) => meanAbsLumaDelta(oceanFrames[i], frame));
+    const oceanMeanDelta = oceanDeltas.reduce((a, b) => a + b, 0) / oceanDeltas.length;
+    ctx.check(
+      "sea-rhythm: standalone ocean interior moves independently of field-water effects",
+      oceanMeanDelta > 0.004,
+      `meanDelta=${oceanMeanDelta.toFixed(4)}`,
+    );
     const deltas = [];
     for (let i = 1; i < cropped.length; i++) {
       deltas.push(meanAbsLumaDelta(PNG.sync.read(cropped[i - 1]), PNG.sync.read(cropped[i])));
@@ -136,24 +198,19 @@ export async function run(ctx) {
       meanDelta > 0.004,
       `meanDelta=${meanDelta.toFixed(4)} minDelta=${minDelta.toFixed(3)} deltas=${deltas.map((d) => d.toFixed(2)).join(",")}`,
     );
-    // SwiftShader renders the animated Gerstner surface with per-load
-    // discontinuities at some sea-times (a software-GPU artifact, not a
-    // teleport); on real hardware adjacent frames stay smooth. So the teleport
-    // bound is a hardware-only oracle — SwiftShader runs it as correctness smoke.
-    const swiftshader = String(device).toLowerCase().includes("swiftshader");
     ctx.check(
-      swiftshader
-        ? "sea-rhythm: teleport bound is hardware-only (SwiftShader water-anim artifact, skipped)"
-        : "sea-rhythm: adjacent-frame delta is bounded (swell travels, no teleport)",
-      swiftshader || maxDelta < 6.0,
-      `maxDelta=${maxDelta.toFixed(3)} device=${device}`,
+      "sea-rhythm: adjacent-frame delta is bounded (swell travels, no teleport)",
+      maxDelta < 6.0,
+      `maxDelta=${maxDelta.toFixed(3)}`,
     );
 
-    // Committed review GIF — downscaled so the tracked
+    // Review replay: its wrap returns to the first phase, not a seamless wave period.
+    // Downscaled so the tracked
     // artifact stays small; the filmstrip PNGs are the full-detail baselines.
     const gifFrames = cropped.map((buf) => downscaleRGBA(pngToRGBA(buf), GIF_DOWNSCALE));
     const gif = encodeGif(gifFrames, gifFrames[0].width, gifFrames[0].height, DELAY_CS, {
       loop: true,
+      colorBits: 8,
     });
     await mkdir(GIF_DIR, { recursive: true });
     await writeFile(GIF_PATH, gif);

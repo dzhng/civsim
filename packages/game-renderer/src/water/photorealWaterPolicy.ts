@@ -39,5 +39,8 @@ export const LAKE_SWELL_SCALE = 0.035;
 // becalmed lake becomes a mirror and renders as a blown-white patch.
 export const LAKE_NORMAL_STRENGTH = 0.42;
 export const LAKE_NORMAL_DETAIL_FAR = 0.08;
+// Undisplaced field water keeps calmer surface cues than standalone wave geometry.
+export const FIELD_WATER_NORMAL_STRENGTH = 0.05;
+export const FIELD_WATER_NORMAL_DETAIL_FAR = 0.01;
 export const FIELD_WATER_DETAIL_FADE_START = LAKE_NORMAL_DETAIL_FADE_START;
 export const FIELD_WATER_DETAIL_FADE_END = LAKE_NORMAL_DETAIL_FADE_END;

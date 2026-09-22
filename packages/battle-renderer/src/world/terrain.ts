@@ -1,3 +1,5 @@
+import { TERRAIN_WATER_BLEND } from "../../../game-renderer/src/water/waterShoreRamp";
+import { waterField, fieldWaterNormal } from "./waterField";
 import { battleWorldDepth } from "../worldDepth";
 import { beginGpuAdmission } from "../gpuAdmission";
 import { vistaOpacityWgsl } from "../shaders/vistaOpacity";
@@ -164,9 +166,19 @@ export async function createTypegpuTerrain(
       const normal = clay
         ? std.select(face, std.mul(face, -1), std.dot(face, v.normal) < 0)
         : v.normal;
+      // Keep shadow bias and geometric roughness tied to the original mesh.
+      let lightingNormal = d.vec3f(normal);
+      if (!clay && v.water > TERRAIN_WATER_BLEND[0]) {
+        lightingNormal = fieldWaterNormal(
+          normal,
+          v.water,
+          waterField(v.position.xy, cameraLayout.$.cam.time).normal,
+          std.length(std.sub(v.position.xy, cameraLayout.$.cam.focus)),
+        );
+      }
       const lit = finish(
         s,
-        normal,
+        lightingNormal,
         v.position,
         cameraLayout.$.cam.eye,
         terrainLayout.$.state.y *

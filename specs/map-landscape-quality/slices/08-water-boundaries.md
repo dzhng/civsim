@@ -208,3 +208,12 @@ visual acceptance of the removed staircase. A neutral dry-material control
 traces the remaining green fringe to color response rather than geometry.
 Physical hashes and all sampled vista height bytes remain unchanged. The fringe,
 source-shaped coastal regularity and whole shared-water acceptance remain open.
+
+## Joined battle ocean checkpoint
+
+The [wet boundary pass](../assets/slice-08/battle-ocean-join/README.md) removes
+opaque field/ocean intersections and shares their near-edge response. Six
+software snapshots repeat exactly; geometry, masks, native/software motion and
+phase-return checks pass. Its one sequence also supplies the corresponding13/15
+controls. Flat distant detail, coastal fringe and full composed quality remain
+open; this bounded checkpoint does not close the slice.

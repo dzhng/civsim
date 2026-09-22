@@ -12,7 +12,7 @@
 //   ?ticks=N      sim ticks advanced before first frame (default 60)
 //   ?count=N      grow the army to N soldiers via the production spawn path
 //   ?run=1        keep the sim ticking each frame (default paused after boot)
-//   ?t=S          fixed clock seconds (byte-deterministic frames)
+//   ?t=S          initial fixed clock seconds (byte-deterministic frames)
 //   ?select=1     select the first player unit (gold ring decals)
 //   ?debug=blocks debug unit blocks (mirrors the production toggle)
 //   ?pitch=R      camera pitch override in radians (sky/atmosphere QA — the
@@ -420,7 +420,18 @@ export async function route(ctx: LabContext) {
 
     const debugBlocks = params.get("debug") === "blocks";
     const running = params.get("run") === "1";
-    const fixedT = params.has("t") ? Number(params.get("t")) : null;
+    let fixedT = params.has("t") ? Number(params.get("t")) : null;
+    let clockRevision = 0;
+    // The route owns time: setting world.setTime directly is overwritten on the
+    // next frame. The revision also distinguishes a returned phase from old stats.
+    const clock = {
+      setTime(seconds: number) {
+        if (!Number.isFinite(seconds)) throw new Error("Capture time must be finite");
+        fixedT = seconds;
+        return ++clockRevision;
+      },
+    };
+    window.__photorealBattleClock = clock;
     const pitchOverride = params.has("pitch") ? Number(params.get("pitch")) : null;
     const yawOverride = params.has("yaw") ? Number(params.get("yaw")) : null;
     const cameraSnapshot = () => {
@@ -436,6 +447,7 @@ export async function route(ctx: LabContext) {
     const t0 = last;
     const loop = async (now: number) => {
       const seconds = fixedT ?? (now - t0) / 1000;
+      const frameClockRevision = clockRevision;
       world.setTime(seconds);
       if (running) {
         accumulator += Math.min((now - last) / 1000, 0.25);
@@ -500,6 +512,8 @@ export async function route(ctx: LabContext) {
         renderStats,
         edgeFixture: edgeFixture?.telemetry ?? null,
         isolation: { only, grassVisible: isolationGrassVisible },
+        completedFrameTime: seconds,
+        completedClockRevision: frameClockRevision,
       };
       window.__rendererLabReady = true;
       ctx.status.textContent = `TypeGPU · ${renderStats.environment} · ${renderStats.crowd.instances} soldiers`;
@@ -512,7 +526,10 @@ export async function route(ctx: LabContext) {
         window.__rendererLabStats = { ok: false, route: "photoreal-battle", error: String(error) };
         ctx.status.textContent = String(error);
       },
-      () => game.free(),
+      () => {
+        if (window.__photorealBattleClock === clock) delete window.__photorealBattleClock;
+        game.free();
+      },
     );
   } catch (error) {
     game.free();
@@ -540,4 +557,10 @@ function heightForPhotorealRoute(height: Float32Array, generatedMap: boolean): F
   const scale = 1 / BATTLE_RELIEF_EXAGGERATION;
   for (let i = 0; i < height.length; i++) out[i] = height[i] * scale;
   return out;
+}
+
+declare global {
+  interface Window {
+    __photorealBattleClock?: { setTime(seconds: number): number };
+  }
 }

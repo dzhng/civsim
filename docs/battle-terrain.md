@@ -36,6 +36,12 @@ height samples leaves cracks when one grid skips vertices or ends at cell
 centres. Height correction follows the final inner surface, while the joining
 strip carries its material attributes into the outer band.
 
+The standalone ocean begins at the rendered ground edge rather than overlapping
+it. It preserves the edge profile and coverage, tapers displacement from zero,
+and shares the field-water response before transitioning offshore. This keeps
+an animated sea from cutting through stationary field water. The current ocean
+edge is fully wet; this is not a replacement for dry vista terrain.
+
 ## Looking around turns at the eye
 
 Battle's automatic tilt follows physical viewing distance and approaches the
@@ -134,11 +140,10 @@ leaf atlas and cutout, so transparent leaf borders do not cast opaque cards.
 - Battle presentation: `packages/game-renderer/src/battle/` — `mapCatalog.ts`
   (roles), `terrainFeatures.ts` (extraction), `terrainScenery.ts` (placement),
   `groundPass.ts` (rolling ground), `horizonPass.ts` (sealed edges). In
-  production the battle draws all of this through the three.js WebGPU world in
-  `packages/photoreal-renderer` (which samples the same catalog, features, and
-  height field); the bespoke WGSL passes beside the data still serve the
-  campaign and the renderer lab until the photoreal ladder retires them
-  ([specs/done/3d-perspective-renderer](../specs/done/3d-perspective-renderer/README.md)).
+  production battle uses `packages/battle-renderer`'s TypeGPU composition;
+  campaign retains the Three composition in `packages/photoreal-renderer`.
+  Both consume neutral terrain/scenery data and policy rather than sharing
+  backend GPU objects.
 - Shared props: `packages/game-renderer/src/models/shared/`.
 - The visual gates that prove all of it are the `battle-terrain-*` scenes under
   `web/scenes/battle/`; the snapshot discipline they obey is

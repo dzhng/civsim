@@ -15,7 +15,7 @@ export function minimapViewBounds(camera: Camera, width: number, height: number)
 
 export interface BattleMinimap {
   drawMinimap(): void;
-  terrainDebug(): unknown;
+  terrainDebug(options?: { includeTint?: boolean }): unknown;
 }
 
 export function createBattleMinimap({
@@ -122,7 +122,7 @@ export function createBattleMinimap({
       const bottom = Math.min(minimap.height - 0.5, Math.max(m0y, m1y));
       if (right > left && bottom > top) g.strokeRect(left, top, right - left, bottom - top);
     },
-    terrainDebug() {
+    terrainDebug(options = {}) {
       const { w, h, cell, ox, oy, tint } = terrain;
       const counts = Array.from({ length: 7 }, () => 0);
       const sums = Array.from({ length: 7 }, () => ({ x: 0, y: 0, n: 0 }));
@@ -152,6 +152,8 @@ export function createBattleMinimap({
         cell,
         ox,
         oy,
+        // Verification may request a detached cell mask; ordinary diagnostics avoid the copy.
+        ...(options.includeTint ? { tint: tint.slice() } : {}),
         worldWidth: w * cell,
         worldHeight: h * cell,
         generatedMap,

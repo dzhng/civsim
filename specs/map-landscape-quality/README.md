@@ -6,91 +6,50 @@ Make the campaign landscape meet the supplied reference's quality and bring the 
 
 ## Next Agent Prompt
 
-Work in `/Users/david/dev/game/.worktrees/map-landscape-quality` on
-`codex/map-landscape-quality`. Keep this one worktree and a single GPU capture
-lane; inspect live processes before starting captures or replacing their build.
+Use `/Users/david/dev/game/.worktrees/map-landscape-quality`, branch
+`codex/map-landscape-quality`. Keep this single worktree and one GPU capture lane.
 
-**Current pickup: joined field/ocean boundary.** The current west-facing
-control exposes opaque ocean triangles intersecting stationary field water in
-their24m overlap. A render-only shared edge/taper candidate is in progress;
-keep sim terrain unchanged. The [spectrum control](assets/slice-09/spectrum-control/README.md)
-rejected and removed a direction shuffle despite improved numeric isotropy.
-Do not repeat that candidate. Served5190 still contains that rejected spectrum
-until the next build; source has already reverted it.
+**Current pickup: one simpler mountain-form control.** CPU attribution around
+Alps(-450,990) finds the independent28km fold closes potential gentle passages.
+Omitting only that term improves core median slope0.825→0.709, largest gentle-low
+patch23.25→65.75km², and2km interpolation error; it also lowers relief. Test one
+unchanged regional Alps/Italy plus close Alps comparison, then accept or reject
+from images. Do not replace the original goal with numeric terrain metrics.
+Source is unchanged so far. Scratch reports/scripts are under
+`throwaway/mountain-topology/` and `throwaway/mountain-omit28.mjs`.
 
-Standalone lake status: The
-[battle consumer audit](assets/slice-09/battle-consumer-audit/README.md) shows dense
-metallic glints in the golden-hour production lake. The [view-distance correction](assets/slice-09/lake-view-distance/README.md) now
-reduces those glints: golden water hit rises0.378→0.437, clearing the unchanged
-0.42 floor, and both native crops repeat exactly. Fresh visual and code reviews
-accept that bounded fix. Regular ripples/shore outlines remain; software checks pass geometry and mask gates (golden0.42, overcast0.571);
-only the two old crop-size baselines fail and need justified migration. The uncommitted lake scene now uses
-installed elevation, completed camera frames, and an opt-in detached live tint
-mask; it no longer imports a source-only WASM module. Typecheck and independent
-code review pass. Do not lower mask thresholds to accept the surface.
+The [joined water pass](assets/slice-08/battle-ocean-join/README.md) now removes
+the mapC field/ocean intersection, shares their near-edge response, and passes
+native/software motion, phase return and six exact software snapshot repeats.
+The [lake-distance fix](assets/slice-09/lake-view-distance/README.md) is accepted
+for distant glints. Flat water detail, soft coastal fringes and final composition
+remain open; do not spend another spectrum-polish pass before the mountain test.
+The direction shuffle was rejected on actual images despite better isotropy.
 
-Uncommitted field-water normals are a separate, modest readability improvement:
-the calmer response repeats all twelve phases/four returns exactly, with zero
-same-phase dry-control changes. Strong normals and added patch modulation were
-rejected and removed. Uniform directional streaks and pale shore halos remain
-open. Frozen control5189 and candidate5190 are available; keep one GPU lane.
-The latest candidate includes the live tint hook; control5189 does not. Scratch
-phase evidence is in `throwaway/battle-water-phases/`; the verified current data
-is `candidate-repeat-clock.json` and the `candidate/` images. Field-water normals are still unaccepted; the standalone viewing-distance fix
-is a separate bounded acceptance. Finish actual surface/motion quality before accepting09.
+The candidate server5190 has the joined-water build;5189 retains the prior
+accepted chart build and is a campaign control. Inspect live handles before
+capturing or rebuilding. No GPU run remains active at this checkpoint.
 
-The [chart atmosphere correction](assets/slice-10/chart-atmosphere/README.md) is
-committed and its nine migrated snapshots pass. Full campaign-lod remains red only
-on the southern-Apennines coverage0.5444. [Adapter evidence](assets/slice-15/adapter-identity/README.md)
-identifies native Chrome/Apple Metal versus bundled SwiftShader. Native headless
-full-game liveness and turf functional checks pass; release timing and software
-baseline migration remain open. Keep one GPU lane.
+After the mountain verdict, continue the remaining presentation/coast gates and
+one integrated acceptance matrix. Reuse each matched capture across the slices
+it proves rather than running duplicate08/09/13/15 reviews. Keep shared neutral
+data/policy and backend-local adapters: Three campaign, TypeGPU battle.
 
-The [label-owner check](assets/slice-12/label-owners/README.md) passes real positive and missing-owner controls. Its restoration and
-outside-surface checks pass with the documented card-only RGB8 precision boundary. Full campaign-lod remains
-red only on the southern-Apennines coverage floor0.5444. The turf scene's corrected nearest-camera profile remains unverified.
+| Accepted evidence | Remaining work |
+| --- | --- |
+| Foundations01–03, crown owner06, bounded residency | Complete landscape reference quality |
+| [Chart atmosphere](assets/slice-10/chart-atmosphere/README.md), nine snapshots | Full campaign-lod still fails southern-Apennines natural-ground coverage0.5444 |
+| [Label-owner controls](assets/slice-12/label-owners/README.md) | Broader presentation/interaction matrix |
+| [Joined water](assets/slice-08/battle-ocean-join/README.md), lake and motion controls | Flat detail, shoreline fringe, other shores and composed quality |
+| [Native adapter/liveness](assets/slice-15/adapter-identity/README.md) | Headful release timing and common hardware budget |
+| Turf native functional/framing checks | Visual/software baseline acceptance; its scene edit is still uncommitted |
 
-Recent [form controls](assets/slice-04/ridge-width-control/README.md) were removed:
-better overview shelves introduced close serrated edges/green seams. Original
-mountain quality remains open; do not repeat amplitude, scalar recovery or the
-same ridge-support control as though those outcomes were unknown.
-
-Campaign keeps Three and battle keeps main's TypeGPU renderer: share neutral
-policy/data/assets, not backend wrappers or a restored battle backend.
-
-Finish through four acceptance passes. Slice numbers identify owners, not twelve
-separate projects or duplicate capture runs:
-
-1. **Battle consumers (05–10/13):** finish rock/water transitions and motion; judge composed highland, wooded and
-   coastal production views. Tree variants/detail and leaf-mask consistency are
-   accepted; reuse their evidence while checking the complete composition.
-2. **Campaign reference quality (04/05/07/10):** improve valley-floor width and intermediate shelves, then judge mountain hierarchy, green foothills,
-   woods and lighting together. Recoloring alone cannot accept deficient form.
-   Do not repeat rejected geometry or size-only vegetation trials without new evidence.
-3. **Campaign presentation and shores (08/11/12/14):** complete owner-aware label
-   coverage, raised interaction/DPR checks, geographic overlays and the remaining
-   coast/channel verdicts. Preserve accepted source, residency and road fixes.
-4. **Integrated acceptance (15):** use its single matrix for full frames, motion,
-   gameplay journeys, current hardware and lifetime evidence; then whole-spec
-   review, choices consolidation and closeout. Reuse evidence across slice owners
-   when it proves the same requirement, without narrowing any gate.
-
-Finish the turf scene's migration to current completed-frame and residency
-contracts. The label-owner successor is verified; retain its negative controls
-while resolving the remaining campaign presentation and snapshot gates.
-
-| Accepted checkpoint | Evidence | Acceptance still open |
-| --- | --- | --- |
-| Main renderer integration and campaign→16,000-soldier TypeGPU battle→campaign | [Main integration](assets/main-integration/verification.md) | Final art, current hardware and broader journeys |
-| Connected terrain foundations and bounded campaign residency | 01–03 and [architecture](architecture.md) | Whole-frame reference quality |
-| Downward saddles and crown design | [Saddles](assets/slice-04/downward-saddles/README.md), [crowns](assets/crowns/finish/README.md) | Broad foothills/composition; common hardware acceptance |
-| Road surface width, fog update compatibility and settled geographic captures | [Roads](assets/slice-11/road-surface-width/README.md) | Geographic styling and full fog/overview coverage |
-| Categorical terrain coverage and common leaf shadow cutout | [Coverage/shadows](assets/slice-13/coverage-shadow/README.md) | Other TypeGPU appearance consumers and composed acceptance |
-
-Earlier performance and retired Three battle captures retain their original
-scope; they do not accept the current TypeGPU renderer. Claude previously reached
-its spending limit: use Opus when available without changing billing, and continue
-other authorized work when unavailable.
+Recent mountain amplitude, scalar valley-remap and dominant-support controls were
+rejected. New CPU-only Gaussian-support and base-slope-gated detail controls also
+failed: steeper/fragmented interiors, and the gate adds large transition cliffs.
+Do not repeat them. See existing slice04 assets and current scratch reports.
+Claude previously reached its spending limit; use Opus when available without
+changing billing, and continue authorized work when unavailable.
 
 ### Global TODO
 

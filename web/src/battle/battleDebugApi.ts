@@ -54,7 +54,7 @@ interface DebugOwners {
   select(unit: number): void;
   selected(): number[];
   soldierStartOf(unit: number): number;
-  terrainDebug(): unknown;
+  terrainDebug(options?: { includeTint?: boolean }): unknown;
   disposeRenderer(): void;
 }
 

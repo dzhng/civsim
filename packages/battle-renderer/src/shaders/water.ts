@@ -1,5 +1,6 @@
+import { fieldWaterResponseBody, FIELD_WATER_RESPONSE_WGSL } from "./fieldWaterResponse";
 import { WORLD_CAMERA_WGSL } from "../../../renderer-core/src/cameraWgsl";
-import { photorealGerstnerWaves } from "../../../game-renderer/src/water/photorealGerstnerWaves";
+import { waterFieldBody } from "./waterField";
 import * as policy from "../../../game-renderer/src/water/photorealWaterPolicy";
 import * as physical from "../../../game-renderer/src/water/physicalWaterPolicy";
 import { BATTLE_OCEAN_RAMP } from "../../../game-renderer/src/water/waterShoreRamp";
@@ -11,26 +12,9 @@ export function waterShaderBodies(lake: boolean) {
   const f = (value: number) => `${value}${Number.isInteger(value) ? ".0" : ""}`;
   const v = (value: number[]) => `vec3f(${value.map(f).join(",")})`;
   const ramp = lake ? policy.LAKE_SHORE_RAMP : BATTLE_OCEAN_RAMP;
-  const waveTerms = photorealGerstnerWaves()
-    .map(
-      (wave, i) => `
-    let phase${i}=dot(vec2f(${f(wave.dirX)},${f(wave.dirY)}),p)*${f(wave.k)}-t*${f(wave.omega * 0.42)}+${f(wave.phase)};
-    let hump${i}=sin(phase${i})*0.5+0.5;
-    h+=(hump${i}*hump${i}-0.333)*${f(wave.amplitude * policy.SEA_SWELL_SCALE)};
-    slope+=vec2f(${f(wave.dirX)},${f(wave.dirY)})*(hump${i}*cos(phase${i})*${f(wave.amplitude * policy.SEA_SWELL_SCALE * 2 * wave.k)});
-  `,
-    )
-    .join("\n");
-  const field = `
-    var h=0.0;var slope=vec2f(0);
-    ${waveTerms}
-    let crest=smoothstep(${f(policy.SEA_FOAM_HEIGHT_START)},${f(policy.SEA_FOAM_HEIGHT_END)},h);
-    let agitation=smoothstep(${f(policy.SEA_FOAM_SLOPE_START)},${f(policy.SEA_FOAM_SLOPE_END)},dot(slope,slope));
-    let speckle=terrainWaterNoise(p*0.5+vec2f(t*0.1,t*0.05))*0.42+terrainWaterNoise(p*1.3-vec2f(t*0.06,t*0.09))*0.34+terrainWaterNoise(p*3.0+vec2f(t*0.04,t*(-0.07)))*0.24;
-    return WaterField(h,normalize(vec3f(-slope,1)),crest*agitation*smoothstep(${f(policy.SEA_FOAM_SPECKLE_START)},${f(policy.SEA_FOAM_SPECKLE_END)},speckle)*${f(policy.SEA_FOAM_SCALE)});
-  `;
+  const field = waterFieldBody();
   const vertex = `
-    let position=vec3f(p.xy,waterField(p.xy,cam.time).height*${f(lake ? policy.LAKE_SWELL_SCALE : 1)}+water.baseZ);
+    let position=vec3f(p.xy,waterField(p.xy,cam.time).height*${lake ? f(policy.LAKE_SWELL_SCALE) : `smoothstep(0.0,${f(ramp.depthFar)},abs(p.x-water.shoreX))`}+${lake ? "water.baseZ" : "p.z"});
     return VertexOut(projectWorld(position),position,shore);
   `;
   const fragment = `
@@ -50,16 +34,27 @@ export function waterShaderBodies(lake: boolean) {
     `
         : `
     let shore=abs(p.x-water.shoreX);
+    let join=smoothstep(0.0,${f(ramp.depthFar)},shore);
     let depth01=smoothstep(${f(ramp.depthNear)},${f(ramp.depthFar)},shore);
     let turbidity=smoothstep(${f(policy.SEA_SAND_TURBIDITY_DEPTH_START)},${f(policy.SEA_SAND_TURBIDITY_DEPTH_END)},depth01);
     let agitation=smoothstep(0.0,3200.0,shore);
-    let foam=clamp(sample.foam*agitation,0.0,1.0);
-    let strength=mix(0.3,1.0,agitation)*mix(${f(policy.SEA_NORMAL_DETAIL_NEAR)},${f(policy.SEA_NORMAL_DETAIL_FAR)},smoothstep(${f(policy.SEA_NORMAL_DETAIL_FADE_START)},${f(policy.SEA_NORMAL_DETAIL_FADE_END)},viewDist));
+    let fieldWater=fieldWaterResponse(p,v.shore,cam.time,viewDist);
+    let foam=mix(fieldWater.foam,clamp(sample.foam*agitation,0.0,1.0),join);
+    let fieldStrength=mix(${f(policy.FIELD_WATER_NORMAL_DETAIL_FAR)},${f(policy.FIELD_WATER_NORMAL_STRENGTH)},fieldWater.detail);
+    let oceanStrength=mix(0.3,1.0,agitation)*mix(${f(policy.SEA_NORMAL_DETAIL_NEAR)},${f(policy.SEA_NORMAL_DETAIL_FAR)},smoothstep(${f(policy.SEA_NORMAL_DETAIL_FADE_START)},${f(policy.SEA_NORMAL_DETAIL_FADE_END)},viewDist));
+    let strength=mix(fieldStrength,oceanStrength,join);
     `
     }
     let normal=normalize(mix(vec3f(0,0,1),sample.normal,strength));
     let shallow=mix(${v(physical.WATER_SAND_TURBIDITY_ALBEDO)},${v(physical.WATER_SHALLOW_ALBEDO)},turbidity);
-    let albedo=terrainLinear(mix(mix(shallow,${v(physical.WATER_DEEP_ALBEDO)},depth01),${v(physical.WATER_FOAM_ALBEDO)},foam));
+    let oceanAlbedo=mix(mix(shallow,${v(physical.WATER_DEEP_ALBEDO)},depth01),${v(physical.WATER_FOAM_ALBEDO)},foam);
+    ${
+      lake
+        ? "let albedo=terrainLinear(oceanAlbedo);"
+        : `
+    let albedo=mix(fieldWater.albedo,terrainLinear(oceanAlbedo),join);`
+    }
+
     let roughness=${lake ? "max(0.3," : ""}mix(${f(physical.WATER_ROUGHNESS)},${f(physical.WATER_FOAM_ROUGHNESS)},foam)${lake ? ")" : ""};
     return shadeWorldSurface(albedo,vec3f(0),roughness,0.0,0.0,1.0,normal,v.position,1.0);
   `;
@@ -76,6 +71,8 @@ export function waterShader(environment: string, lake: boolean) {
       .map(([name, text]) => `fn ${name}${text}`)
       .join("\n") +
     `
+  ${FIELD_WATER_RESPONSE_WGSL}
+  fn fieldWaterResponse${fieldWaterResponseBody}
   struct WaterState {baseZ:f32,shoreX:f32,pad:vec2f};
   @group(1) @binding(0) var<uniform> water:WaterState;
   struct WaterField {height:f32,normal:vec3f,foam:f32};

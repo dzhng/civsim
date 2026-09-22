@@ -43,8 +43,10 @@ Do not hide either with terrain flattening, a new UI style or a second camera.
 The [presentation checkpoint](../assets/slice-12/presentation-checkpoint/README.md)
 adds real raised-city selection at DPR1/DPR2 through a fixed visible pixel and
 corrects density-dependent camera pitch/zoom. It reconciles the existing
-production, collision, LOD and traversal captures. Broader grounding, lifecycle
-and density-dependent label/scenery policy remain in the acceptance table above.
+production, collision, LOD and traversal captures. The subsequent
+[CSS-density checkpoint](../assets/slice-12/css-density/README.md) proves equal
+label/card/scenery/figure policy and input speed. Final combined grounding,
+interaction journeys and lifecycle remain in the acceptance table above.
 
 ## Verification and review
 
@@ -69,7 +71,7 @@ Human checkpoints are non-blocking. Show the artifact, allow a short response wi
 
 A correct center anchor does not guarantee a seated city footprint. The actual largest normal city mesh extends 6.092 campaign render kilometres from its anchor; the smaller tier extends 5.109. The closest real city pairs are Perge/Attalea and Cyrene/Apollonia, so oversized flat pads also interact. These are exaggerated presentation units, not real geographic building sizes.
 
-The [401-site measurements](../assets/slice-04/README.md#deferred-local-foundations) preserve the old and retained-relief residuals, wet-foot samples and the rejected flat-foundation experiment. Flat cores eliminated detailed 2 km foot residuals but produced circular shelves/depressions in clay views; the 8 km experiment still left 373/401 nonflat. That implementation was rejected and its code removed. The retained relief still needs footprint grounding here. Keep node XY and water at zero, inspect actual model feet at final scale, and resolve the visible contact problem without punching circular holes through ranges. Use the measured close pairs and diagonal coast at Scodra as regression cases.
+The [401-site measurements](../assets/slice-04/README.md#deferred-local-foundations) preserve the old and retained-relief residuals, wet-foot samples and the rejected flat-foundation experiment. Flat cores eliminated detailed 2 km foot residuals but produced circular shelves/depressions in clay views; the 8 km experiment still left 373/401 nonflat. That implementation was rejected and its code removed. The later city-input owner implements footprint grounding; final combined contact review on the retained relief remains required. Keep node XY and water at zero, inspect actual model feet at final scale, and resolve the visible contact problem without punching circular holes through ranges. Use the measured close pairs and diagonal coast at Scodra as regression cases.
 
 ## Shared standard instance checkpoint
 

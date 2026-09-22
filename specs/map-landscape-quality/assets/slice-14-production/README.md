@@ -66,7 +66,7 @@ same frozen map and camera while changing the existing graphics setting. The
 although 39,260 whole-frame pixels change. The setting maps directly to sun
 casting before draw, but direct sun/backend state was not separately logged.
 This rules out a no-op whole-frame control; no specific remaining cause is claimed.
-The artifact remains open for geographic/material diagnosis.
+This diagnostic is historical. The later [shared aerial-ray correction](../integration/production-shadow/README.md) resolves the cause; current presentation and journey acceptance are tracked by the spec handoff.
 
 ## CHANGE LEDGER
 

@@ -42,9 +42,9 @@ angular grass edges, painted mountain patches and sparse overview vegetation
 remain visible limitations. The traversal overview also exposes the map extent
 and heavy distant haze; it proves residency/return, not final composition.
 
-Raw-scale scenery/label thresholds and part of keyboard pan speed still need a
-DPR audit. This change proves camera pose, projection, close zoom ceiling and
-one actual raised-city click, not every density-dependent presentation policy.
+This checkpoint proves camera pose, projection, close zoom ceiling and one
+actual raised-city click. The subsequent [CSS-density checkpoint](../css-density/README.md)
+resolves the raw-scale scenery/label thresholds and keyboard pan speed.
 
 ## Change ledger
 

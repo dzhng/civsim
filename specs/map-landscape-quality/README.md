@@ -15,8 +15,7 @@ reconciles22 campaign captures, with exact repeats across two scoped runs. Label
 fault injection now follows snapshots so it cannot perturb later card paint.
 The camera uses CSS zoom consistently across DPR, and an independent fixed-pixel
 click selects a real raised Aguntum city at both densities. This is scoped input
-and camera evidence; broader lifecycle, label/scenery DPR policy and final art
-remain open. The [regional natural preview](assets/slice-14-production/preview-owner/README.md)
+and camera evidence; broader lifecycle and final art remain open. The [regional natural preview](assets/slice-14-production/preview-owner/README.md)
 now uses the production world, with matched visual review and exact repeats of both regional images.
 Clay/surface controls remain explicit diagnostics. The [CSS-density policy](assets/slice-12/css-density/README.md) now preserves
 labels, cards, scenery, figures and input speed across DPR, with six exact

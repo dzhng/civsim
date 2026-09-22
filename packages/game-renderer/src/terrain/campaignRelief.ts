@@ -42,7 +42,6 @@ export function campaignRelief(source: CampaignReliefSource, cell: number) {
     const folds =
       0.24 +
       0.52 * ridge(60) ** 2 * saddle +
-      0.18 * ridge(28) ** 2 +
       0.06 * ridge(13) * (1 - smoothstep(3, 8, cell));
     const foothill = 0.5 + campaignNoise(x / 18, y / 18) * 1.1;
     return (foothill + envelope * 2.5 * folds) * smoothstep(0, 16, inland);

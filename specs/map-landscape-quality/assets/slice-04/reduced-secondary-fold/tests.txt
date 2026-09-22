@@ -1,0 +1,9 @@
+
+ RUN  v4.1.9 /Users/david/dev/game/.worktrees/map-landscape-quality/web
+
+
+ Test Files  4 passed (4)
+      Tests  14 passed (14)
+   Start at  12:46:53
+   Duration  743ms (transform 151ms, setup 220ms, import 216ms, tests 720ms, environment 557ms)
+

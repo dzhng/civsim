@@ -1,0 +1,106 @@
+[
+  {
+    "name": "control",
+    "camera": {
+      "x": -450,
+      "y": 990,
+      "zoom": 7.5,
+      "camera3d": {
+        "target": [
+          -450,
+          990,
+          37.03315734863281
+        ],
+        "distance": 159.41680923716945,
+        "pitch": 0.5687255706628971,
+        "yaw": -1.5707963267948966,
+        "fovY": 0.6456952711119777,
+        "aspect": 1.6,
+        "near": 1
+      }
+    },
+    "summary": {
+      "samples": 1425,
+      "minClearance": -0.03971883130725473,
+      "buried": 4,
+      "centralSamples": 1284,
+      "centralBuried": 4,
+      "centralOccluded": 616
+    },
+    "flaggedBox": {
+      "samples": 773,
+      "minClearance": -0.03971883130725473,
+      "occluded": 616
+    },
+    "representative": {
+      "position": [
+        -458.3092956542969,
+        991.3023071289062,
+        44.590505599975586
+      ],
+      "screen": {
+        "x": 576.496004156895,
+        "y": 345.97428163308103,
+        "visible": true
+      },
+      "clearance": 0.3104486183729023,
+      "rayDistance": 4.809749476618764,
+      "hit": [
+        -458.0151799374205,
+        986.5015586484169
+      ]
+    }
+  },
+  {
+    "name": "candidate",
+    "camera": {
+      "x": -450,
+      "y": 990,
+      "zoom": 7.5,
+      "camera3d": {
+        "target": [
+          -450,
+          990,
+          30.683677673339844
+        ],
+        "distance": 159.41680923716945,
+        "pitch": 0.5687255706628971,
+        "yaw": -1.5707963267948966,
+        "fovY": 0.6456952711119777,
+        "aspect": 1.6,
+        "near": 1
+      }
+    },
+    "summary": {
+      "samples": 1425,
+      "minClearance": 0.041497117053950205,
+      "buried": 0,
+      "centralSamples": 1273,
+      "centralBuried": 0,
+      "centralOccluded": 520
+    },
+    "flaggedBox": {
+      "samples": 774,
+      "minClearance": 0.23151842481456697,
+      "occluded": 503
+    },
+    "representative": {
+      "position": [
+        -457.80176544189453,
+        991.3916625976562,
+        35.20720863342285
+      ],
+      "screen": {
+        "x": 581.0191915589921,
+        "y": 365.5195237478642,
+        "visible": true
+      },
+      "clearance": 0.3200224249449093,
+      "rayDistance": 9.665323329812276,
+      "hit": [
+        -457.24706368208996,
+        981.7422698174092
+      ]
+    }
+  }
+]

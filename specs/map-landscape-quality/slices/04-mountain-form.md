@@ -71,3 +71,12 @@ continuous ridge itself. Use fixed real regional clay for branching and open-val
 judgment, and natural production frames for the combined reference verdict.
 Accepted terrain and road fixes are retained; any new source/model proposal needs
 a demonstrated visible defect and must preserve geography, water and gameplay.
+
+## Reduced secondary fold checkpoint
+
+The [one-term reduction](../assets/slice-04/reduced-secondary-fold/README.md) is
+accepted for simpler faces/saddles and lower computational cost. Three matched
+production views repeat exactly; the flagged road disappearance is supported as
+foreground occlusion by presented-surface probes. Lower relief is an explicit
+tradeoff. Gray interiors and inadequate grassy shelf breadth remain open; this
+is not reference-quality completion.

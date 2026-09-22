@@ -9,14 +9,15 @@ Make the campaign landscape meet the supplied reference's quality and bring the 
 Use `/Users/david/dev/game/.worktrees/map-landscape-quality`, branch
 `codex/map-landscape-quality`. Keep this single worktree and one GPU capture lane.
 
-**Current pickup: one simpler mountain-form control.** CPU attribution around
-Alps(-450,990) finds the independent28km fold closes potential gentle passages.
-Omitting only that term improves core median slope0.825→0.709, largest gentle-low
-patch23.25→65.75km², and2km interpolation error; it also lowers relief. Test one
-unchanged regional Alps/Italy plus close Alps comparison, then accept or reject
-from images. Do not replace the original goal with numeric terrain metrics.
-Source is unchanged so far. Scratch reports/scripts are under
-`throwaway/mountain-topology/` and `throwaway/mountain-omit28.mjs`.
+**Current pickup: grass exposure on the simpler mountain form.** The
+[28km-fold removal](assets/slice-04/reduced-secondary-fold/README.md) is accepted
+as a modest simplification: three matched views repeat exactly; fewer cramped
+folds, lower relief, rounder summits. It does not complete mountain quality.
+CPU attribution on the new form finds gentle-low terrain has mean rock mask0.697
+almost entirely from the source altitude band, not slope. Test exposure on those
+now larger gentle patches while preserving steep faces; prior isolated slope-gate
+failure is documented and must remain the comparison risk. Scratch evidence:
+`throwaway/mountain-topology/cover-attribution.md`. No material edit yet.
 
 The [joined water pass](assets/slice-08/battle-ocean-join/README.md) now removes
 the mapC field/ocean intersection, shares their near-edge response, and passes
@@ -26,8 +27,8 @@ for distant glints. Flat water detail, soft coastal fringes and final compositio
 remain open; do not spend another spectrum-polish pass before the mountain test.
 The direction shuffle was rejected on actual images despite better isotropy.
 
-The candidate server5190 has the joined-water build;5189 retains the prior
-accepted chart build and is a campaign control. Inspect live handles before
+Server5191 contains the one-term mountain candidate;5190 the joined-water build,
+and5189 the prior chart/form control. Inspect live handles before
 capturing or rebuilding. No GPU run remains active at this checkpoint.
 
 After the mountain verdict, continue the remaining presentation/coast gates and

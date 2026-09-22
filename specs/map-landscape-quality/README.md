@@ -10,13 +10,21 @@ Work in `/Users/david/dev/game/.worktrees/map-landscape-quality` on
 `codex/map-landscape-quality`. Keep this one worktree and a single GPU capture
 lane; inspect live processes before starting captures or replacing their build.
 
-**Current pickup: production standalone lake surface response.** The
+**Current pickup: joined field/ocean boundary.** The current west-facing
+control exposes opaque ocean triangles intersecting stationary field water in
+their24m overlap. A render-only shared edge/taper candidate is in progress;
+keep sim terrain unchanged. The [spectrum control](assets/slice-09/spectrum-control/README.md)
+rejected and removed a direction shuffle despite improved numeric isotropy.
+Do not repeat that candidate. Served5190 still contains that rejected spectrum
+until the next build; source has already reverted it.
+
+Standalone lake status: The
 [battle consumer audit](assets/slice-09/battle-consumer-audit/README.md) shows dense
 metallic glints in the golden-hour production lake. The [view-distance correction](assets/slice-09/lake-view-distance/README.md) now
 reduces those glints: golden water hit rises0.378→0.437, clearing the unchanged
 0.42 floor, and both native crops repeat exactly. Fresh visual and code reviews
-accept that bounded fix. Regular ripples/shore outlines remain; software checking
-is running, and old crop-size baselines still need justified migration. The uncommitted lake scene now uses
+accept that bounded fix. Regular ripples/shore outlines remain; software checks pass geometry and mask gates (golden0.42, overcast0.571);
+only the two old crop-size baselines fail and need justified migration. The uncommitted lake scene now uses
 installed elevation, completed camera frames, and an opt-in detached live tint
 mask; it no longer imports a source-only WASM module. Typecheck and independent
 code review pass. Do not lower mask thresholds to accept the surface.

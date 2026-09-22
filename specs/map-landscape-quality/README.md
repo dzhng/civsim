@@ -10,39 +10,22 @@ Work in `/Users/david/dev/game/.worktrees/map-landscape-quality` on
 `codex/map-landscape-quality`. Keep this one worktree and a single GPU capture
 lane; inspect live processes before starting captures or replacing their build.
 
-**Current pickup: broader campaign valley floors/intermediate shelves.**
-The isolated source-rock slope gate was rejected: it added green ribbons and
-flecks without changing the rounded, tightly packed landforms. Code was removed;
-see [the control](assets/slice-04/source-slope-control/README.md). Keep accepted
-saddles/roads and target this specific remaining shape defect inside the geographic
-envelope. Battle tree adoption7fe24610 passes exact near/far/return and unchanged
-campaign views. Shadow and traversal gates now pass update and no-update runs, with baseline
-provenance recorded in [scene contracts](assets/scene-contracts/README.md). Turf
-runtime verification is in progress. A real-source valley-compression probe was
-rejected because its recovery steepened maximum flanks by 29–80%; pursue wider
-connected floors without that recovery wall. The lower-amplitude control was also visually rejected: its slight outer-apron
-improvement preserved the internal rock fingers/dark trenches. Code is removed;
-see [real-source controls](assets/slice-04/floor-width-probes/README.md).
-The accepted production build remains on5188. The ridge-width and combined source-exposure controls were also rejected after close
-review found triangular teeth and green seams despite better overview benches.
-Both source changes are removed; see [the control](assets/slice-04/ridge-width-control/README.md).
-Next implementation priority is the whole-map atmosphere contrast regression:
-review found six regional/close LOD images defensibly migrated, but whole-natural,
-whole-political and whole-fog have a broad beige veil that weakens state legibility.
-Diagnose the existing atmosphere owner; keep regional/close composition fixed.
-The label scene's first browser run proved owner controls and exact restoration,
-and the corrected second run now passes all seven map names, thirteen card titles,
-both missing-owner controls, exact restoration and canvas outside-mask zero. DOM
-title masks still miss57 actual pixels; the agent is diagnosing them from saved
-controls. `throwaway/label-owner-bounds-runtime.log` is terminal with11 failures
-(old snapshots plus mask coverage); no baseline refresh is justified by those
-results. Rerun the corrected owner check before committing the scene.
-The turf run proved deterministic close cold boots and complete residency, then
-was deliberately cancelled after image review found lost close framing. Main's
-camera calibration changed the physical pose for the same zoom tuple. The scene's
-close profile now uses the existing nearest endpoint (zoom8); it needs new visual
-verification. No turf baseline has been refreshed.
+**Current pickup: correct whole-map atmosphere contrast.** The campaign overview
+currently inherits battle-distance aerial haze, flattening faction colors and
+exploration darkness. Test strength driven by the existing chart-to-tilt camera
+transition, keeping regional/close output unchanged. Accepted build5188 is frozen;
+the rejected terrain preview is stopped. Keep one GPU lane.
 
+The [label-owner check](assets/slice-12/label-owners/README.md) now passes real positive,
+missing-owner, restoration and outside-surface controls. Full campaign-lod remains
+red on nine snapshots and the southern-Apennines coverage floor0.5444. Six regional/
+close baseline migrations are defensible; hold the three overview images for the
+atmosphere fix. The turf scene's corrected nearest-camera profile remains unverified.
+
+Recent [form controls](assets/slice-04/ridge-width-control/README.md) were removed:
+better overview shelves introduced close serrated edges/green seams. Original
+mountain quality remains open; do not repeat amplitude, scalar recovery or the
+same ridge-support control as though those outcomes were unknown.
 
 Campaign keeps Three and battle keeps main's TypeGPU renderer: share neutral
 policy/data/assets, not backend wrappers or a restored battle backend.
@@ -65,8 +48,8 @@ separate projects or duplicate capture runs:
    when it proves the same requirement, without narrowing any gate.
 
 Finish the turf scene's migration to current completed-frame and residency
-contracts. Replace the legacy whole-frame label brightness oracle
-only after missing-name and missing-card controls prove its owner-aware successor.
+contracts. The label-owner successor is verified; retain its negative controls
+while resolving the remaining campaign presentation and snapshot gates.
 
 | Accepted checkpoint | Evidence | Acceptance still open |
 | --- | --- | --- |

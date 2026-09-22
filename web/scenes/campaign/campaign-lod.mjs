@@ -288,6 +288,7 @@ async function snapCampaign(
   }
   if (checkStructure) {
     checkRegionalMapStructure(ctx, PNG.sync.read(shot));
+    await checkRegionalNames(page, ctx);
   }
   if (naturalGroundFloor !== null) {
     const metrics = naturalGroundMetrics(PNG.sync.read(shot));
@@ -406,11 +407,10 @@ async function checkRealItalyAlignment(page, ctx, name, current, cameraBand) {
 function checkRegionalMapStructure(ctx, current) {
   const m = campaign3dMetrics(current);
   ctx.check(
-    "campaign-lod-regional-italy-natural reads as a structured map (sea, land, roads, labels; no political wash)",
+    "campaign-lod-regional-italy-natural reads as a structured map (sea, land, roads; no political wash)",
     m.waterRatio >= 0.3 &&
       m.landRatio >= 0.12 &&
       m.roadRatio >= 0.012 &&
-      m.labelRatio >= 0.002 &&
       m.politicalWashRatio <= 0.12,
     JSON.stringify(m),
   );
@@ -437,6 +437,230 @@ function checkRegionalMapStructure(ctx, current) {
     Object.values(featureChecks).every((check) => check.ok),
     JSON.stringify(featureChecks),
   );
+}
+
+// Presence is checked per owner: bright roads cannot stand in for city names.
+// Readability remains a crop-review gate; this does not invent a contrast score.
+async function checkRegionalNames(page, ctx) {
+  const inventory = await page.evaluate((nodes) => {
+    const box = (r) => ({ x: r.x, y: r.y, w: r.width, h: r.height });
+    const cards = [...document.querySelectorAll(".cmp-map-card--city")]
+      .filter((card) => getComputedStyle(card).display !== "none")
+      .map((card) => {
+        const title = card.querySelector(".cmp-map-card__name");
+        return {
+          text: title.textContent.trim().toUpperCase(),
+          inkRect: box(title.getBoundingClientRect()),
+          cardRect: box(card.getBoundingClientRect()),
+          opacity: Number(getComputedStyle(title).opacity),
+          unclipped:
+            title.scrollWidth <= title.clientWidth && title.scrollHeight <= title.clientHeight,
+        };
+      });
+    const api = window.__campaign;
+    const owner = api.armies().find((army) => army.mine)?.faction;
+    const cities = api.cities();
+    // Interior city anchors leave room for the downward card layout. Edge
+    // clipping remains covered separately; absent cards cannot erase this list.
+    const expectedCards = nodes.flatMap((node, index) => {
+      if (node.kind !== "city" || cities[index]?.owner !== owner) return [];
+      const [x, y] = api.project(...node.pos);
+      return x >= 100 && x <= innerWidth - 100 && y >= 100 && y <= innerHeight - 150
+        ? [node.name.toUpperCase()]
+        : [];
+    });
+    return {
+      expectedCards,
+      canvas: window.__campaignGpuStats.visibleCityLabelRects,
+      cards,
+      allGlyphs: [
+        "visibleCityLabelRects",
+        "visibleArmyLabelRects",
+        "visibleSeaLabelRects",
+        "visibleFactionLabelRects",
+      ]
+        .flatMap((key) => window.__campaignGpuStats[key] ?? [])
+        .map((label) => label.box),
+      dpr: devicePixelRatio,
+      width: innerWidth,
+      height: innerHeight,
+      hudBottom: document.querySelector(".cmp-top")?.getBoundingClientRect().bottom ?? 36,
+    };
+  }, CAMPAIGN_MAP.nodes);
+  const canvasNames = [
+    "SPOLETIUM",
+    "ATERNUM",
+    "CORFINIUM",
+    "LARINUM",
+    "AESERNIA",
+    "BENEVENTUM",
+    "PUTEOLI",
+  ];
+  const cardNames = inventory.expectedCards;
+  const inside = (r) =>
+    r.x >= 0 &&
+    r.y >= inventory.hudBottom &&
+    r.x + r.w <= inventory.width &&
+    r.y + r.h <= inventory.height;
+  const intersects = (a, b) =>
+    a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  const required = [
+    ...canvasNames.map((text) => ({ text, owner: "canvas" })),
+    ...cardNames.map((text) => ({ text, owner: "cards" })),
+  ].map((expected) => {
+    const matches = inventory[expected.owner].filter((entry) => entry.text === expected.text);
+    const entry = matches[0];
+    // Puteoli straddles this fixed regional viewport's bottom edge. Keep it
+    // required as partial paint; do not claim its complete name is readable.
+    const partial = expected.text === "PUTEOLI" && expected.owner === "canvas";
+    const boundsValid =
+      entry &&
+      (inside(entry.inkRect) ||
+        (partial &&
+          entry.inkRect.x >= 0 &&
+          entry.inkRect.x + entry.inkRect.w <= inventory.width &&
+          entry.inkRect.y >= inventory.hudBottom &&
+          entry.inkRect.y < inventory.height &&
+          entry.inkRect.y + entry.inkRect.h > inventory.height));
+    return {
+      ...expected,
+      ...entry,
+      partial,
+      valid:
+        matches.length === 1 &&
+        entry.opacity > 0 &&
+        boundsValid &&
+        (expected.owner === "cards"
+          ? entry.unclipped
+          : !inventory.cards.some((card) => intersects(entry.inkRect, card.cardRect))),
+    };
+  });
+  const capture = async () => {
+    await page.evaluate(async () => {
+      const api = window.__campaign;
+      const camera = api.camGet();
+      api.cam(camera.x, camera.y, camera.scale);
+      await api.rendererOwner().world.world.settlePresentedFrame();
+    });
+    return PNG.sync.read(await page.screenshot());
+  };
+  const normal = await capture();
+  let canvasHidden;
+  let titlesHidden;
+  let hideTitles;
+  await page.evaluate(() => {
+    const material = window.__campaign.rendererOwner().world.labels.mesh.material;
+    window.__regionalLabelMaterialVisible = material.visible;
+    material.visible = false;
+  });
+  try {
+    canvasHidden = await capture();
+  } finally {
+    await page.evaluate(() => {
+      window.__campaign.rendererOwner().world.labels.mesh.material.visible =
+        window.__regionalLabelMaterialVisible;
+      delete window.__regionalLabelMaterialVisible;
+    });
+  }
+  try {
+    hideTitles = await page.addStyleTag({
+      content: ".cmp-map-card--city .cmp-map-card__name { visibility: hidden !important; }",
+    });
+    titlesHidden = await capture();
+  } finally {
+    if (hideTitles) await hideTitles.evaluate((node) => node.remove());
+  }
+  const restored = await capture();
+  const contains = (r, x, y) => r && x >= r.x && y >= r.y && x < r.x + r.w && y < r.y + r.h;
+  const contribution = (drawn, hidden, entry) => {
+    if (!entry.valid) return 0;
+    let changes = 0;
+    for (
+      let y = Math.max(0, Math.floor(entry.inkRect.y * inventory.dpr));
+      y < Math.min(drawn.height, Math.ceil((entry.inkRect.y + entry.inkRect.h) * inventory.dpr));
+      y++
+    ) {
+      for (
+        let x = Math.max(0, Math.floor(entry.inkRect.x * inventory.dpr));
+        x < Math.min(drawn.width, Math.ceil((entry.inkRect.x + entry.inkRect.w) * inventory.dpr));
+        x++
+      ) {
+        if (contains(entry.iconRect, (x + 0.5) / inventory.dpr, (y + 0.5) / inventory.dpr))
+          continue;
+        const i = (y * drawn.width + x) * 4;
+        if (
+          Math.abs(drawn.data[i] - hidden.data[i]) +
+            Math.abs(drawn.data[i + 1] - hidden.data[i + 1]) +
+            Math.abs(drawn.data[i + 2] - hidden.data[i + 2]) >
+          10
+        )
+          changes++;
+      }
+    }
+    return changes;
+  };
+  // Same bounded paint-presence threshold as campaign-raised-labels, not a
+  // calibrated readability measure. Report individual names, never a sum.
+  const evaluate = (frame, owner) =>
+    required
+      .filter((entry) => entry.owner === owner)
+      .map((entry) => ({
+        name: entry.text,
+        valid: entry.valid,
+        partial: entry.partial,
+        pixels: contribution(frame, owner === "canvas" ? canvasHidden : titlesHidden, entry),
+      }));
+  const passes = (results) =>
+    results.length > 0 && results.every((result) => result.valid && result.pixels > 20);
+  for (const owner of ["canvas", "cards"]) {
+    const positive = evaluate(normal, owner);
+    ctx.check(
+      `regional ${owner} city names contribute visible text`,
+      passes(positive),
+      JSON.stringify(positive),
+    );
+    const missing = evaluate(owner === "canvas" ? canvasHidden : titlesHidden, owner);
+    ctx.check(
+      `regional missing ${owner} names fail independently`,
+      !passes(missing),
+      JSON.stringify(missing),
+    );
+    const other = owner === "canvas" ? "cards" : "canvas";
+    const retained = evaluate(owner === "canvas" ? canvasHidden : titlesHidden, other);
+    ctx.check(
+      `regional missing ${owner} preserves ${other} names`,
+      passes(retained),
+      JSON.stringify(retained),
+    );
+  }
+  ctx.check("regional name controls restore the exact frame", normal.data.equals(restored.data));
+  // The canvas quad bounds contain its raster output. DOM titles additionally
+  // rasterize font overhang and shadow beyond line boxes; their existing card
+  // bounds define the owning UI surface for the unchanged-world check. Actual
+  // title contribution above remains measured strictly inside each title box.
+  for (const [owner, hidden, masks] of [
+    ["canvas", canvasHidden, inventory.allGlyphs],
+    ["cards", titlesHidden, inventory.cards.map((card) => card.cardRect)],
+  ]) {
+    const outside = [];
+    for (let y = 0; y < normal.height; y++)
+      for (let x = 0; x < normal.width; x++) {
+        if (masks.some((r) => contains(r, (x + 0.5) / inventory.dpr, (y + 0.5) / inventory.dpr)))
+          continue;
+        const i = (y * normal.width + x) * 4;
+        if (
+          normal.data[i] !== hidden.data[i] ||
+          normal.data[i + 1] !== hidden.data[i + 1] ||
+          normal.data[i + 2] !== hidden.data[i + 2]
+        )
+          outside.push([x, y]);
+      }
+    ctx.check(
+      `regional ${owner} control leaves pixels outside its owning surface unchanged`,
+      outside.length === 0,
+      `${outside.length} outside pixels; first: ${JSON.stringify(outside.slice(0, 20))}`,
+    );
+  }
 }
 
 function campaign3dMetrics(png) {

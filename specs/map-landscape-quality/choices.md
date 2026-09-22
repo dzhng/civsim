@@ -394,3 +394,23 @@ Only images whose accepted renderer changes altered their appearance are refresh
 The contact-shadow image already passed and remains untouched. Refreshing composed
 images records current integration; it does not accept the unresolved reference
 quality or substitute software rendering for hardware performance evidence.
+
+## Label-owner verification
+
+### Sound — medium confidence: paint presence and owning-surface isolation
+
+When map text disappears, roads or card backgrounds may still keep a whole-frame
+brightness score high. The scene therefore hides canvas text and DOM titles
+separately and checks each required name against its own missing-text image.
+Title rectangles prove title paint; card rectangles bound changes to the owning
+surface because browser glyph fringes exceed DOM text ranges. This does not claim
+every other pixel within a card is unchanged. The plan required missing-owner
+controls but left the mask boundary unspecified.
+
+### Sound — high confidence: preserve an explicit clipped edge case
+
+Puteoli straddles the bottom edge of the fixed regional view. Removing it from the
+expected-name list would hide a missing label, while demanding the entire name
+onscreen would reject legitimate viewport clipping. It remains required to paint
+its visible portion, explicitly marked partial; the six interior names must fit
+fully. Full readability is reserved for those interior cases and visual review.

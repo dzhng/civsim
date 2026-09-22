@@ -35,115 +35,37 @@ Feedback that would change the slice: A different rock or climate art direction 
 
 Human checkpoints are non-blocking. Show the artifact, allow a short response window while doing independent work, then decide from evidence and proceed. Do not ask permission for the already-authorized implementation or spike choices.
 
-## Implementation order
+## Current implementation and evidence
 
-First extract shared shader vocabulary and material response without changing appearance. This ownership pass can proceed while mountain form is evaluated. Keep physical tint decoding, road/mud masks, turf and playable/vista layout under battle. Then tune the common rock/grass transition on fixed accepted geometry. Final visual acceptance still depends on04; extracting shared ownership does not.
+The shared neutral profile and rock bitmap have backend-local shader adapters.
+Campaign source coverage is sampled in world space, avoiding per-vertex coverage
+mismatches at coarse/fine boundaries. Normalize geometric normals after
+interpolation so joined edges retain the same material response. Terrain lighting
+follows geometric normals; bitmap color and roughness provide filtered fractures.
+One texture belongs to each world and retires with it.
 
-The shared shader vocabulary extraction is verified; [evidence](../assets/shared-shader/README.md) records unchanged consumer captures and the controlled inherited battle snapshot failure. The terrain material response now also has one shared owner; moving helper ownership alone did not complete 05.
+| Retained checkpoint | Evidence and scope |
+| --- | --- |
+| Shared shader vocabulary and terrain response | [Vocabulary](../assets/shared-shader/README.md), [response ownership](../assets/slice-05/extraction/README.md). Historical Three consumer equivalence is not current TypeGPU equivalence. |
+| Source-band sampling | [Source cover](../assets/slice-05/source-cover/README.md): source orientation, filtering and disposal; no added tile buffers. Current exposure interpretation is superseded by the shelf pass below. |
+| Face-oriented bitmap, geometric lighting normals | [Normal control](../assets/slice-05/rock-normal-control/README.md), [actual battle](../assets/slice-05/production-battle-rock/README.md), [retirement](../assets/slice-15-retention/rock-production10/README.md). Retains fractures without the rejected granular derivative-normal response. |
+| TypeGPU bitmap adoption | [Production adapter](../assets/slice-13/bitmap-rock/README.md): shared asset/policy, filtering and owned texture lifetime. |
+| Grass through gentle mountain interiors | [Connected shelves](../assets/slice-05/connected-shelves/README.md): source band strengthens exposed faces instead of forcing bare shelves. Three production views repeat exactly; terrain return/residency/DPR checks pass. |
 
-The shared terrain response extraction is verified: [ownership evidence](../assets/slice-05/extraction/README.md) records exact small canonical controls, equivalent-consumer RGBA, matched hardware turf controls, and the inherited full SwiftShader readiness limitation. Face-oriented visual tuning remains active.
+The shelf pass is a bounded visual improvement on the simplified form from04,
+not final landscape acceptance. Grass connects through bowls and shoulders while
+steep faces remain rocky. The wider existing rock interval is preferred over the
+narrow rolling-ground interval. Angular grass edges, isolated painted patches,
+thin green crest caps, distinct scree and final motion/shimmer remain open.
+Resolve these through current production consumers, keeping physical terrain and
+battle cover semantics unchanged. Reuse the shared13/15 acceptance matrix.
 
-The [face-response evidence](../assets/slice-05/face-detail/README.md) records the procedural triplanar/normal probe, fixed-geometry before/after comparison, exact consumer and water guards, hardware battle controls, and remaining close-rock softness. This is a verified material implementation checkpoint, not final combined landscape art acceptance.
+## Rejected controls
 
-
-## Intermediate face direction evidence
-
-Two [directional probes](../assets/slice-05/directional-face/README.md) retained
-geometry/palette/planting/light. Strong vertical noise looked like curtains and
-woven scratches; shorter transverse noise was only slightly preferred close up
-and lost identity regionally. Both are rejected and their code removed. Shared
-consumer/source/water controls remained green. Further anisotropy alone is not
-the next material solution; regional geological readability remains open.
-
-## Material region boundary
-
-The [bounded region probe](../assets/slice-05/material-regions/README.md) combines
-irregular partial exposure with clearer rock/scree values on fixed geometry.
-Fresh review slightly prefers its rock/grass contrast, but finds no substantial
-regional gain or distinct loose-stone material. Close boundaries remain smooth
-and rock remains cloudy. The patch is rejected and removed; existing material
-and baselines remain authoritative. Palette contrast plus broad mask noise is
-insufficient to complete 05.
-
-The subsequent structural controls in04 were rejected; retain the current best
-geometry. The next material question is source coverage, after the isolated
-campaign rock-prop comparison in07. `TerrainField` already derives rock coverage
-in biome channel2 from source elevation. `buildCampaignLandscape` currently uses
-only moisture for ground color, and `createLandscapeGroundMaterial` supplies zero
-source rock/scree coverage to the shared slope masks. Consequently a flat crest
-loses rock exposure even inside a source mountain region. Repeating palette or
-noise changes does not test this missing input.
-
-A bounded next probe should carry the existing source coverage through one owned
-surface/material seam, with geometry, water, trees, palette and lighting frozen.
-Choose the smallest representation consistent with tile joins, worker transfer,
-resource lifetime and the existing allocation budget; no parallel classifier or
-permanent probe switch. Judge crest and grass-shelf crops against the retained
-material before adopting anything. This causal audit identifies an unconsumed
-source signal, not proof that using it will meet the visual target.
-
-The source-coverage seam must also match the coarse material interpolation at
-new fine vertices along a coarse/fine boundary. Equal source samples at shared
-vertices alone are insufficient: a 2km fine edge over a 32km coarse cell can
-otherwise differ by 0.75 in rock coverage. Exercise a source band crossing that
-edge and compare against the coarse triangle's barycentric coverage. A single world-space source lookup can instead avoid this mismatch altogether.
-The current candidate takes that route: a source-resolution byte texture avoids
-per-vertex buffer growth and leaves tile allocation unchanged. Verify its world
-orientation, filtering and disposal on the GPU before adoption; source arrays
-must remain unchanged.
-
-The [first production source-cover comparison](../assets/slice-05/source-cover-first/README.md)
-confirms improved regional rock continuity, with identical cameras and scenery.
-Fresh review and root also find lost green shelf/valley separation: broad source
-mountain coverage becomes too uniformly bare when used as full rock exposure.
-Refine that material interpretation before repeat/adoption. Do not alter terrain,
-planting, palette or lighting to hide the coverage tradeoff.
-
-The [refined source-band checkpoint](../assets/slice-05/source-cover/README.md)
-is retained after three zero-difference repeats and asymmetric GPU sampling /
-filtering / disposal checks. It restores some lower green ground while keeping
-rocky range continuity. Source band semantics are now explicit; no tile buffers
-or battle material behavior change. Barren high gullies and cloudy face detail
-remain open, so this does not complete05.
-
-
-The [rock-height prototype comparison](../assets/slice-05/rock-height-prototype/README.md)
-selects the checked-in image for bounded production adoption. It improves
-fracture readability on fixed real terrain and repeats exactly; source-band
-composition, actual battle/vista use and resource lifetime still need proof.
-Rounded landforms and stepped grass transitions remain separate open defects.
-
-
-The [production normal control](../assets/slice-05/rock-normal-control/README.md)
-rejects the bitmap's derivative-normal contribution: it adds granular artifacts
-while the geometric-normal control preserves readable fractures. Shared dry
-lighting now follows the landform; texture color and roughness remain. Renewed
-production campaign/battle captures and bitmap lifetime proof are retained below.
-
-
-The shared image is integrated with one texture per terrain world and clean
-asynchronous lab ownership. [Material/campaign evidence](../assets/slice-05/rock-normal-control/README.md),
-[actual battle evidence](../assets/slice-05/production-battle-rock/README.md), and
-[125-check texture retirement](../assets/slice-15-retention/rock-production10/README.md)
-record the bounded gain and its limits. Uniform crack coverage, soft green
-patches, terrain form and final lighting keep the slice open. Full ordinary
-battle distance and the remaining water/turf/seam acceptance matrix still need
-review; flat patch controls are not mountain-quality evidence.
-
-## Current remaining owner work
-
-Accepted [bitmap adoption](../assets/slice-13/bitmap-rock/README.md) proves shared
-image/policy, filtered fracture detail, resource lifetime and bounded production
-controls. It does not accept stone/grass transition quality, distinct scree or
-motion/shimmer. Resolve those on accepted geometry, then use current TypeGPU
-material/shore/seam consumers and the common motion/hardware matrix in15. Historical
-Three-equivalence RGBA remains historical evidence, not current backend coverage.
-
-## Connected shelf exposure
-
-The [coupled form/material evidence](../assets/slice-05/connected-shelves/README.md)
-selects slope-conditioned source rock on the simplified mountain form. Grass now
-connects through bowls and shoulders; steep faces remain rocky. The wider existing
-rock interval is preferred over the narrower rolling-ground interval. Exact
-production repeats and terrain-return evidence support this bounded improvement.
-Painted patches, angular boundaries and final shared-landscape quality remain open.
+Do not repeat [directional noise](../assets/slice-05/directional-face/README.md)
+or [palette/mask region tuning](../assets/slice-05/material-regions/README.md)
+as established solutions: they failed regional geological readability. The
+[first full source-cover response](../assets/slice-05/source-cover-first/README.md)
+made interiors uniformly bare. Bitmap derivative normals added grain and were
+removed. These findings constrain the next experiment; their build history stays
+in the linked evidence rather than becoming another implementation queue.

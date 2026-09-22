@@ -1,0 +1,491 @@
+{
+  "sourceSha256": "c761f3fe7deea53ea1a2ad156dc2b99d39f75c0666bde64de475e31ea975163e",
+  "reliefSha256": "2571f68b301e81f24c94d8f711b7fd52092815b12227b80da36a8110a29b414a",
+  "hypothesis": "One priority-flood tree plus catchment-gated drainage corridors; no erosion iteration, tuning sweep or production edit.",
+  "policy": {
+    "gridKm": 2,
+    "gridNodes": 241,
+    "catchmentKm2": 128,
+    "maxReliefCut": 0.3,
+    "radius": "min(18,6+.08*sqrt(catchmentKm2))",
+    "crossSection": "Wendland C2 kernel, maximum corridor influence rasterized then positive cubic B-spline sampled",
+    "physicalWater": "unchanged; inland Infinity diagnostic"
+  },
+  "regions": {
+    "alps": {
+      "bake": {
+        "nodes": 58081,
+        "segments": 4802,
+        "outletFailure": 0,
+        "widthViolations": 0,
+        "candidateUphill": 1245,
+        "candidateUphillMax": 2.1958024867171204,
+        "uphillSegments": 1228,
+        "maxUphillRenderKm": 2.965517331538898,
+        "filledDepression": {
+          "min": 0,
+          "p25": 0,
+          "median": 0,
+          "p95": 0.3197626661074975,
+          "p99": 4.3847350062495,
+          "max": 10.750731900096604
+        },
+        "radiusKm": [
+          6.905096679918781,
+          18
+        ],
+        "buildMs": 69.055917,
+        "cutBytes": 232324,
+        "peakTypedScratchBytes": 2207078,
+        "limits": "Heap/order JS allocations excluded from typed bytes. Routing uses regional perimeter outlets; evaluation has120km padding. No water/coast attenuation in this interior diagnostic."
+      },
+      "repeatCutMismatches": 0,
+      "evaluation": {
+        "bounds": [
+          -570,
+          870,
+          -330,
+          1110
+        ],
+        "step": 0.5,
+        "threshold": 16.378494527076295,
+        "upward": 0,
+        "changed": 172266,
+        "maximumDrop": 10.172186143639465,
+        "results": {
+          "control": {
+            "height": {
+              "min": 3.074071922835931,
+              "p25": 16.378494527076295,
+              "median": 24.677150413214385,
+              "p95": 41.83060394953705,
+              "p99": 47.57956155941237,
+              "max": 54.89136184472392
+            },
+            "gradient": {
+              "min": 0.000958890426210465,
+              "p25": 0.3525921014769778,
+              "median": 0.5981666239338997,
+              "p95": 1.6136024089399847,
+              "p99": 2.2254683400644333,
+              "max": 3.526141272248271
+            },
+            "meshError": {
+              "min": 3.305444806755986e-11,
+              "p25": 0.01349469564118344,
+              "median": 0.03971878993858269,
+              "p95": 0.22580624822525408,
+              "p99": 0.40209626679916965,
+              "max": 1.7033686801210237
+            },
+            "gentleLow": {
+              "area": 2980,
+              "count": 57,
+              "largest": [
+                550,
+                433.75,
+                396.25,
+                395.75,
+                333
+              ]
+            },
+            "erosion": [
+              {
+                "radiusKm": 0,
+                "area": 2980,
+                "count": 57,
+                "largest": [
+                  550,
+                  433.75,
+                  396.25,
+                  395.75,
+                  333
+                ]
+              },
+              {
+                "radiusKm": 0.5,
+                "area": 2311.75,
+                "count": 53,
+                "largest": [
+                  491.25,
+                  336,
+                  330.5,
+                  274.5,
+                  258
+                ]
+              },
+              {
+                "radiusKm": 1,
+                "area": 1766.25,
+                "count": 56,
+                "largest": [
+                  436,
+                  268.25,
+                  264.75,
+                  222.5,
+                  220
+                ]
+              },
+              {
+                "radiusKm": 1.5,
+                "area": 1360,
+                "count": 38,
+                "largest": [
+                  382.75,
+                  224,
+                  214.25,
+                  185.5,
+                  172
+                ]
+              },
+              {
+                "radiusKm": 2,
+                "area": 1056.75,
+                "count": 24,
+                "largest": [
+                  317,
+                  186.25,
+                  153.25,
+                  142.25,
+                  129.25
+                ]
+              }
+            ]
+          },
+          "candidate": {
+            "height": {
+              "min": 2.4948249884849023,
+              "p25": 14.730956663841898,
+              "median": 22.615648558007692,
+              "p95": 41.66124411883237,
+              "p99": 47.552095251962015,
+              "max": 54.891306877915035
+            },
+            "gradient": {
+              "min": 0.0013881008876660066,
+              "p25": 0.45570623208070477,
+              "median": 0.8121418829273428,
+              "p95": 2.2439896052731614,
+              "p99": 2.9525226671508924,
+              "max": 4.548321582357663
+            },
+            "meshError": {
+              "min": 2.0250467969162855e-12,
+              "p25": 0.019338375183934886,
+              "median": 0.05815928359497491,
+              "p95": 0.36442742560575425,
+              "p99": 0.6234519829510674,
+              "max": 2.09617168001288
+            },
+            "gentleLow": {
+              "area": 1896.75,
+              "count": 279,
+              "largest": [
+                292,
+                251.5,
+                128.25,
+                93,
+                89.25
+              ]
+            },
+            "erosion": [
+              {
+                "radiusKm": 0,
+                "area": 1896.75,
+                "count": 279,
+                "largest": [
+                  292,
+                  251.5,
+                  128.25,
+                  93,
+                  89.25
+                ]
+              },
+              {
+                "radiusKm": 0.5,
+                "area": 1056.25,
+                "count": 126,
+                "largest": [
+                  208.75,
+                  202.25,
+                  93.25,
+                  69.25,
+                  48.5
+                ]
+              },
+              {
+                "radiusKm": 1,
+                "area": 635,
+                "count": 60,
+                "largest": [
+                  154.5,
+                  79.75,
+                  51.75,
+                  33,
+                  31.5
+                ]
+              },
+              {
+                "radiusKm": 1.5,
+                "area": 379.75,
+                "count": 47,
+                "largest": [
+                  130,
+                  37.5,
+                  27.75,
+                  22.75,
+                  21.75
+                ]
+              },
+              {
+                "radiusKm": 2,
+                "area": 225.75,
+                "count": 31,
+                "largest": [
+                  108.25,
+                  25.75,
+                  17.75,
+                  14,
+                  12.5
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "italy": {
+      "bake": {
+        "nodes": 58081,
+        "segments": 4941,
+        "outletFailure": 0,
+        "widthViolations": 0,
+        "candidateUphill": 1622,
+        "candidateUphillMax": 2.104031313785903,
+        "uphillSegments": 1611,
+        "maxUphillRenderKm": 2.870657732508434,
+        "filledDepression": {
+          "min": 0,
+          "p25": 0,
+          "median": 0,
+          "p95": 0.21119965186942724,
+          "p99": 0.6223465625023152,
+          "max": 7.67588093000861
+        },
+        "radiusKm": [
+          6.905096679918781,
+          18
+        ],
+        "buildMs": 69.27804100000003,
+        "cutBytes": 232324,
+        "peakTypedScratchBytes": 2207078,
+        "limits": "Heap/order JS allocations excluded from typed bytes. Routing uses regional perimeter outlets; evaluation has120km padding. No water/coast attenuation in this interior diagnostic."
+      },
+      "repeatCutMismatches": 0,
+      "evaluation": {
+        "bounds": [
+          -445,
+          520,
+          -205,
+          760
+        ],
+        "step": 0.5,
+        "threshold": 7.56749491503207,
+        "upward": 0,
+        "changed": 36108,
+        "maximumDrop": 5.418897569158872,
+        "results": {
+          "control": {
+            "height": {
+              "min": 2.7835049718117704,
+              "p25": 7.56749491503207,
+              "median": 11.45240242332729,
+              "p95": 24.093987647167545,
+              "p99": 26.516847150540514,
+              "max": 28.90815377641578
+            },
+            "gradient": {
+              "min": 0.0037398427548204,
+              "p25": 0.2868122744992802,
+              "median": 0.4018837424733266,
+              "p95": 1.0479504610965993,
+              "p99": 1.4037543060755553,
+              "max": 1.8529299808005906
+            },
+            "meshError": {
+              "min": 7.171152560658811e-11,
+              "p25": 0.0069581122989639255,
+              "median": 0.019454657689059296,
+              "p95": 0.11431490074523509,
+              "p99": 0.22969068766792944,
+              "max": 0.792199254653351
+            },
+            "gentleLow": {
+              "area": 265,
+              "count": 15,
+              "largest": [
+                104.25,
+                34.5,
+                25.75,
+                23,
+                20.25
+              ]
+            },
+            "erosion": [
+              {
+                "radiusKm": 0,
+                "area": 265,
+                "count": 15,
+                "largest": [
+                  104.25,
+                  34.5,
+                  25.75,
+                  23,
+                  20.25
+                ]
+              },
+              {
+                "radiusKm": 0.5,
+                "area": 170.5,
+                "count": 11,
+                "largest": [
+                  83.5,
+                  24.25,
+                  14.75,
+                  11.5,
+                  11.5
+                ]
+              },
+              {
+                "radiusKm": 1,
+                "area": 105.75,
+                "count": 8,
+                "largest": [
+                  66.25,
+                  15.75,
+                  8.25,
+                  6,
+                  5
+                ]
+              },
+              {
+                "radiusKm": 1.5,
+                "area": 66.75,
+                "count": 5,
+                "largest": [
+                  51.75,
+                  8.5,
+                  3.25,
+                  2,
+                  1.25
+                ]
+              },
+              {
+                "radiusKm": 2,
+                "area": 43,
+                "count": 3,
+                "largest": [
+                  39.25,
+                  3.25,
+                  0.5
+                ]
+              }
+            ]
+          },
+          "candidate": {
+            "height": {
+              "min": 2.3461960896338905,
+              "p25": 6.957710601561908,
+              "median": 10.779500495327456,
+              "p95": 24.08655802585535,
+              "p99": 26.516847150540514,
+              "max": 28.90815377641578
+            },
+            "gradient": {
+              "min": 0.0031821991760908296,
+              "p25": 0.33381054204006777,
+              "median": 0.47243511962942225,
+              "p95": 1.197998913784943,
+              "p99": 1.5521959945950146,
+              "max": 2.1349552632838154
+            },
+            "meshError": {
+              "min": 1.3103829132887768e-10,
+              "p25": 0.009631621293458181,
+              "median": 0.02845264452618146,
+              "p95": 0.17093053932777735,
+              "p99": 0.3067577104281707,
+              "max": 0.792199254653351
+            },
+            "gentleLow": {
+              "area": 252.25,
+              "count": 56,
+              "largest": [
+                48,
+                30.25,
+                25.5,
+                17.5,
+                11.25
+              ]
+            },
+            "erosion": [
+              {
+                "radiusKm": 0,
+                "area": 252.25,
+                "count": 56,
+                "largest": [
+                  48,
+                  30.25,
+                  25.5,
+                  17.5,
+                  11.25
+                ]
+              },
+              {
+                "radiusKm": 0.5,
+                "area": 90.5,
+                "count": 44,
+                "largest": [
+                  29.75,
+                  11.5,
+                  10.75,
+                  5.75,
+                  5.25
+                ]
+              },
+              {
+                "radiusKm": 1,
+                "area": 23,
+                "count": 14,
+                "largest": [
+                  11,
+                  3,
+                  2.5,
+                  1.75,
+                  1
+                ]
+              },
+              {
+                "radiusKm": 1.5,
+                "area": 5,
+                "count": 2,
+                "largest": [
+                  4.5,
+                  0.5
+                ]
+              },
+              {
+                "radiusKm": 2,
+                "area": 1,
+                "count": 1,
+                "largest": [
+                  1
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

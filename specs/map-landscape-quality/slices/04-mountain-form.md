@@ -86,3 +86,9 @@ rejected at current sampling: it barely enlarges connected gentle ground while
 more than doubling the worst core interpolation error. No production edit or
 visual acceptance follows. A new form hypothesis must survive the actual mesh
 scale, not merely sharpen a continuous formula.
+
+The [connected drainage-cut control](../assets/slice-04/drainage-control/README.md)
+is rejected before rendering. A connected flow graph with broad downstream-widening
+cuts still leaves many terrain links uphill, fragments gentle ground in both
+regions, and worsens interpolation. Routing connectivity does not establish
+open rendered valleys. No production algorithm or parameter sweep follows.

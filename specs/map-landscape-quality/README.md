@@ -10,12 +10,24 @@ Work in `/Users/david/dev/game/.worktrees/map-landscape-quality` on
 `codex/map-landscape-quality`. Keep this one worktree and a single GPU capture
 lane; inspect live processes before starting captures or replacing their build.
 
-**Current pickup: field-water normal response and phase controls.** A bounded
-TypeGPU candidate now shares the existing Gerstner field between standalone water
-and wet terrain lighting. Dry pixels bypass it; geometry, roughness and shadows
-stay unchanged. Candidate code/tests and an injectable lab-clock seam are uncommitted;
-old-control phase captures are running from frozen5189. Build a separate candidate
-only after its source is frozen, then test wet motion, dry masks and phase return.
+**Current pickup: production standalone lake surface response.** The
+[battle consumer audit](assets/slice-09/battle-consumer-audit/README.md) shows dense
+metallic glints in the golden-hour production lake. Corrected geometry checks
+pass; the water-mask hit0.378 remains below0.42, and two crop sizes differ from
+old snapshots. Keep these failures visible. The uncommitted lake scene now uses
+installed elevation, completed camera frames, and an opt-in detached live tint
+mask; it no longer imports a source-only WASM module. Typecheck and independent
+code review pass. Do not lower mask thresholds to accept the surface.
+
+Uncommitted field-water normals are a separate, modest readability improvement:
+the calmer response repeats all twelve phases/four returns exactly, with zero
+same-phase dry-control changes. Strong normals and added patch modulation were
+rejected and removed. Uniform directional streaks and pale shore halos remain
+open. Frozen control5189 and candidate5190 are available; keep one GPU lane.
+The latest candidate includes the live tint hook; control5189 does not. Scratch
+phase evidence is in `throwaway/battle-water-phases/`; the verified current data
+is `candidate-repeat-clock.json` and the `candidate/` images. No water candidate
+is accepted or committed. Finish actual surface/motion quality before accepting09.
 
 The [chart atmosphere correction](assets/slice-10/chart-atmosphere/README.md) is
 committed and its nine migrated snapshots pass. Full campaign-lod remains red only

@@ -1,0 +1,100 @@
+[
+  {
+    "name": "seed-7 generated map exports at least one lake surface",
+    "ok": true
+  },
+  {
+    "name": "golden: installed water geometry matches the generated lake and has no ocean",
+    "ok": true,
+    "detail": {
+      "water": {
+        "draws": 1,
+        "triangles": 3762,
+        "surfaces": [
+          {
+            "kind": "lake",
+            "level": -7.820000171661377,
+            "surfaceLevel": -7.519999980926514,
+            "triangles": 3762
+          }
+        ],
+        "ownedBuffers": 4,
+        "disposed": false,
+        "depth": "read-write",
+        "blending": "opaque"
+      },
+      "lake": {
+        "cells": 1881,
+        "id": 0,
+        "level": -7.820000171661377,
+        "maxCellX": 230,
+        "maxCellY": 165,
+        "maxX": -276,
+        "maxY": -136,
+        "minCellX": 188,
+        "minCellY": 112,
+        "minX": -448,
+        "minY": -352
+      }
+    }
+  },
+  {
+    "name": "golden: rendered lake-blue pixels follow sim tint=water projection",
+    "ok": false,
+    "detail": "{\"waterSamples\":119,\"drySamples\":89,\"waterHit\":0.378,\"dryLeak\":0.034}"
+  },
+  {
+    "name": "snapshot golden-lake",
+    "ok": true,
+    "detail": "baseline created"
+  },
+  {
+    "name": "seed-7 generated map exports at least one lake surface",
+    "ok": true
+  },
+  {
+    "name": "overcast: installed water geometry matches the generated lake and has no ocean",
+    "ok": true,
+    "detail": {
+      "water": {
+        "draws": 1,
+        "triangles": 3762,
+        "surfaces": [
+          {
+            "kind": "lake",
+            "level": -7.820000171661377,
+            "surfaceLevel": -7.519999980926514,
+            "triangles": 3762
+          }
+        ],
+        "ownedBuffers": 4,
+        "disposed": false,
+        "depth": "read-write",
+        "blending": "opaque"
+      },
+      "lake": {
+        "cells": 1881,
+        "id": 0,
+        "level": -7.820000171661377,
+        "maxCellX": 230,
+        "maxCellY": 165,
+        "maxX": -276,
+        "maxY": -136,
+        "minCellX": 188,
+        "minCellY": 112,
+        "minX": -448,
+        "minY": -352
+      }
+    }
+  },
+  {
+    "name": "overcast: rendered lake-blue pixels follow sim tint=water projection",
+    "ok": true,
+    "detail": "{\"waterSamples\":119,\"drySamples\":89,\"waterHit\":0.571,\"dryLeak\":0.112}"
+  },
+  {
+    "name": "snapshot overcast-lake",
+    "ok": true,
+    "detail": "baseline created"
+  }
+]

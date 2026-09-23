@@ -37,7 +37,7 @@ const IMPOSTOR_MIN_SCREEN_FRACTION = 0.008;
 
 export class OctahedralImpostorLayer {
   private readonly mesh: THREE.Mesh;
-  private readonly geometry: THREE.InstancedBufferGeometry;
+  private geometry: THREE.InstancedBufferGeometry;
   private readonly camRight = uniform(new THREE.Vector3(1, 0, 0));
   private readonly camUp = uniform(new THREE.Vector3(0, 0, 1));
   private capacity = 0;
@@ -129,6 +129,14 @@ export class OctahedralImpostorLayer {
       return;
     }
     if (instances.length > this.capacity) {
+      if (this.capacity > 0) {
+        // Renew the geometry identity so Three registers retirement for every growth.
+        this.geometry.dispose();
+        const next = new THREE.InstancedBufferGeometry();
+        next.index = this.geometry.index;
+        next.attributes = { ...this.geometry.attributes };
+        this.geometry = this.mesh.geometry = next;
+      }
       this.capacity = Math.max(instances.length, this.capacity * 2, 512);
       this.inst = new Float32Array(this.capacity * 4);
       this.meta = new Float32Array(this.capacity * 4);

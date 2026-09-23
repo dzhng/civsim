@@ -460,6 +460,15 @@ export class PhotorealCrowd {
       return;
     }
     if (list.length > bucket.capacity) {
+      if (bucket.capacity > 0) {
+        // Dispose before replacing attributes; a new geometry identity also
+        // renews Three's disposal listener. Static CPU attributes are bucket-owned.
+        bucket.geometry.dispose();
+        const next = new THREE.InstancedBufferGeometry();
+        next.index = bucket.geometry.index;
+        next.attributes = { ...bucket.geometry.attributes };
+        bucket.geometry = bucket.mesh.geometry = next;
+      }
       bucket.capacity = Math.max(list.length, bucket.capacity * 2, 256);
       bucket.inst0 = new Float32Array(bucket.capacity * 4);
       bucket.inst1 = new Float32Array(bucket.capacity * 4);

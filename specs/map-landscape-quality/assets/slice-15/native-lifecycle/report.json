@@ -1,0 +1,461 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-23T00:20:42.187Z",
+  "target": "http://127.0.0.1:5193",
+  "gpu": true,
+  "headful": true,
+  "browserChannel": "chrome",
+  "gpuAdapter": "hardware",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "renderer-lifecycle",
+      "file": "system/renderer-lifecycle.mjs",
+      "kind": "flow",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 creates an encounter",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":1},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 retires every requested battle buffer and texture",
+      "ok": true,
+      "detail": "{\"scope\":\"requested-webgpu-resources\",\"buffers\":0,\"textures\":0,\"bufferBytes\":0,\"textureBytes\":0,\"totalBytes\":0,\"publicationCapacityBytes\":1125600,\"publicationPool\":2}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 collects retired campaign worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 1 samples renderer resources",
+      "ok": true,
+      "detail": "{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":1,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":27,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":336106629,\"userAgentBreakdown\":[{\"bytes\":577181,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":321714828,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":614499,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":476281,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":128640,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 creates an encounter",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":2},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 retires every requested battle buffer and texture",
+      "ok": true,
+      "detail": "{\"scope\":\"requested-webgpu-resources\",\"buffers\":0,\"textures\":0,\"bufferBytes\":0,\"textureBytes\":0,\"totalBytes\":0,\"publicationCapacityBytes\":1125600,\"publicationPool\":2}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 collects retired campaign worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 2 samples renderer resources",
+      "ok": true,
+      "detail": "{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":2,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":335276510,\"userAgentBreakdown\":[{\"bytes\":324901777,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":475821,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":614823,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":655673,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 creates an encounter",
+      "ok": true,
+      "detail": "2"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":3},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 retires every requested battle buffer and texture",
+      "ok": true,
+      "detail": "{\"scope\":\"requested-webgpu-resources\",\"buffers\":0,\"textures\":0,\"bufferBytes\":0,\"textureBytes\":0,\"totalBytes\":0,\"publicationCapacityBytes\":1125600,\"publicationPool\":2}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 collects retired campaign worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 3 samples renderer resources",
+      "ok": true,
+      "detail": "{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":3,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":336195669,\"userAgentBreakdown\":[{\"bytes\":656043,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":325822010,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":613375,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":475825,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 creates an encounter",
+      "ok": true,
+      "detail": "3"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":4},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 retires every requested battle buffer and texture",
+      "ok": true,
+      "detail": "{\"scope\":\"requested-webgpu-resources\",\"buffers\":0,\"textures\":0,\"bufferBytes\":0,\"textureBytes\":0,\"totalBytes\":0,\"publicationCapacityBytes\":1125600,\"publicationPool\":2}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 collects retired campaign worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 4 samples renderer resources",
+      "ok": true,
+      "detail": "{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":4,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":340537748,\"userAgentBreakdown\":[{\"bytes\":128640,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":475837,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":326133733,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":590615,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":613723,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 creates an encounter",
+      "ok": true,
+      "detail": "4"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":5},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 retires every requested battle buffer and texture",
+      "ok": true,
+      "detail": "{\"scope\":\"requested-webgpu-resources\",\"buffers\":0,\"textures\":0,\"bufferBytes\":0,\"textureBytes\":0,\"totalBytes\":0,\"publicationCapacityBytes\":1125600,\"publicationPool\":2}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 collects retired campaign worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 5 samples renderer resources",
+      "ok": true,
+      "detail": "{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":5,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":336821773,\"userAgentBreakdown\":[{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":475849,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":614967,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":326456537,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":646004,\"types\":[\"Shared\"],\"urls\":[]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 creates an encounter",
+      "ok": true,
+      "detail": "5"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":6},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 retires every requested battle buffer and texture",
+      "ok": true,
+      "detail": "{\"scope\":\"requested-webgpu-resources\",\"buffers\":0,\"textures\":0,\"bufferBytes\":0,\"textureBytes\":0,\"totalBytes\":0,\"publicationCapacityBytes\":1125600,\"publicationPool\":2}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 collects retired campaign worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 6 samples renderer resources",
+      "ok": true,
+      "detail": "{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":6,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":341241496,\"userAgentBreakdown\":[{\"bytes\":475861,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":658314,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":613723,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":326769182,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 creates an encounter",
+      "ok": true,
+      "detail": "6"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":7},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 retires every requested battle buffer and texture",
+      "ok": true,
+      "detail": "{\"scope\":\"requested-webgpu-resources\",\"buffers\":0,\"textures\":0,\"bufferBytes\":0,\"textureBytes\":0,\"totalBytes\":0,\"publicationCapacityBytes\":1125600,\"publicationPool\":2}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 collects retired campaign worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 7 samples renderer resources",
+      "ok": true,
+      "detail": "{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":7,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":341261739,\"userAgentBreakdown\":[{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":475873,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":654665,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":326792082,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":614703,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 creates an encounter",
+      "ok": true,
+      "detail": "7"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":8},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 retires every requested battle buffer and texture",
+      "ok": true,
+      "detail": "{\"scope\":\"requested-webgpu-resources\",\"buffers\":0,\"textures\":0,\"bufferBytes\":0,\"textureBytes\":0,\"totalBytes\":0,\"publicationCapacityBytes\":1125600,\"publicationPool\":2}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 collects retired campaign worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 8 samples renderer resources",
+      "ok": true,
+      "detail": "{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":8,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":341715347,\"userAgentBreakdown\":[{\"bytes\":327237665,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":614967,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":475885,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":662414,\"types\":[\"Shared\"],\"urls\":[]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 creates an encounter",
+      "ok": true,
+      "detail": "8"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":9},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 retires every requested battle buffer and texture",
+      "ok": true,
+      "detail": "{\"scope\":\"requested-webgpu-resources\",\"buffers\":0,\"textures\":0,\"bufferBytes\":0,\"textureBytes\":0,\"totalBytes\":0,\"publicationCapacityBytes\":1125600,\"publicationPool\":2}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 collects retired campaign worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 9 samples renderer resources",
+      "ok": true,
+      "detail": "{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":9,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":342214635,\"userAgentBreakdown\":[{\"bytes\":132336,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":613723,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":658459,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":475897,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":327739020,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 owns one terrain worker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 creates an encounter",
+      "ok": true,
+      "detail": "9"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 launches battle",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 releases campaign terrain and worker",
+      "ok": true,
+      "detail": "{\"terrain\":{\"geometries\":5,\"disposed\":5,\"exactlyOnce\":true,\"coarseDetached\":true,\"geometryBytes\":2043144,\"residentBefore\":4,\"residentAfter\":0,\"cycles\":10},\"workersClosed\":true}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 retires every requested battle buffer and texture",
+      "ok": true,
+      "detail": "{\"scope\":\"requested-webgpu-resources\",\"buffers\":0,\"textures\":0,\"bufferBytes\":0,\"textureBytes\":0,\"totalBytes\":0,\"publicationCapacityBytes\":1125600,\"publicationPool\":2}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 collects retired campaign worlds and older renderers",
+      "ok": true,
+      "detail": "[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "cycle 10 samples renderer resources",
+      "ok": true,
+      "detail": "{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":10,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":342251361,\"userAgentBreakdown\":[{\"bytes\":610967,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":658265,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":462028,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":132336,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":327792565,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]}]}"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "live battle resources excluding measured telemetry stay flat across dispose cycles",
+      "ok": true,
+      "detail": "[{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":1,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":27,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":336106629,\"userAgentBreakdown\":[{\"bytes\":577181,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":321714828,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":614499,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":476281,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":128640,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":2,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":335276510,\"userAgentBreakdown\":[{\"bytes\":324901777,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":475821,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":614823,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":655673,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":3,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":336195669,\"userAgentBreakdown\":[{\"bytes\":656043,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":325822010,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":613375,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":475825,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":4,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":340537748,\"userAgentBreakdown\":[{\"bytes\":128640,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":475837,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":326133733,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":590615,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":613723,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":5,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":336821773,\"userAgentBreakdown\":[{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":475849,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":614967,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":326456537,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":646004,\"types\":[\"Shared\"],\"urls\":[]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":6,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":341241496,\"userAgentBreakdown\":[{\"bytes\":475861,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":658314,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":613723,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":326769182,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":7,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":341261739,\"userAgentBreakdown\":[{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":475873,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":654665,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":326792082,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":614703,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":8,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":341715347,\"userAgentBreakdown\":[{\"bytes\":327237665,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":614967,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":475885,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":662414,\"types\":[\"Shared\"],\"urls\":[]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":9,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":342214635,\"userAgentBreakdown\":[{\"bytes\":132336,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":613723,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":658459,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":475897,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":327739020,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":10,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":342251361,\"userAgentBreakdown\":[{\"bytes\":610967,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":658265,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":462028,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":132336,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":327792565,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]}]}]"
+    },
+    {
+      "scenario": "renderer-lifecycle",
+      "name": "user-agent memory series is available",
+      "ok": true,
+      "detail": "[{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":1,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":27,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":336106629,\"userAgentBreakdown\":[{\"bytes\":577181,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":321714828,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":614499,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":476281,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":128640,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":2,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":335276510,\"userAgentBreakdown\":[{\"bytes\":324901777,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":475821,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":614823,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":655673,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":3,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":336195669,\"userAgentBreakdown\":[{\"bytes\":656043,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":325822010,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":613375,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":475825,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":4,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":340537748,\"userAgentBreakdown\":[{\"bytes\":128640,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":475837,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":326133733,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":590615,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":613723,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":5,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":336821773,\"userAgentBreakdown\":[{\"bytes\":8499200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":475849,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":614967,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":326456537,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":646004,\"types\":[\"Shared\"],\"urls\":[]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":6,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":341241496,\"userAgentBreakdown\":[{\"bytes\":475861,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":658314,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":613723,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":326769182,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":7,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":341261739,\"userAgentBreakdown\":[{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":475873,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":654665,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":326792082,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":614703,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":8,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":341715347,\"userAgentBreakdown\":[{\"bytes\":327237665,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":614967,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":129216,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":475885,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":662414,\"types\":[\"Shared\"],\"urls\":[]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":9,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":342214635,\"userAgentBreakdown\":[{\"bytes\":132336,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":613723,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":658459,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":475897,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":327739020,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]}]},{\"retired\":[{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false},{\"worldAlive\":false,\"rendererAlive\":false}],\"cycle\":10,\"renderer\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":452,\"textures\":108,\"bufferBytes\":220128008,\"textureBytes\":285307000,\"totalBytes\":505435008,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"timing\":{\"supported\":true,\"availability\":\"available\",\"submissionCount\":24,\"outsideSubmissionPasses\":68,\"querySlots\":2,\"busyQuerySlots\":0,\"requestedBuffers\":4,\"requestedBufferBytes\":4096},\"worldResources\":{\"scope\":\"requested-webgpu-resources\",\"buffers\":448,\"textures\":108,\"bufferBytes\":220123912,\"textureBytes\":285307000,\"totalBytes\":505430912,\"publicationCapacityBytes\":1125600,\"publicationPool\":2},\"userAgentBytes\":342251361,\"userAgentBreakdown\":[{\"bytes\":610967,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/terrainWorkerEntry-DtVsGtgW.js\"]},{\"bytes\":658265,\"types\":[\"Shared\"],\"urls\":[]},{\"bytes\":0,\"types\":[],\"urls\":[]},{\"bytes\":462028,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/assets/ai-worker-BuWLdyEZ.js\"]},{\"bytes\":132336,\"types\":[\"DOM\"],\"urls\":[]},{\"bytes\":327792565,\"types\":[\"JavaScript\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]},{\"bytes\":12595200,\"types\":[\"Canvas\"],\"urls\":[\"http://127.0.0.1:5193/?campaign=handoff\"]}]}]"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

@@ -17,10 +17,13 @@ sharpening experiment has been reverted. Do not restart mountain experiments.
 
 The obsolete raw whole-map renderer is removed in the pending diff. Its water
 motion check now exercises the real campaign. The corrected source mask passes
-near-water isolation, but the control exposes excessive distant motion. A small
-screen-footprint attenuation fix is under browser verification. Next run the
-retained raw lab/model checks, then current campaign journeys and lifecycle /
-hardware acceptance. Use one GPU lane and linked public assets.
+near-water isolation, but the control exposes excessive distant motion. The [motion correction](assets/slice-09/strategic-motion/README.md) now passes
+its motion and phase-return contracts. [Composition fixtures](assets/slice-02/composition-current/README.md)
+are reconciled and repeat exactly. The retained lab suite exposed stale source
+audits and two model depth probes; repaired checks are now running. Current
+conquest, handoff, reinforcements and save/load pass. [Native lifecycle](assets/slice-15/native-lifecycle/README.md)
+passes all ten cycles. Hardware measurements follow on the final source build. Use one
+GPU lane and linked public assets.
 
 Accepted scoped evidence remains valid: [production preview](assets/slice-14-production/preview-owner/README.md),
 [CSS density and input](assets/slice-12/css-density/README.md),
@@ -36,6 +39,20 @@ Keep shared neutral data/policy and backend-local adapters: Three campaign,
 TypeGPU battle. Final visual quality and integrated acceptance remain open;
 scoped evidence does not close the entire spec. Claude authentication is
 unavailable; do not change authentication or billing.
+
+The finite remaining checks are tracked in [final integration closeout](assets/closeout-status.md).
+
+### Closeout scope
+
+The user's latest direction is to keep matching character sufficient and move
+forward rather than continue isolated visual tuning. Freeze the accepted art
+while finishing functional integration and the finite missing-view review.
+Further mountain-form tuning, intermediate undergrowth, shoreline fringe polish
+and lighting micro-adjustments are deferred. Intermediate growth was not
+implemented; the original reference-quality floor has not been established.
+Do not convert those facts into a claim that the original visual targets passed.
+Clear regressions, broken interactions, incorrect grounding and lifecycle failures
+remain in scope and must be resolved.
 
 ### Global TODO
 

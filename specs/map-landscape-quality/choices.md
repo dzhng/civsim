@@ -535,3 +535,20 @@ confidence medium rather than establishing final landscape acceptance.
   outliers while retaining dense interiors. Keep the same lattice, exclusions,
   species and size policy; this does not claim to supply understory or forest-floor
   variation. Broader ecological integration remains open.
+
+### Production-owner retirement
+
+- **Sound, high confidence:** Remove the obsolete whole-map raw lab and its now
+  unreferenced terrain, territory and baked-light owners. Keep raw model and UI
+  infrastructure while it still has real consumers; sharing landscape character
+  does not require replacing those independent tools.
+- **Sound, medium confidence:** Measure near-water isolation over conservatively
+  classified wet/dry pixels, using the actual water source. Report excluded coast
+  motion separately. A palette classifier and territory-land mask mistake shallow
+  water and rivers for ground; comparing unlike domains gave a misleading ratio.
+- **Sound, high confidence:** Drop the unverified rock-projection experiment and
+  retain the accepted material during integration. This follows the user's request
+  to move forward and adds no new maintenance surface.
+- **Sound, medium confidence:** Fade water texture drift when its slowest ripple
+  becomes unresolved on screen. This retains near motion and the original phase
+  while preventing distant flicker without a camera-mode switch or new setting.

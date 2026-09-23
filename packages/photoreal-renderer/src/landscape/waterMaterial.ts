@@ -112,7 +112,13 @@ export function campaignWaterSurfaceNodes(
   const scatteringScale = shoal.mul(1.5).add(0.45);
   const depth = smoothstepN(0, 12, offshore.mul(scatteringScale)).toVar();
   const phase = frame.time.mod(8).mul(Math.PI / 4);
-  const drift = vec2(sin(phase), cos(phase)).mul(0.35);
+  // Stop unresolved drift before it aliases into strategic-scale flicker. Use
+  // the slowest ripple lattice (0.75/km); finer foam and texture share its drift.
+  // Blend positions, not phase, so the eight-second loop keeps its wrap and t=0.
+  const motionVisibility = float(1).sub(smoothstepN(0.5, 1, length(fwidth(p)).mul(0.75)));
+  const drift = vec2(0, 0.35).add(
+    vec2(sin(phase), cos(phase).sub(1)).mul(0.35).mul(motionVisibility),
+  );
   const texture = fbmN(p.mul(1.2).add(drift)).sub(0.5);
   const depthProxy = saturateN(depth.mul(0.82).add(texture.mul(0.09))).toVar();
   // The source distance is sampled on a kilometre lattice; a sub-kilometre

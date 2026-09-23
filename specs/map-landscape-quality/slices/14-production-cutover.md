@@ -28,11 +28,12 @@ renderer adapter or permanent backend selector survives the cutover.
 
 ## Acceptance state
 
-| Accepted | Remaining | Evidence |
-| --- | --- | --- |
-| Production campaign adapter, entity preparation before cards, shared traversal/residency owner | Full production journey/interaction matrix and remaining owner-retirement audit | [Adapter](../assets/slice-14-production/README.md) |
-| Merged campaign→16,000-soldier TypeGPU battle→campaign, with no page errors | Current final journey/lifecycle rerun; historical save/load and conquest/reinforcement flows already passed in [journey evidence](../assets/slice-14-production/journeys.md) | [Main integration](../assets/main-integration/verification.md) |
-| Shared aerial-ray correction, screen UI composition and owner-aware label coverage | Final DPR/interaction and hardware acceptance | [Ray correction](../assets/slice-14-production/aerial-ray/README.md), [UI proof](../assets/slice-14-production/remaining-acceptance/screen-ui-production-control/README.md), [label-owner controls](../assets/slice-12/label-owners/README.md) |
+| Accepted | Evidence |
+| --- | --- |
+| Production adapter, entity preparation before cards, shared traversal/residency | [Adapter](../assets/slice-14-production/README.md) |
+| Current conquest, save/load, reinforcements and16,000-soldier handoff/return; retired owners and surviving consumers | [Retirement](../assets/slice-14-production/raw-map-retirement/README.md) |
+| Ten native disposal/recreation cycles | [Lifecycle](../assets/slice-15/native-lifecycle/README.md) |
+| Raised-city input and CSS-density policy across DPR | [Density/input](../assets/slice-12/css-density/README.md) |
 
 Use the existing scene runner and snapshot primitive. [15](15-acceptance.md)
 owns the common journey, camera, lifetime and hardware matrix. The earlier

@@ -59,8 +59,12 @@ export async function route(ctx: LabContext) {
       lod: 0,
     },
   ];
+  const isolate = ctx.params.get("isolate");
+  const visible = isolate === "front" ? instances.slice(0, 1)
+    : isolate === "rear" ? instances.slice(1)
+    : isolate === "empty" ? [] : instances;
   pipeline.upload(
-    instances.map((instance) => ({ ...instance, clip: "idle" })),
+    visible.map((instance) => ({ ...instance, clip: "idle" })),
     { size: 1.35 },
   );
   const ground = new LabGroundPass(shell, [-4, -3, 8, 6]);

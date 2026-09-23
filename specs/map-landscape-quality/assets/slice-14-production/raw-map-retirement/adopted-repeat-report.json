@@ -1,0 +1,269 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-23T00:28:34.689Z",
+  "target": "http://127.0.0.1:5193",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 0,
+  "status": "pass",
+  "scenarios": [
+    {
+      "name": "water-sea",
+      "file": "campaign/water-sea.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "campaign-models",
+      "file": "models/campaign-models.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "water-sea",
+      "name": "near: source mask covers both dry ground and water",
+      "ok": true,
+      "detail": "{\"moved\":27571,\"waterMoved\":18518,\"landMoved\":5,\"landChanged\":6,\"classifiedMoved\":18523,\"unclassifiedMoved\":9048,\"classifiedWaterMotionRatio\":0.9997300653241915,\"wholeCanvasWaterMotionRatio\":0.6716477458198832,\"water\":466576,\"land\":448224}"
+    },
+    {
+      "scenario": "water-sea",
+      "name": "near: returning the injected production clock restores exact pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "water-sea",
+      "name": "campaign-sea: a real band of near water moves and classified motion stays offshore",
+      "ok": true,
+      "detail": "{\"moved\":27571,\"waterMoved\":18518,\"landMoved\":5,\"landChanged\":6,\"classifiedMoved\":18523,\"unclassifiedMoved\":9048,\"classifiedWaterMotionRatio\":0.9997300653241915,\"wholeCanvasWaterMotionRatio\":0.6716477458198832,\"water\":466576,\"land\":448224}"
+    },
+    {
+      "scenario": "water-sea",
+      "name": "snapshot water/campaign-sea-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "water-sea",
+      "name": "far: source mask covers both dry ground and water",
+      "ok": true,
+      "detail": "{\"moved\":20,\"waterMoved\":0,\"landMoved\":8,\"landChanged\":9,\"classifiedMoved\":8,\"unclassifiedMoved\":12,\"classifiedWaterMotionRatio\":0,\"wholeCanvasWaterMotionRatio\":0,\"water\":225616,\"land\":550160}"
+    },
+    {
+      "scenario": "water-sea",
+      "name": "far: returning the injected production clock restores exact pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "water-sea",
+      "name": "campaign-sea: strategic distance remains calm",
+      "ok": true,
+      "detail": "{\"moved\":20,\"waterMoved\":0,\"landMoved\":8,\"landChanged\":9,\"classifiedMoved\":8,\"unclassifiedMoved\":12,\"classifiedWaterMotionRatio\":0,\"wholeCanvasWaterMotionRatio\":0,\"water\":225616,\"land\":550160}"
+    },
+    {
+      "scenario": "water-sea",
+      "name": "snapshot water/campaign-sea-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "snapshot campaign/entities/city",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model content city",
+      "ok": true,
+      "detail": "{\"label\":\"City Cluster\",\"criteria\":\"Large settlement has clustered sandstone buildings, terracotta roofs, ownership flag, shadow, label icon, and selected footprint.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0016,\"foliageRatio\":0.0005,\"trunkRatio\":0.0011,\"darkRatio\":0.4523}}"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "snapshot campaign/entities/garrison-outside",
+      "ok": true,
+      "detail": "10657 px differ (1.4494%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model content garrison-outside",
+      "ok": true,
+      "detail": "{\"label\":\"Garrison Outside City\",\"criteria\":\"Army marker is fully visible outside the city before garrisoning, using the same production city and army depth-tested model path.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0186,\"foliageRatio\":0.0005,\"trunkRatio\":0.0064,\"darkRatio\":0.4693}}"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "snapshot campaign/entities/garrison-city",
+      "ok": true,
+      "detail": "2772 px differ (0.3770%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model content garrison-city",
+      "ok": true,
+      "detail": "{\"label\":\"Garrison Partly In City\",\"criteria\":\"Army marker can sit inside the city volume with lower soldiers occluded and the raised standard still readable through the production depth pass.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0062,\"foliageRatio\":0.0005,\"trunkRatio\":0.0018,\"darkRatio\":0.4757}}"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "snapshot campaign/entities/garrison-hidden",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model content garrison-hidden",
+      "ok": true,
+      "detail": "{\"label\":\"Garrison Hidden In City\",\"criteria\":\"Army marker can be lowered into the city volume and fully hidden by city roofs/walls through the production depth pass.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0016,\"foliageRatio\":0.0005,\"trunkRatio\":0.0001,\"darkRatio\":0.4771}}"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "snapshot campaign/entities/hostile-depth-order",
+      "ok": true,
+      "detail": "10394 px differ (1.4136%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model content hostile-depth-order",
+      "ok": true,
+      "detail": "{\"label\":\"Hostile Depth Order\",\"criteria\":\"A later-submitted scenery bucket behind the city cannot overpaint the nearer city standard; type buckets are batching only.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0017,\"foliageRatio\":0.0428,\"trunkRatio\":0.0013,\"darkRatio\":0.4484}}"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "snapshot campaign/entities/town",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model content town",
+      "ok": true,
+      "detail": "{\"label\":\"Town Scale\",\"criteria\":\"Smaller settlement keeps the same model language at a distinct readable scale.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0121,\"foliageRatio\":0,\"trunkRatio\":0.0006,\"darkRatio\":0.4688}}"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "snapshot campaign/entities/army",
+      "ok": true,
+      "detail": "10222 px differ (1.3903%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model content army",
+      "ok": true,
+      "detail": "{\"label\":\"Army Marker\",\"criteria\":\"Army flag is attached to the marker with representative figures, faction livery, label icon, shadow, and a ground selection footprint occluded by the formation.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0174,\"foliageRatio\":0.0002,\"trunkRatio\":0.0051,\"darkRatio\":0.4894}}"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "snapshot campaign/entities/standard-liveries",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model content standard-liveries",
+      "ok": true,
+      "detail": "{\"label\":\"Standard Liveries\",\"criteria\":\"Every faction livery's army standard reads as solid cloth over the map green: the marker cloth carries a top-lit grade and never matches the ground everywhere.\",\"metrics\":{\"factions\":62,\"checked\":62,\"failingFactions\":[],\"failures\":[],\"minGrade\":23.1,\"minSeparation\":43.6}}"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "snapshot campaign/terrain/road",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model content road",
+      "ok": true,
+      "detail": "{\"label\":\"Road With Cities\",\"criteria\":\"Road segment is visible as a stone route between settlement endpoints.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0321,\"foliageRatio\":0.0002,\"trunkRatio\":0.0079,\"darkRatio\":0.017}}"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "snapshot campaign/terrain/road-only",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model content road-only",
+      "ok": true,
+      "detail": "{\"label\":\"Road Only\",\"criteria\":\"Raised pale-stone road treatment is visible without city models hiding edge and shadow behavior.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0098,\"foliageRatio\":0,\"trunkRatio\":0,\"darkRatio\":0.0093}}"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "snapshot campaign/entities/selected-city",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model content selected-city",
+      "ok": true,
+      "detail": "{\"label\":\"Selected City Footprint\",\"criteria\":\"Selected city footprint sits outside the city shadow, projects with the ground plane, and is occluded by city geometry where covered.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0016,\"foliageRatio\":0.0005,\"trunkRatio\":0.0011,\"darkRatio\":0.4523}}"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "snapshot campaign/labels/labels",
+      "ok": true,
+      "detail": "9791 px differ (1.3316%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model content labels",
+      "ok": true,
+      "detail": "{\"label\":\"Campaign Labels\",\"criteria\":\"City, army, faction, and sea label typography/icon samples render through the WebGPU glyph atlas.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0181,\"foliageRatio\":0.0004,\"trunkRatio\":0.0058,\"darkRatio\":0.4847}}"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "snapshot campaign/terrain/terrain-grass-scrub",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model content terrain-grass-scrub",
+      "ok": true,
+      "detail": "{\"label\":\"Terrain Grass And Scrub\",\"criteria\":\"Grass/scrub material sample shows warm parchment terrain with sparse Mediterranean vegetation.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0005,\"foliageRatio\":0.2141,\"trunkRatio\":0.0008,\"darkRatio\":0.2294}}"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "snapshot campaign/terrain/terrain-stone-relief",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model content terrain-stone-relief",
+      "ok": true,
+      "detail": "{\"label\":\"Terrain Stone Relief\",\"criteria\":\"Stone/relief material sample shows rocks and mountains anchored to campaign terrain.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.7013,\"foliageRatio\":0,\"trunkRatio\":0,\"darkRatio\":0.0392}}"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "snapshot campaign/terrain/cloud-fog",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model content cloud-fog",
+      "ok": true,
+      "detail": "{\"label\":\"Cloud And Fog Layer\",\"criteria\":\"Campaign cloud/fog pass is visible as a real WebGPU atmospheric layer over the terrain.\",\"metrics\":{\"centralPixels\":344932,\"stoneRatio\":0.0027,\"foliageRatio\":0,\"trunkRatio\":0,\"darkRatio\":0}}"
+    },
+    {
+      "scenario": "campaign-models",
+      "name": "campaign model shots captured",
+      "ok": true,
+      "detail": "{\"captures\":15,\"shots\":[\"campaign/entities/city.png\",\"campaign/entities/garrison-outside.png\",\"campaign/entities/garrison-city.png\",\"campaign/entities/garrison-hidden.png\",\"campaign/entities/hostile-depth-order.png\",\"campaign/entities/town.png\",\"campaign/entities/army.png\",\"campaign/entities/standard-liveries.png\",\"campaign/terrain/road.png\",\"campaign/terrain/road-only.png\",\"campaign/entities/selected-city.png\",\"campaign/labels/labels.png\",\"campaign/terrain/terrain-grass-scrub.png\",\"campaign/terrain/terrain-stone-relief.png\",\"campaign/terrain/cloud-fog.png\"]}"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [],
+  "pageErrors": []
+}

@@ -14,17 +14,9 @@ import {
   RenderMask,
 } from "@packages/game-renderer/src/terrain/campaignSource";
 
-/** The one campaign sun (normalized): the terrain bake and WebGPU atmosphere
- * passes share this direction so water glints agree with the relief. */
 /** North of this y (km) the climate turns boreal: snowline, conifers,
  * moisture curve. */
 export const TEMPERATE_Y_KM = 700;
-
-export const SUN: [number, number, number] = (() => {
-  const s = [-0.42, 0.4, 0.81];
-  const l = Math.hypot(...s);
-  return [s[0] / l, s[1] / l, s[2] / l];
-})();
 
 /** Smooth value noise over the cell grid, [0,1). */
 function vnoise2(x: number, y: number): number {
@@ -87,8 +79,6 @@ export class TerrainField {
   height: Float32Array;
   /** 1 = land (territory-capable), 0 = water */
   land: Uint8Array;
-  /** baked lambert light per cell, value = light * 128 (terrain is static) */
-  light: Uint8Array;
   /** per-cell biome, RGBA: moisture, forest, rock, shore-distance (0=at water) */
   biome: Uint8Array;
   /** full-resolution rendered land mask, row 0 = north */
@@ -208,25 +198,7 @@ export class TerrainField {
       if (this.height[i] > this.maxH) this.maxH = this.height[i];
     }
 
-    // Bake the (static) sun lighting. Slopes are exaggerated a touch beyond
-    // the geometry so relief reads even at gentle grades.
-    this.light = new Uint8Array(n);
-    const [sx2, sy2, sz2] = SUN;
-    const { w, h, height, cell } = this;
-    for (let gy = 0; gy < h; gy++) {
-      for (let gx = 0; gx < w; gx++) {
-        const i = gy * w + gx;
-        const hx0 = height[gy * w + Math.max(0, gx - 1)];
-        const hx1 = height[gy * w + Math.min(w - 1, gx + 1)];
-        const hy0 = height[Math.max(0, gy - 1) * w + gx];
-        const hy1 = height[Math.min(h - 1, gy + 1) * w + gx];
-        const nx = ((hx0 - hx1) / (2 * cell)) * 1.6;
-        const ny = ((hy1 - hy0) / (2 * cell)) * 1.6; // gy grows southward
-        const inv = 1 / Math.hypot(nx, ny, 1);
-        const lambert = Math.max(0, nx * inv * sx2 + ny * inv * sy2 + inv * sz2);
-        this.light[i] = Math.min(255, (0.58 + 0.58 * lambert) * 128);
-      }
-    }
+    const { w, h } = this;
 
     // ---- Biome: moisture, forest, rock, shore distance --------------------
     // Moisture is a latitude gradient (Sahara dry, Gaul wet) lifted near
@@ -314,12 +286,8 @@ export class TerrainField {
     }
   }
 
-  /** Bilinear relief height (km) at a world point; 0 off-grid. */
-  /** Ground elevation at (wx, wy), interpolated on the SAME two triangles per
-   *  cell the campaign surface mesh draws (surface.ts splits each cell along
-   *  the (x0+1,y0)-(x0,y0+1) diagonal). A bilinear sample can sit under the
-   *  drawn triangle by more than a decal's lift on steep coastal cells —
-   *  roads/rings/models placed off a mismatched sampler bury into the ground. */
+  /** Coarse source height on the grid's fixed triangle diagonal. Presented
+   * terrain has its own sampled surface; visual seating must query that owner. */
   heightAt(wx: number, wy: number): number {
     const gx = (wx - this.minX) / this.cell - 0.5;
     const gy = (this.maxY - wy) / this.cell - 0.5;

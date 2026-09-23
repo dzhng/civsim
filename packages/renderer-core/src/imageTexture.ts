@@ -1,3 +1,4 @@
+import { compileShader } from "./compileShader";
 import { IMAGE_MIP_WGSL } from "./imageMipWgsl";
 /** Image values are sampled in linear light; only base-color images use sRGB. */
 export interface ImageTextureOptions {
@@ -81,10 +82,7 @@ export async function uploadImageTexture(
       );
     }
     if (mipLevelCount > 1) {
-      const module = device.createShaderModule({
-        label: "image-mip-area-mean",
-        code: IMAGE_MIP_WGSL,
-      });
+      const module = compileShader(device, IMAGE_MIP_WGSL, "image-mip-area-mean");
       const pipeline = device.createRenderPipeline({
         label: "image-mip-area-mean",
         layout: "auto",

@@ -1,0 +1,79 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-22T15:17:13.759Z",
+  "target": "http://127.0.0.1:5193",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "water-sea",
+      "file": "campaign/water-sea.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "water-sea",
+      "name": "near: source mask covers both dry ground and water",
+      "ok": true,
+      "detail": "{\"moved\":27619,\"waterMoved\":18565,\"landMoved\":5,\"landChanged\":6,\"classifiedMoved\":18570,\"unclassifiedMoved\":9049,\"classifiedWaterMotionRatio\":0.9997307485191168,\"wholeCanvasWaterMotionRatio\":0.6721821934175749,\"water\":466576,\"land\":448224}"
+    },
+    {
+      "scenario": "water-sea",
+      "name": "near: returning the injected production clock restores exact pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "water-sea",
+      "name": "campaign-sea: a real band of near water moves and classified motion stays offshore",
+      "ok": true,
+      "detail": "{\"moved\":27619,\"waterMoved\":18565,\"landMoved\":5,\"landChanged\":6,\"classifiedMoved\":18570,\"unclassifiedMoved\":9049,\"classifiedWaterMotionRatio\":0.9997307485191168,\"wholeCanvasWaterMotionRatio\":0.6721821934175749,\"water\":466576,\"land\":448224}"
+    },
+    {
+      "scenario": "water-sea",
+      "name": "snapshot water/campaign-sea-near",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "water-sea",
+      "name": "far: source mask covers both dry ground and water",
+      "ok": true,
+      "detail": "{\"moved\":33754,\"waterMoved\":18827,\"landMoved\":1008,\"landChanged\":1695,\"classifiedMoved\":19835,\"unclassifiedMoved\":13919,\"classifiedWaterMotionRatio\":0.949180741114192,\"wholeCanvasWaterMotionRatio\":0.5577709308526397,\"water\":225616,\"land\":550160}"
+    },
+    {
+      "scenario": "water-sea",
+      "name": "far: returning the injected production clock restores exact pixels",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "water-sea",
+      "name": "campaign-sea: strategic distance remains calm",
+      "ok": false,
+      "detail": "{\"moved\":33754,\"waterMoved\":18827,\"landMoved\":1008,\"landChanged\":1695,\"classifiedMoved\":19835,\"unclassifiedMoved\":13919,\"classifiedWaterMotionRatio\":0.949180741114192,\"wholeCanvasWaterMotionRatio\":0.5577709308526397,\"water\":225616,\"land\":550160}"
+    },
+    {
+      "scenario": "water-sea",
+      "name": "snapshot water/campaign-sea-far",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "water-sea: campaign-sea: strategic distance remains calm"
+  ],
+  "pageErrors": []
+}

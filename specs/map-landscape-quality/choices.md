@@ -552,3 +552,10 @@ confidence medium rather than establishing final landscape acceptance.
 - **Sound, medium confidence:** Fade water texture drift when its slowest ripple
   becomes unresolved on screen. This retains near motion and the original phase
   while preventing distant flicker without a camera-mode switch or new setting.
+- **Sound, high confidence:** Keep depth tests independent of soldier costume and
+  pose by comparing isolated fixture layers. A visible color at an old torso
+  coordinate could disappear while depth remains correct; overlap of separately
+  rendered front/rear bodies tests the actual occlusion requirement.
+- **Sound, high confidence:** Require a semantic frame role to belong to its
+  declared phase, and route mip shader diagnostics through the existing compiler.
+  These restore existing verification contracts without another owner or setting.

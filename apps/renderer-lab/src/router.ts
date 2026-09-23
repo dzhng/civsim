@@ -33,7 +33,6 @@ import { route as routeBattle } from "./routes/battle";
 import { route as routeTerrainWater } from "./routes/terrainWater";
 import { route as routeCampaignLandscape } from "./routes/campaignLandscape";
 import { route as routeCampaignComposition } from "./routes/campaignComposition";
-import { route as routeCampaignMap } from "./routes/campaignMap";
 import { route as routeCampaignUi } from "./routes/campaignUi";
 import { route as routeCampaignModelShots } from "./routes/campaignModels";
 import { route as routeSharedPropModelShots } from "./routes/sharedPropModels";
@@ -58,7 +57,6 @@ const routes: Record<string, LabRoute> = {
   "/renderer/skinned-depth": routeSkinnedDepth,
   "/renderer/lod": routeLod,
   "/renderer/battle": routeBattle,
-  "/renderer/campaign-map": routeCampaignMap,
   "/renderer/campaign-composition": routeCampaignComposition,
   "/renderer/campaign-tile-anchors": routeCampaignComposition,
   "/renderer/landscape-vegetation": routeCampaignComposition,

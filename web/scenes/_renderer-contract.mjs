@@ -123,6 +123,7 @@ export function hasFramePassRole(phases, id, role, kind = null) {
     phases.some(
       (phase) =>
         (kind === null || phase?.kind === kind) &&
+        FRAME_GRAPH_ROLE_PHASES[role] === phase?.kind &&
         Array.isArray(phase?.passRoles) &&
         phase.passRoles.some((pass) => pass?.id === id && pass?.role === role),
     )

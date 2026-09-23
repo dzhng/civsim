@@ -300,15 +300,9 @@ export class Territory {
         sumY[f] += maxY - (gy + 0.5) * cell;
       }
     }
-    // Seaward paint ring (campaign-map-bugs 05): the territory shader clips the
-    // wash to the drawn coastline (the mapPass drawnCoast contract, shared
-    // classifiers in CAMPAIGN_SEA_PALETTE_WGSL), but clipping can only REMOVE
-    // wash — where this 8 km raster's last land cell stops short of the drawn
-    // coast, the edge stayed a blocky cell boundary.
-    // Copy each unpainted water cell's fill from an adjacent claimed land cell
-    // (paint only: `nearest`/`owner` untouched, so borders, claims, centroids,
-    // and label sizing cannot move) and let the shader's coast clip own where
-    // the wash actually ends.
+    // Extend paint beyond the coarse ownership raster so source-shore clipping
+    // can follow the physical coastline without exposing an 8 km cell boundary.
+    // Claims, borders, centroids and label sizing still use unchanged owners.
     const land = this.field.land;
     for (let gy = 0; gy < h; gy++) {
       for (let gx = 0; gx < w; gx++) {

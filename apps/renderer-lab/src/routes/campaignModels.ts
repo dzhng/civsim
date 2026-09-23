@@ -65,8 +65,7 @@ fn fs() -> @location(0) vec4f {
   return vec4f(0.0);
 }`;
 
-// The fixture ground as a real depth surface, mirroring the production
-// campaign frame (campaign-map-surface is a world-depth-fill). Writes reverse-Z
+// The fixture ground is a real depth surface. Writes reverse-Z
 // ground depth without touching color — the lab-owned background terrain stays
 // the visual — so below-ground fixtures (the hidden garrison) are genuinely
 // underground while ground decals (z ≥ 0.03) still pass their reads.
@@ -234,7 +233,10 @@ export async function route(ctx: LabContext) {
             role: "world-opaque" as const,
             phase: "world-depth" as const,
             depth: "read-write" as const,
-            draw: (pass: WorldRenderPass) => soldierCrowd.draw(pass),
+            draw: (pass: WorldRenderPass) => {
+              // Keep crowd shadows and all other geometry for the body visibility control.
+              if (ctx.params.get("hideCrowd") !== "1") soldierCrowd.draw(pass);
+            },
           },
         ]
       : []),

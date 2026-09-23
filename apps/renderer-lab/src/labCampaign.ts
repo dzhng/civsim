@@ -7,7 +7,6 @@ import type { StandardInstance } from "@packages/game-renderer/src/models/shared
 import { type ChartCameraSpec } from "@packages/renderer-core/src/camera3d";
 import { type CampaignSelectionInstance } from "@packages/game-renderer/src/campaign/selection";
 import { type CampaignData } from "../../../web/src/campaign/data";
-import { type FactionLabel } from "../../../web/src/campaign/territory";
 import { type CampaignViews } from "../../../web/src/campaign/views";
 import { chartCameraSnapshot } from "./labShell";
 
@@ -199,18 +198,6 @@ export function campaignArmyLabels(armies: ArmyView[]): CampaignLabel[] {
     kind: "army" as const,
     size: 13,
     priority: 4,
-  }));
-}
-
-export function campaignFactionLabels(labels: FactionLabel[]): CampaignLabel[] {
-  return labels.map((label) => ({
-    text: label.name,
-    x: label.x,
-    y: label.y,
-    kind: "faction" as const,
-    size: Math.max(13, Math.min(label.minor ? 16 : 22, label.radiusKm / (label.minor ? 12 : 20))),
-    priority: label.minor ? 2 : 4,
-    angle: -0.06,
   }));
 }
 

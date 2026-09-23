@@ -91,25 +91,6 @@ const routes = [
       s.stats.cameraContract === "shared-world-camera-wgsl",
   ],
   [
-    "campaign-map?preset=whole",
-    (s) =>
-      s?.ok &&
-      s.route === "campaign-map" &&
-      s.stats.roads > 20 &&
-      s.stats.seaLanes > 0 &&
-      s.stats.visibleLabels > 5 &&
-      s.stats.labelVertices > 20 &&
-      s.stats.factions > 5 &&
-      s.stats.territoryPixels > 10000 &&
-      s.stats.borderSegments > 100 &&
-      s.stats.waterLayer === "map-sea-mask" &&
-      s.stats.cloudQuads === 1 &&
-      s.stats.cameraContract === "shared-world-camera-wgsl" &&
-      s.stats.territoryLayer === "raw-gpu-texture" &&
-      s.stats.atmosphereLayer === "raw-gpu-clouds" &&
-      s.stats.labelLayer === "raw-gpu-glyph-atlas",
-  ],
-  [
     "campaign-ui",
     (s) =>
       s?.ok &&
@@ -516,13 +497,13 @@ async function findPhaseBrandFootguns() {
       ],
     },
     {
-      // The production battle renders through the photoreal seam:
+      // The production battle renders through its TypeGPU scene owner:
       // BattleRenderer owns no bespoke passes and no frame shell.
       file: new URL("../../src/battle/renderer.ts", import.meta.url),
       checks: [
         [
-          "battle renderer renders through the photoreal battle world seam",
-          /PhotorealBattleWorld\.create\(this\.canvas[,)]/,
+          "battle renderer creates the production TypeGPU scene owner",
+          /createTypegpuBattleScene\(device,\s*this\.sceneOptions\(catalog,\s*terrain\)\)/,
         ],
         [
           "battle renderer builds no bespoke frame shell or passes",
@@ -534,18 +515,6 @@ async function findPhaseBrandFootguns() {
       file: new URL("../../../packages/game-renderer/src/fixtures/nested3d.ts", import.meta.url),
       checks: [
         ["nested fixture draw requires world pass", /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/],
-      ],
-    },
-    {
-      file: new URL(
-        "../../../packages/game-renderer/src/campaign/territoryPass.ts",
-        import.meta.url,
-      ),
-      checks: [
-        [
-          "campaign territory draw requires world pass",
-          /\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/,
-        ],
       ],
     },
     {
@@ -601,10 +570,6 @@ async function findPhaseBrandFootguns() {
     {
       file: new URL("../../../packages/game-renderer/src/campaign/mapPass.ts", import.meta.url),
       checks: [
-        [
-          "campaign map draw requires world pass",
-          /export class CampaignMapPass[\s\S]*?\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/,
-        ],
         [
           "campaign world lines draw requires world pass",
           /export class CampaignWorldLinePass[\s\S]*?\bdraw\s*\(\s*pass:\s*WorldRenderPass\s*\)/,
@@ -822,7 +787,7 @@ async function findFrameGraphVerifierFootguns() {
     ],
     [
       "semantic role helper uses shared role phase map",
-      /FRAME_GRAPH_ROLE_PHASES\[role\]\s*===\s*phase\.kind/,
+      /FRAME_GRAPH_ROLE_PHASES\[role\]\s*===\s*phase\?\.kind/,
     ],
   ];
   const matches = [];
@@ -839,6 +804,16 @@ async function findFrameGraphVerifierFootguns() {
     if (!FRAME_GRAPH_ROLE_PHASES[role]) {
       matches.push(`${label}: parsed shared frame role phase map is missing "${role}"`);
     }
+  }
+  for (const [role, kind] of Object.entries(FRAME_GRAPH_ROLE_PHASES)) {
+    const phase = { kind, passRoles: [{ id: "probe", role }] };
+    if (!hasFramePassRole([phase], "probe", role))
+      matches.push(`${label}: semantic role helper rejects valid ${role}`);
+    if (hasFramePassRole([null], "probe", role))
+      matches.push(`${label}: semantic role helper accepts a missing phase`);
+    const wrongKind = kind === "overlay" ? "world-depth" : "overlay";
+    if (hasFramePassRole([{ ...phase, kind: wrongKind }], "probe", role))
+      matches.push(`${label}: semantic role helper accepts ${role} in ${wrongKind}`);
   }
   if (Object.keys(FRAME_GRAPH_DEPTH_ROLES).length === 0) {
     matches.push(`${label}: parsed shared frame depth-role map is empty`);
@@ -1055,6 +1030,23 @@ function patchStats(png, sample, radius = 4) {
   };
 }
 
+async function isolatedShot(page, target, route) {
+  await page.goto(`${target}/renderer/${route}`);
+  await page.waitForFunction(() => window.__rendererLabReady === true, undefined, {
+    timeout: 18000,
+  });
+  await page.waitForTimeout(280);
+  return PNG.sync.read(await page.locator("#renderer-canvas").screenshot());
+}
+
+function rgbDelta(a, b, i) {
+  return (
+    Math.abs(a.data[i] - b.data[i]) +
+    Math.abs(a.data[i + 1] - b.data[i + 1]) +
+    Math.abs(a.data[i + 2] - b.data[i + 2])
+  );
+}
+
 export async function run(ctx) {
   const privateCameraStructs = await findPrivateCameraStructs();
   ctx.check(
@@ -1178,19 +1170,27 @@ export async function run(ctx) {
     }
     if (route === "skinned-depth") {
       const canvasPng = PNG.sync.read(await page.locator("#renderer-canvas").screenshot());
-      const front = patchStats(canvasPng, stats.stats.sample, 7);
-      // Soldier cloth reads warm linen (tan) with small faction accents. If
-      // the rear mounted bucket won depth,
-      // the patch would show its darker horse hide (and faction-1 red), not
-      // the front soldier's linen.
+      const front = await isolatedShot(page, ctx.target, "skinned-depth?isolate=front");
+      const rear = await isolatedShot(page, ctx.target, "skinned-depth?isolate=rear");
+      const empty = await isolatedShot(page, ctx.target, "skinned-depth?isolate=empty");
+      let overlap = 0,
+        frontWins = 0;
+      for (let i = 0; i < canvasPng.data.length; i += 4) {
+        if (
+          rgbDelta(front, empty, i) <= 6 ||
+          rgbDelta(rear, empty, i) <= 6 ||
+          rgbDelta(front, rear, i) <= 6
+        )
+          continue;
+        overlap++;
+        if (rgbDelta(canvasPng, front, i) === 0 && rgbDelta(canvasPng, rear, i) > 6) frontWins++;
+      }
+      // Only mutually covered, distinguishable pixels count. With a rear bucket
+      // overwriting the front, none can reproduce the isolated front exactly.
       ctx.check(
         `${route}: front skinned soldier wins hostile cross-bucket draw order`,
-        front.tan > 12 && front.red <= 10,
-        JSON.stringify({
-          front,
-          sample: stats.stats.sample,
-          hostileDrawOrder: stats.stats.hostileDrawOrder,
-        }),
+        frontWins > 12,
+        JSON.stringify({ overlap, frontWins, hostileDrawOrder: stats.stats.hostileDrawOrder }),
       );
     }
     if (route === "campaign-models?gate=city") {
@@ -1236,14 +1236,15 @@ export async function run(ctx) {
     if (route === "campaign-models?gate=garrison-outside") {
       const canvasPng = PNG.sync.read(await page.locator("#renderer-canvas").screenshot());
       const samples = stats.stats.samples.garrison;
-      const body = patchStats(canvasPng, samples.visibleShieldOutsideCity, 6);
+      const hiddenCrowd = await isolatedShot(page, ctx.target, `${route}&hideCrowd=1`);
+      let bodyPixels = 0;
+      for (let i = 0; i < canvasPng.data.length; i += 4)
+        if (rgbDelta(canvasPng, hiddenCrowd, i) > 6) bodyPixels++;
       const standard = patchStats(canvasPng, samples.visibleStandardOutsideCity, 6);
       ctx.check(
         `${route}: outside-garrison army body is visible before entering the city`,
-        // Figure cloth reads navy (shadow side) as often as bright blue —
-        // both bins are soldier body.
-        body.blue + body.navy > 12,
-        JSON.stringify({ body, sample: samples.visibleShieldOutsideCity }),
+        bodyPixels > 12,
+        JSON.stringify({ bodyPixels, control: "same world and shadows, crowd body draw omitted" }),
       );
       ctx.check(
         `${route}: outside-garrison army standard is visible before entering the city`,
@@ -1352,33 +1353,6 @@ export async function run(ctx) {
         `${route}: player and enemy accents visible`,
         pixels.blue > 10 && pixels.red > 10,
         JSON.stringify(pixels),
-      );
-    }
-    if (route.startsWith("campaign-map")) {
-      ctx.check(
-        `${route}: parchment map, territory, atmosphere, roads, and city pins are visible`,
-        pixels.warmGround > 45000 &&
-          pixels.water > 4000 &&
-          pixels.cloud > 1500 &&
-          pixels.red > 1000 &&
-          pixels.minimapDark > 10000 &&
-          stats.stats.borderSegments > 100,
-        JSON.stringify(pixels),
-      );
-      const domLabelCount = await page.locator(".renderer-campaign-label").count();
-      ctx.check(
-        `${route}: campaign labels are rendered by the WebGPU glyph atlas`,
-        stats.stats.labelLayer === "raw-gpu-glyph-atlas" &&
-          stats.stats.visibleLabels >= 8 &&
-          stats.stats.labelVertices >= stats.stats.visibleLabels * 6 &&
-          domLabelCount === 0,
-        JSON.stringify({
-          labelLayer: stats.stats.labelLayer,
-          visibleLabels: stats.stats.visibleLabels,
-          labelVertices: stats.stats.labelVertices,
-          labelAtlas: stats.stats.labelAtlas,
-          domLabelCount,
-        }),
       );
     }
     if (route.startsWith("campaign-ui")) {

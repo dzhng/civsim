@@ -1,6 +1,6 @@
 # 14 — Production cutover and owner retirement
 
-Status: adapter adopted; broader journey/lifecycle and hardware acceptance in progress. Dependencies: [11](11-campaign-geographic-layers.md), [12](12-campaign-entities-labels.md), [13](13-battle-adoption.md).
+Status: production cutover and owner retirement accepted. Final cross-scene art and workload acceptance remain in [15](15-acceptance.md).
 
 ## Contract and owner
 
@@ -98,3 +98,14 @@ now delegates to the production composition and repeats exactly. Fixed clay and
 adjacent-surface controls retain their explicit diagnostic purpose.
 Registered raw model/UI labs are live consumers and must not be deleted as if
 they were dead production code.
+
+## Final cutover evidence
+
+The [retirement checkpoint](../assets/slice-14-production/raw-map-retirement/README.md)
+removes the duplicate raw whole-map owners and verifies retained model/UI
+consumers. Current conquest, save/load, reinforcement arrival and16,000-soldier
+handoff/return pass. [Native lifecycle](../assets/slice-15/native-lifecycle/README.md)
+passes all ten disposal/recreation cycles. Production preview, raised-city input,
+DPR policy and overlay restoration remain covered by the accepted controls above.
+The common final frame/performance matrix stays with slice15; this checkpoint
+makes no reference-quality or paired hardware-comparison claim.

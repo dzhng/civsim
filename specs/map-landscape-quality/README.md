@@ -15,12 +15,13 @@ Keep the accepted visuals; resolve pending fixes once, then prioritize functiona
 integration and final whole-frame review. The unverified rock-projection
 sharpening experiment has been reverted. Do not restart mountain experiments.
 
-The obsolete raw whole-map renderer is removed in the pending diff. Its water
+The obsolete raw whole-map renderer is retired and committed. Its water
 motion check now exercises the real campaign. The corrected source mask passes
 near-water isolation, but the control exposes excessive distant motion. The [motion correction](assets/slice-09/strategic-motion/README.md) now passes
 its motion and phase-return contracts. [Composition fixtures](assets/slice-02/composition-current/README.md)
 are reconciled and repeat exactly. The retained lab suite exposed stale source
-audits and two model depth probes; repaired checks are now running. Current
+audits and two model depth probes; the repaired retained suite and adopted
+water/tree repeats now pass. Current
 conquest, handoff, reinforcements and save/load pass. [Native lifecycle](assets/slice-15/native-lifecycle/README.md)
 passes all ten cycles. Hardware measurements follow on the final source build. Use one
 GPU lane and linked public assets.
@@ -69,7 +70,7 @@ remain in scope and must be resolved.
 - [ ] [11 — Campaign roads, ownership and fog](slices/11-campaign-geographic-layers.md)
 - [ ] [12 — Campaign entities, labels and selection](slices/12-campaign-entities-labels.md)
 - [ ] [13 — Battle presentation adopts the shared landscape](slices/13-battle-adoption.md)
-- [ ] [14 — Production cutover and owner retirement](slices/14-production-cutover.md)
+- [x] [14 — Production cutover and owner retirement](slices/14-production-cutover.md)
 - [ ] [15 — Whole-game visual and hardware acceptance](slices/15-acceptance.md)
 
 ## Review map

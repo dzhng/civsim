@@ -13,8 +13,8 @@ against the original reference floor. Intermediate growth remains unimplemented.
 | Battle production adapter | Current TypeGPU coverage, bitmap, turf, ocean, crown and seating evidence |
 | Campaign game journeys | Current conquest, reinforcement arrival, save/load and16,000-soldier handoff pass in retirement journey report |
 | Lifetime | Native headful ten-cycle verification passes; software startup timeout retained as historical evidence |
-| Raw owner retirement | Implementation removes obsolete map/territory/coarse lighting owners; repaired retained fixture checks await final build run |
-| Latest water / shared crown pins | Reviewed; exact repeat still due |
+| Raw owner retirement | Committed retirement; repaired native raw lab suite and software model/water repeats pass |
+| Latest water / shared crown pins | Both water images and updated crown fixture repeat exactly |
 | Missing campaign views | Aegean, dry south and wet north scratch capture prepared |
 | Missing battle views | AuthoredB added to existing character fixture; current composed generated highland/wooded/coastal captures still due |
 | Native engineering measurements | Run final full-game and30k harness; preserve distinction between measurement and release acceptance |

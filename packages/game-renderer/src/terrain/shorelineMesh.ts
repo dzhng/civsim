@@ -75,17 +75,25 @@ export function conformShoreline(
       }
   };
   type Point = [number, number, number];
-  const clip = (polygon: Point[], distance: (p: Point) => number) => {
+  const clip = (polygon: Point[], axis: 0 | 1, boundary: number, side: number) => {
     const result: Point[] = [];
     for (let i = 0; i < polygon.length; i++) {
       const a = polygon[i],
         b = polygon[(i + 1) % polygon.length],
-        da = distance(a),
-        db = distance(b);
+        da = (a[axis] - boundary) * side,
+        db = (b[axis] - boundary) * side;
       if (da >= 0) result.push(a);
       if (da < 0 !== db < 0) {
         const t = da / (da - db);
-        result.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]);
+        const intersection: Point = [
+          a[0] + (b[0] - a[0]) * t,
+          a[1] + (b[1] - a[1]) * t,
+          a[2] + (b[2] - a[2]) * t,
+        ];
+        // Interpolation can round past the plane (especially a zero tile edge),
+        // making an otherwise valid coastal vertex fall outside its surface.
+        intersection[axis] = boundary;
+        result.push(intersection);
       }
     }
     return result;
@@ -159,13 +167,10 @@ export function conformShoreline(
     }
     for (const { points, water } of candidates) {
       let polygon = points;
-      for (const distance of [
-        (p: Point) => p[0] - left,
-        (p: Point) => right - p[0],
-        (p: Point) => p[1] - bottom,
-        (p: Point) => top - p[1],
-      ])
-        polygon = clip(polygon, distance);
+      for (const [axis, boundary, side] of [
+        [0, left, 1], [0, right, -1], [1, bottom, 1], [1, top, -1],
+      ] as const)
+        polygon = clip(polygon, axis, boundary, side);
       if (polygon.length < 3) continue;
       const area = polygon.reduce(
         (n, p, i) =>

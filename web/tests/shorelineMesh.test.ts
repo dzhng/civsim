@@ -1,3 +1,10 @@
+import { readFileSync } from "node:fs";
+import { PNG } from "pngjs";
+import {
+  RenderMask,
+  campaignLandscapeSource,
+} from "../../packages/game-renderer/src/terrain/campaignSource";
+import { buildCampaignLandscape } from "../../packages/game-renderer/src/terrain/campaignLandscape";
 import { expect, it } from "vitest";
 import { conformShoreline } from "../../packages/game-renderer/src/terrain/shorelineMesh";
 import {
@@ -237,4 +244,29 @@ it("keeps water normals level when a bank vertex morph samples the dry side", ()
     expect(joined.vertices[k * 10 + 5]).toBe(1);
   }
   expect(banks).toBeGreaterThan(0);
+});
+
+it("builds the Aegean coastal detail tile without sampling outside its base domain", () => {
+  const raster = PNG.sync.read(readFileSync("public/data/campaign-bg.png"));
+  const rect = JSON.parse(readFileSync("public/data/campaign-bg.json", "utf8"));
+  const field = campaignLandscapeSource({
+    w: 2,
+    h: 2,
+    cell: 5000,
+    minX: rect.min[0],
+    maxY: rect.max[1],
+    height: new Float32Array(4).fill(2),
+    biome: new Uint8Array(16).fill(128),
+    renderMask: new RenderMask(raster.data, raster.width, raster.height, rect),
+  });
+  const built = buildCampaignLandscape(field, [576, -64], 64, 2);
+  const { vertices } = built.surface.mesh;
+  for (let i = 0; i < vertices.length; i += 10) {
+    expect(vertices[i]).toBeGreaterThanOrEqual(512);
+    expect(vertices[i]).toBeLessThanOrEqual(640);
+    expect(vertices[i + 1]).toBeGreaterThanOrEqual(-128);
+    expect(vertices[i + 1]).toBeLessThanOrEqual(0);
+    expect(Number.isFinite(vertices[i + 2])).toBe(true);
+  }
+  expect(built.surface.sampleRendered(529.8712858622177, 0)).not.toBeNull();
 });

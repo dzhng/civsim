@@ -1,5 +1,9 @@
 # Crest prominence control: not adopted
 
+The natural close-view control/candidate pair is retained as the representative
+negative control. Redundant regional and clay images were removed during closeout;
+the verdict and recorded measurements remain.
+
 At unchanged2km sampling, the dominant ridge term was multiplied by
 `0.4 + 1.2 * campaignNoise(wx / 24 + 31, wy / 24 - 19)`.
 Source geography and minor folds remained unchanged. The lab camera target was

@@ -10,8 +10,10 @@ rock_transverse_eyes found it slightly less wrong close up, but mostly smoother 
 regional distance and not a material improvement in geological readability. Far
 views lost identifiable detail. No static aliasing was demonstrated.
 
-Both implementation changes are removed. Before/candidate screenshots and failed
-strict reports remain as exploration evidence; no baselines were updated. Equivalent
+Both implementation changes are removed. The near-material control and both
+rejected candidate screenshots remain with the strict reports and verdicts;
+redundant regional and other fixture images were removed during closeout.
+No baselines were updated. Equivalent
 campaign/battle inputs continued to match exactly, semantic authored tint behavior
 and source geometry stayed unchanged, GPU validation stayed clean, and terrain-water
 remained exact with matching[76,134,151]color. Typecheck passed.

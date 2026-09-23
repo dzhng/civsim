@@ -28,9 +28,11 @@ not closeness to the landscape reference.
   [exact candidate patch](rounded-hierarchy/candidate.patch) is reproduction
   evidence only; it is not applied to product code.
 
-Each proposal directory retains the five actual full frames, paired enlarged
-feature crops, and grayscale/pixel change telemetry. `before` crops come from
-the committed controls; `candidate` crops come from actual new captures. All
+Each proposal directory retains representative Alps regional and close-fixture
+before/candidate crops, plus grayscale/pixel change telemetry and verdicts.
+Redundant full frames and other crops from these rejected proposals were removed
+during closeout. `before` crops come from the committed controls; `candidate`
+crops come from actual new captures. All
 fifteen captures used snapCheck and completed without page errors or GPU
 validation warnings. The hierarchy's Alps clay grayscale MAE is 9.54; widening
 the cusp moves that to 8.80. This reduced change distance does not cancel the

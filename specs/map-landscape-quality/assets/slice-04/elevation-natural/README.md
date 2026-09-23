@@ -34,17 +34,17 @@ source climate are fixed; individual tree membership is not.
 
 ## Frames and telemetry
 
-The matched [Alps before](before/alps.png)/[candidate](candidate/alps.png) and
-[Italy before](before/italy.png)/[candidate](candidate/italy.png) retain existing
-regional centers and zoom2.5. [Closer Alps before](before/alps-close.png) and
-[candidate](candidate/alps-close.png) use zoom7.5 at the same center/pitch for an
-approximately240km-scale supplemental framing. This supplement does not replace
-the regional controls. Each candidate uses its baseline's exact camera world
+The retained [Alps before](before/alps.png)/[candidate](candidate/alps.png) pair
+uses the existing regional center and zoom2.5. The Italy pair also used zoom2.5;
+the closer Alps pair used zoom7.5 at the same center/pitch for an approximately
+240km-scale supplemental framing. Those redundant rejected-probe images and
+all crops were removed during closeout; their metrics and verdicts remain.
+The close supplement did not replace the regional controls. Each candidate uses its baseline's exact camera world
 and projection matrices; all three deltas are zero. All six captures report no
 page or GPU validation errors. Capture snapshots are diagnostic evidence, not
 blessed production baselines or strict repeats. The captured mesh remains2km.
 Changed pixels are96.43%,59.41%,99.96%; these establish a real change, not quality.
-The close crops include the city/tree/terrain junction being assessed.
+The removed close crops showed the city/tree/terrain junction assessed below.
 
 ## Fresh verdict and disposition
 

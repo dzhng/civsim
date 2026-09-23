@@ -25,8 +25,8 @@ checks pass, but newly created local shots are not accepted baselines.
 [Comparison telemetry](comparison/visual-parity-diff.json) locates the changes;
 it measures distance from the previous output, not reference quality. Regional
 grayscale MAE is 5.96 (Alps) and 3.14 (Italy); near/far is 1.47/0.18. This largely
-brightness-driven movement agrees with the visual finding. Full frames and 2×
-feature crops are retained beside the report.
+brightness-driven movement agrees with the visual finding. The Alps full-frame before/candidate pair is retained beside the report;
+redundant rejected-probe frames and crops were removed during closeout.
 
 Both TypeScript checks and targeted lint pass. 499 CPU tests passed in the full
 run; two suites initially lacked sparse-checkout fixtures, then their existing

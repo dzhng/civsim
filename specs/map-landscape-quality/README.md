@@ -9,56 +9,33 @@ Make the campaign landscape meet the supplied reference's quality and bring the 
 Use `/Users/david/dev/game/.worktrees/map-landscape-quality`, branch
 `codex/map-landscape-quality`. Keep this single worktree and one GPU capture lane.
 
-**Current pickup: finish production-owner retirement, then remaining landscape
-quality and integrated acceptance.** The [presentation checkpoint](assets/slice-12/presentation-checkpoint/README.md)
-reconciles22 campaign captures, with exact repeats across two scoped runs. Label
-fault injection now follows snapshots so it cannot perturb later card paint.
-The camera uses CSS zoom consistently across DPR, and an independent fixed-pixel
-click selects a real raised Aguntum city at both densities. This is scoped input
-and camera evidence; broader lifecycle and final art remain open. The [regional natural preview](assets/slice-14-production/preview-owner/README.md)
-now uses the production world, with matched visual review and exact repeats of both regional images.
-Clay/surface controls remain explicit diagnostics. The [CSS-density policy](assets/slice-12/css-density/README.md) now preserves
-labels, cards, scenery, figures and input speed across DPR, with six exact
-repeated images. Next: corrected turf readiness and remaining mountain form.
+**Current pickup: production-owner retirement, then one integrated acceptance pass.**
+The user has directed us to stop repeated visual polishing and move forward.
+Keep the accepted visuals; resolve pending fixes once, then prioritize functional
+integration and final whole-frame review. The unverified rock-projection
+sharpening experiment has been reverted. Do not restart mountain experiments.
 
-The [joined water pass](assets/slice-08/battle-ocean-join/README.md) now removes
-the mapC field/ocean intersection, shares their near-edge response, and passes
-native/software motion, phase return and six exact software snapshot repeats.
-The [lake-distance fix](assets/slice-09/lake-view-distance/README.md) is accepted
-for distant glints. Flat water detail, soft coastal fringes and final composition
-remain open; do not spend another spectrum-polish pass before the mountain test.
-The direction shuffle was rejected on actual images despite better isotropy.
+The obsolete raw whole-map renderer is removed in the pending diff. Its water
+motion check now exercises the real campaign. The corrected source mask passes
+near-water isolation, but the control exposes excessive distant motion. A small
+screen-footprint attenuation fix is under browser verification. Next run the
+retained raw lab/model checks, then current campaign journeys and lifecycle /
+hardware acceptance. Use one GPU lane and linked public assets.
 
-The [turf consumer](assets/slice-13/turf-current/README.md) now follows the
-TypeGPU camera and grass publication. Its full52-check run, exact cold boots,
-edge repeats and post-review readiness correction are scoped verification;
-material/composition quality remains open. The [budget-edge pass](assets/slice-07/budget-edges/README.md) now softens
-woodland selection boundaries, with two exact regional repeats. Raw whole-map retirement and its migrated production
-water film are implemented but await browser acceptance. A separate sharper
-rock-projection control has passed CPU checks but has not been rendered.
-Inspect `throwaway/active-pickup.txt` and live processes before changing the single
-capture lane; keep public assets linked rather than duplicating build trees.
+Accepted scoped evidence remains valid: [production preview](assets/slice-14-production/preview-owner/README.md),
+[CSS density and input](assets/slice-12/css-density/README.md),
+[overlay restoration](assets/slice-11/overlay-current/README.md),
+[battle turf publication](assets/slice-13/turf-current/README.md),
+[forest boundaries](assets/slice-07/budget-edges/README.md), and
+[joined battle water](assets/slice-08/battle-ocean-join/README.md).
+Reuse these checks where their contracts are unchanged. The full turf run plus
+publication-race probe and representative corrected repeat do not need another
+full replay solely because the wait was hardened.
 
-Continue the remaining mountain, presentation and coast gates and
-one integrated acceptance matrix. Reuse each matched capture across the slices
-it proves rather than running duplicate08/09/13/15 reviews. Keep shared neutral
-data/policy and backend-local adapters: Three campaign, TypeGPU battle.
-
-| Accepted evidence | Remaining work |
-| --- | --- |
-| Foundations01–03, crown owner06, bounded residency | Complete landscape reference quality |
-| [Chart atmosphere](assets/slice-10/chart-atmosphere/README.md), nine snapshots | Presentation checkpoint repeated; final composition remains open |
-| [Label-owner controls](assets/slice-12/label-owners/README.md) | Broader presentation/interaction matrix |
-| [Joined water](assets/slice-08/battle-ocean-join/README.md), lake and motion controls | Flat detail, shoreline fringe, other shores and composed quality |
-| [Native adapter/liveness](assets/slice-15/adapter-identity/README.md) | Headful release timing and common hardware budget |
-| [Current turf consumer](assets/slice-13/turf-current/README.md), exact scoped captures | Final composed art and hardware acceptance |
-
-Recent mountain amplitude, scalar valley-remap and dominant-support controls were
-rejected. New CPU-only Gaussian-support and base-slope-gated detail controls also
-failed: steeper/fragmented interiors, and the gate adds large transition cliffs.
-Do not repeat them. See existing slice04 assets and current scratch reports.
-Claude is currently unavailable because its OAuth session expired. Continue
-authorized work with available agents; do not change authentication or billing.
+Keep shared neutral data/policy and backend-local adapters: Three campaign,
+TypeGPU battle. Final visual quality and integrated acceptance remain open;
+scoped evidence does not close the entire spec. Claude authentication is
+unavailable; do not change authentication or billing.
 
 ### Global TODO
 

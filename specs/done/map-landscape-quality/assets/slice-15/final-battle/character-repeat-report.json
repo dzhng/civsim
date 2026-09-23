@@ -1,0 +1,330 @@
+{
+  "kind": "scenario-run-report",
+  "generatedAt": "2026-09-23T00:48:14.895Z",
+  "target": "http://127.0.0.1:5193",
+  "gpu": true,
+  "headful": false,
+  "browserChannel": null,
+  "gpuAdapter": "swiftshader",
+  "exitCode": 1,
+  "status": "fail",
+  "scenarios": [
+    {
+      "name": "battle-genmap-curated",
+      "file": "battle/battle-genmap-curated.mjs",
+      "kind": "visual",
+      "tier": "full"
+    },
+    {
+      "name": "battle-landscape-character",
+      "file": "battle/battle-landscape-character.mjs",
+      "kind": "visual",
+      "tier": "full"
+    }
+  ],
+  "checks": [
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "shore-and-crags curated catalog entry names the loaded generated seed",
+      "ok": true,
+      "detail": "{\"def\":{\"id\":\"shore-and-crags\",\"label\":\"Shore & Crags\",\"seed\":1,\"description\":\"A cliff-bound highland field with a water reach sealing the eastern flank.\",\"character\":\"water flank\",\"manifest\":{\"seed\":1,\"groundCover\":\"green-grass\",\"edges\":{\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\",\"east\":\"ocean\"}}},\"entry\":{\"id\":\"shore-and-crags\",\"wasmMapId\":-1,\"generatedSeed\":\"1\",\"label\":\"Shore & Crags\",\"description\":\"A cliff-bound highland field with a water reach sealing the eastern flank.\",\"edges\":{\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\",\"east\":\"ocean\"},\"groundCover\":\"green-grass\"},\"manifest\":{\"edgeSeals\":{\"composition\":{\"east\":\"waterReach\",\"west\":\"cliffRun\"},\"expectedRoles\":{\"east\":\"ocean\",\"west\":\"cliff\"}},\"edges\":{\"east\":\"ocean\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"},\"featureSummary\":{\"lakeCells\":1568,\"mudCells\":4982,\"passableForestCells\":3213,\"playableLakeCells\":1568,\"roughFieldCells\":9409,\"screeCells\":13019,\"streamCells\":147,\"streams\":3},\"groundCover\":\"green-grass\",\"recipeClass\":\"full\",\"seed\":1,\"seedHex\":\"0x0000000000000001\",\"terrainHash\":\"0x35787940547b4e73\"},\"rebuilt\":{\"id\":\"shore-and-crags\",\"wasmMapId\":-1,\"generatedSeed\":\"1\",\"label\":\"Shore & Crags\",\"description\":\"A cliff-bound highland field with a water reach sealing the eastern flank.\",\"edges\":{\"east\":\"ocean\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"},\"groundCover\":\"green-grass\"}}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "shore-and-crags curated catalog edge roles come from the generated manifest path",
+      "ok": true,
+      "detail": "{\"catalog\":{\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\",\"east\":\"ocean\"},\"rebuilt\":{\"east\":\"ocean\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"},\"manifest\":{\"east\":\"ocean\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"}}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "shore-and-crags generated certificates stay green in the browser",
+      "ok": true,
+      "detail": "{\"corridor\":true,\"drainage\":{\"corridorCrossingStreams\":0,\"fordCount\":0,\"lakeCells\":1568,\"lakeCount\":1,\"lakes\":[{\"cells\":1568,\"id\":0,\"level\":-4.778225898742676,\"maxCellX\":228,\"maxCellY\":149,\"maxX\":-284,\"maxY\":-200,\"minCellX\":184,\"minCellY\":107,\"minX\":-464,\"minY\":-372}],\"largestPlayableLakeCells\":1568,\"marshCells\":2755,\"playableLakeCells\":1568,\"playableLakeCount\":1,\"streamCells\":147,\"streamCount\":3,\"streamDeadEnds\":0,\"streamImpassableCells\":0,\"streamLakeConnections\":1,\"streamRunoffConnections\":2,\"streamsDescend\":true,\"suppressedMountainHollowCells\":1133,\"suppressedMountainHollowCount\":19,\"waterLevelSet\":true},\"eastFlankUnreachable\":1,\"eastSealed\":1,\"largestIsolatedPassablePocket\":0,\"northDeployPassable\":1,\"northDeployment\":{\"blockedCells\":0,\"maxSlope\":0.03378281742334366,\"meetsContract\":true,\"p95Slope\":0.02907416969537735,\"passableFraction\":1,\"totalCells\":3872},\"northOpen\":0.6399999856948853,\"orphanBlockedCells\":0,\"southDeployPassable\":1,\"southDeployment\":{\"blockedCells\":0,\"maxSlope\":0.04488227143883705,\"meetsContract\":true,\"p95Slope\":0.03704017400741577,\"passableFraction\":1,\"totalCells\":3872},\"southOpen\":0.6549999713897705,\"westFlankUnreachable\":1,\"westSealed\":1}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "shore-and-crags presents the requested vista camera",
+      "ok": true,
+      "detail": "{\"requested\":{\"x\":0,\"y\":-650,\"zoom\":7.76,\"yaw\":-1.5707963267948966,\"pitch\":0.305},\"previousFrame\":4,\"matches\":true,\"mutable\":{\"zoom\":7.76,\"pitch\":0.30499999999999994,\"yaw\":-1.5707963267948966,\"center\":[0,-650],\"params\":{\"target\":[0,-650,3.3802981972694397],\"distance\":197.69521904964176,\"pitch\":0.30499999999999994,\"yaw\":-1.5707963267948966,\"fovY\":0.6115695836867723,\"aspect\":1.6,\"near\":1}},\"submitted\":{\"x\":0,\"y\":-650,\"zoom\":7.76,\"zoomT\":0.967887323943662,\"camera3d\":{\"target\":[0,-650,3.3802981972694397],\"distance\":197.69521904964176,\"pitch\":0.30499999999999994,\"yaw\":-1.5707963267948966,\"fovY\":0.6115695836867723,\"aspect\":1.6,\"near\":1}},\"presentedFrame\":5}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "shore-and-crags uses the production TypeGPU renderer",
+      "ok": true,
+      "detail": "typegpu"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "shore-and-crags renders under the generated-map golden-hour default",
+      "ok": true,
+      "detail": "{\"environment\":\"golden\",\"vista\":{\"shape\":\"two full vertex-sample height bands; renderer cuts the inner rect per band\",\"bands\":[{\"name\":\"vista\",\"w\":301,\"h\":201,\"cell\":16,\"ox\":-2400,\"oy\":-1600,\"innerHalfW\":1200,\"innerHalfH\":800,\"outerHalfW\":2400,\"outerHalfH\":1600},{\"name\":\"farFog\",\"w\":133,\"h\":90,\"cell\":64,\"ox\":-4208,\"oy\":-2848,\"innerHalfW\":2400,\"innerHalfH\":1600,\"outerHalfW\":4200,\"outerHalfH\":2800}]}}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "shore-and-crags vista frame contains terrain and sky",
+      "ok": false,
+      "detail": "{\"nonBlack\":1024000,\"terrain\":878965,\"sky\":1325}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "snapshot battle-genmap-curated/shore-and-crags",
+      "ok": false,
+      "detail": "466673 px differ (45.5735%) — see shots/diff/battle-genmap-curated/shore-and-crags.png"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "highland-vale curated catalog entry names the loaded generated seed",
+      "ok": true,
+      "detail": "{\"def\":{\"id\":\"highland-vale\",\"label\":\"Highland Vale\",\"seed\":7,\"description\":\"The pinned generated-map vale: cliff walls on both flanks, open fog north and south.\",\"character\":\"cliff/cliff anchor\",\"manifest\":{\"seed\":7,\"groundCover\":\"green-grass\",\"edges\":{\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\",\"east\":\"cliff\"}}},\"entry\":{\"id\":\"highland-vale\",\"wasmMapId\":-1,\"generatedSeed\":\"7\",\"label\":\"Highland Vale\",\"description\":\"The pinned generated-map vale: cliff walls on both flanks, open fog north and south.\",\"edges\":{\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\",\"east\":\"cliff\"},\"groundCover\":\"green-grass\"},\"manifest\":{\"edgeSeals\":{\"composition\":{\"east\":\"cliffRun\",\"west\":\"cliffRun\"},\"expectedRoles\":{\"east\":\"cliff\",\"west\":\"cliff\"}},\"edges\":{\"east\":\"cliff\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"},\"featureSummary\":{\"lakeCells\":1881,\"mudCells\":5834,\"passableForestCells\":3204,\"playableLakeCells\":1881,\"roughFieldCells\":8828,\"screeCells\":11487,\"streamCells\":149,\"streams\":3},\"groundCover\":\"green-grass\",\"recipeClass\":\"full\",\"seed\":7,\"seedHex\":\"0x0000000000000007\",\"terrainHash\":\"0x9053a4fa78867b91\"},\"rebuilt\":{\"id\":\"highland-vale\",\"wasmMapId\":-1,\"generatedSeed\":\"7\",\"label\":\"Highland Vale\",\"description\":\"The pinned generated-map vale: cliff walls on both flanks, open fog north and south.\",\"edges\":{\"east\":\"cliff\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"},\"groundCover\":\"green-grass\"}}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "highland-vale curated catalog edge roles come from the generated manifest path",
+      "ok": true,
+      "detail": "{\"catalog\":{\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\",\"east\":\"cliff\"},\"rebuilt\":{\"east\":\"cliff\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"},\"manifest\":{\"east\":\"cliff\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"}}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "highland-vale generated certificates stay green in the browser",
+      "ok": true,
+      "detail": "{\"corridor\":true,\"drainage\":{\"corridorCrossingStreams\":0,\"fordCount\":0,\"lakeCells\":1881,\"lakeCount\":1,\"lakes\":[{\"cells\":1881,\"id\":0,\"level\":-7.820000171661377,\"maxCellX\":230,\"maxCellY\":165,\"maxX\":-276,\"maxY\":-136,\"minCellX\":188,\"minCellY\":112,\"minX\":-448,\"minY\":-352}],\"largestPlayableLakeCells\":1881,\"marshCells\":2803,\"playableLakeCells\":1881,\"playableLakeCount\":1,\"streamCells\":149,\"streamCount\":3,\"streamDeadEnds\":0,\"streamImpassableCells\":0,\"streamLakeConnections\":1,\"streamRunoffConnections\":2,\"streamsDescend\":true,\"suppressedMountainHollowCells\":2171,\"suppressedMountainHollowCount\":30,\"waterLevelSet\":true},\"eastFlankUnreachable\":1,\"eastSealed\":1,\"largestIsolatedPassablePocket\":0,\"northDeployPassable\":1,\"northDeployment\":{\"blockedCells\":0,\"maxSlope\":0.03824549540877342,\"meetsContract\":true,\"p95Slope\":0.030815931037068367,\"passableFraction\":1,\"totalCells\":3872},\"northOpen\":0.6466666460037231,\"orphanBlockedCells\":0,\"southDeployPassable\":1,\"southDeployment\":{\"blockedCells\":0,\"maxSlope\":0.04555274918675423,\"meetsContract\":true,\"p95Slope\":0.040101390331983566,\"passableFraction\":1,\"totalCells\":3872},\"southOpen\":0.6733333468437195,\"westFlankUnreachable\":1,\"westSealed\":1}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "highland-vale presents the requested vista camera",
+      "ok": true,
+      "detail": "{\"requested\":{\"x\":0,\"y\":-650,\"zoom\":7.76,\"yaw\":-1.5707963267948966,\"pitch\":0.305},\"previousFrame\":4,\"matches\":true,\"mutable\":{\"zoom\":7.76,\"pitch\":0.30499999999999994,\"yaw\":-1.5707963267948966,\"center\":[0,-650],\"params\":{\"target\":[0,-650,3.114326238632202],\"distance\":197.69521904964176,\"pitch\":0.30499999999999994,\"yaw\":-1.5707963267948966,\"fovY\":0.6115695836867723,\"aspect\":1.6,\"near\":1}},\"submitted\":{\"x\":0,\"y\":-650,\"zoom\":7.76,\"zoomT\":0.967887323943662,\"camera3d\":{\"target\":[0,-650,3.114326238632202],\"distance\":197.69521904964176,\"pitch\":0.30499999999999994,\"yaw\":-1.5707963267948966,\"fovY\":0.6115695836867723,\"aspect\":1.6,\"near\":1}},\"presentedFrame\":5}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "highland-vale uses the production TypeGPU renderer",
+      "ok": true,
+      "detail": "typegpu"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "highland-vale renders under the generated-map golden-hour default",
+      "ok": true,
+      "detail": "{\"environment\":\"golden\",\"vista\":{\"shape\":\"two full vertex-sample height bands; renderer cuts the inner rect per band\",\"bands\":[{\"name\":\"vista\",\"w\":301,\"h\":201,\"cell\":16,\"ox\":-2400,\"oy\":-1600,\"innerHalfW\":1200,\"innerHalfH\":800,\"outerHalfW\":2400,\"outerHalfH\":1600},{\"name\":\"farFog\",\"w\":133,\"h\":90,\"cell\":64,\"ox\":-4208,\"oy\":-2848,\"innerHalfW\":2400,\"innerHalfH\":1600,\"outerHalfW\":4200,\"outerHalfH\":2800}]}}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "highland-vale vista frame contains terrain and sky",
+      "ok": false,
+      "detail": "{\"nonBlack\":1024000,\"terrain\":881367,\"sky\":1334}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "snapshot battle-genmap-curated/highland-vale",
+      "ok": false,
+      "detail": "469509 px differ (45.8505%) — see shots/diff/battle-genmap-curated/highland-vale.png"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "wooded-pass curated catalog entry names the loaded generated seed",
+      "ok": true,
+      "detail": "{\"def\":{\"id\":\"wooded-pass\",\"label\":\"Wooded Pass\",\"seed\":8,\"description\":\"A wooded western flank against an opposing cliff wall and rolling green corridor.\",\"character\":\"forest flank\",\"manifest\":{\"seed\":8,\"groundCover\":\"green-grass\",\"edges\":{\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\",\"east\":\"cliff\"}}},\"entry\":{\"id\":\"wooded-pass\",\"wasmMapId\":-1,\"generatedSeed\":\"8\",\"label\":\"Wooded Pass\",\"description\":\"A wooded western flank against an opposing cliff wall and rolling green corridor.\",\"edges\":{\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\",\"east\":\"cliff\"},\"groundCover\":\"green-grass\"},\"manifest\":{\"edgeSeals\":{\"composition\":{\"east\":\"cliffRun\",\"west\":\"forestBelt\"},\"expectedRoles\":{\"east\":\"cliff\",\"west\":\"cliff\"}},\"edges\":{\"east\":\"cliff\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"},\"featureSummary\":{\"lakeCells\":2893,\"mudCells\":5231,\"passableForestCells\":3305,\"playableLakeCells\":2893,\"roughFieldCells\":7028,\"screeCells\":9021,\"streamCells\":136,\"streams\":3},\"groundCover\":\"green-grass\",\"recipeClass\":\"full\",\"seed\":8,\"seedHex\":\"0x0000000000000008\",\"terrainHash\":\"0x7055cdf3eac03c64\"},\"rebuilt\":{\"id\":\"wooded-pass\",\"wasmMapId\":-1,\"generatedSeed\":\"8\",\"label\":\"Wooded Pass\",\"description\":\"A wooded western flank against an opposing cliff wall and rolling green corridor.\",\"edges\":{\"east\":\"cliff\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"},\"groundCover\":\"green-grass\"}}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "wooded-pass curated catalog edge roles come from the generated manifest path",
+      "ok": true,
+      "detail": "{\"catalog\":{\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\",\"east\":\"cliff\"},\"rebuilt\":{\"east\":\"cliff\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"},\"manifest\":{\"east\":\"cliff\",\"north\":\"open-fog\",\"south\":\"open-fog\",\"west\":\"cliff\"}}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "wooded-pass generated certificates stay green in the browser",
+      "ok": true,
+      "detail": "{\"corridor\":true,\"drainage\":{\"corridorCrossingStreams\":0,\"fordCount\":0,\"lakeCells\":2893,\"lakeCount\":1,\"lakes\":[{\"cells\":2893,\"id\":0,\"level\":-5.680962562561035,\"maxCellX\":233,\"maxCellY\":174,\"maxX\":-264,\"maxY\":-100,\"minCellX\":183,\"minCellY\":105,\"minX\":-468,\"minY\":-380}],\"largestPlayableLakeCells\":2893,\"marshCells\":2862,\"playableLakeCells\":2893,\"playableLakeCount\":1,\"streamCells\":136,\"streamCount\":3,\"streamDeadEnds\":0,\"streamImpassableCells\":0,\"streamLakeConnections\":1,\"streamRunoffConnections\":2,\"streamsDescend\":true,\"suppressedMountainHollowCells\":1212,\"suppressedMountainHollowCount\":34,\"waterLevelSet\":true},\"eastFlankUnreachable\":1,\"eastSealed\":1,\"largestIsolatedPassablePocket\":0,\"northDeployPassable\":1,\"northDeployment\":{\"blockedCells\":0,\"maxSlope\":0.034835074096918106,\"meetsContract\":true,\"p95Slope\":0.03152596950531006,\"passableFraction\":1,\"totalCells\":3872},\"northOpen\":0.6466666460037231,\"orphanBlockedCells\":0,\"southDeployPassable\":1,\"southDeployment\":{\"blockedCells\":0,\"maxSlope\":0.04407251626253128,\"meetsContract\":true,\"p95Slope\":0.040004655718803406,\"passableFraction\":1,\"totalCells\":3872},\"southOpen\":0.6566666960716248,\"westFlankUnreachable\":1,\"westSealed\":1}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "wooded-pass presents the requested vista camera",
+      "ok": true,
+      "detail": "{\"requested\":{\"x\":0,\"y\":-650,\"zoom\":7.76,\"yaw\":-1.5707963267948966,\"pitch\":0.305},\"previousFrame\":4,\"matches\":true,\"mutable\":{\"zoom\":7.76,\"pitch\":0.30499999999999994,\"yaw\":-1.5707963267948966,\"center\":[0,-650],\"params\":{\"target\":[0,-650,3.412125825881958],\"distance\":197.69521904964176,\"pitch\":0.30499999999999994,\"yaw\":-1.5707963267948966,\"fovY\":0.6115695836867723,\"aspect\":1.6,\"near\":1}},\"submitted\":{\"x\":0,\"y\":-650,\"zoom\":7.76,\"zoomT\":0.967887323943662,\"camera3d\":{\"target\":[0,-650,3.412125825881958],\"distance\":197.69521904964176,\"pitch\":0.30499999999999994,\"yaw\":-1.5707963267948966,\"fovY\":0.6115695836867723,\"aspect\":1.6,\"near\":1}},\"presentedFrame\":5}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "wooded-pass uses the production TypeGPU renderer",
+      "ok": true,
+      "detail": "typegpu"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "wooded-pass renders under the generated-map golden-hour default",
+      "ok": true,
+      "detail": "{\"environment\":\"golden\",\"vista\":{\"shape\":\"two full vertex-sample height bands; renderer cuts the inner rect per band\",\"bands\":[{\"name\":\"vista\",\"w\":301,\"h\":201,\"cell\":16,\"ox\":-2400,\"oy\":-1600,\"innerHalfW\":1200,\"innerHalfH\":800,\"outerHalfW\":2400,\"outerHalfH\":1600},{\"name\":\"farFog\",\"w\":133,\"h\":90,\"cell\":64,\"ox\":-4208,\"oy\":-2848,\"innerHalfW\":2400,\"innerHalfH\":1600,\"outerHalfW\":4200,\"outerHalfH\":2800}]}}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "wooded-pass vista frame contains terrain and sky",
+      "ok": false,
+      "detail": "{\"nonBlack\":1024000,\"terrain\":881320,\"sky\":1327}"
+    },
+    {
+      "scenario": "battle-genmap-curated",
+      "name": "snapshot battle-genmap-curated/wooded-pass",
+      "ok": false,
+      "detail": "467611 px differ (45.6651%) — see shots/diff/battle-genmap-curated/wooded-pass.png"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "authored-A: production TypeGPU renderer",
+      "ok": true,
+      "detail": "typegpu"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "authored-A: requested camera is not clamped",
+      "ok": true,
+      "detail": "{\"zoom\":7.8,\"yaw\":-1.5707963267948966,\"center\":[380,-180]}"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "authored-A: terrain is installed with its original cover and slope policy",
+      "ok": true,
+      "detail": "{\"cover\":\"green-grass\",\"slopes\":null}"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "authored-A: intended terrain and scenery layers are visible",
+      "ok": true,
+      "detail": "{\"ground\":true,\"vista\":true,\"water\":false,\"scenery\":true,\"crowd\":false}"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "authored-A: clean GPU validation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "snapshot landscape-character/authored-A",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "authored-B: production TypeGPU renderer",
+      "ok": true,
+      "detail": "typegpu"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "authored-B: requested camera is not clamped",
+      "ok": true,
+      "detail": "{\"zoom\":7.8,\"yaw\":-1.5707963267948966,\"center\":[-400,-220]}"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "authored-B: terrain is installed with its original cover and slope policy",
+      "ok": true,
+      "detail": "{\"cover\":\"green-grass\",\"slopes\":null}"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "authored-B: intended terrain and scenery layers are visible",
+      "ok": true,
+      "detail": "{\"ground\":true,\"vista\":true,\"water\":false,\"scenery\":true,\"crowd\":false}"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "authored-B: clean GPU validation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "snapshot landscape-character/authored-B",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "authored-C: production TypeGPU renderer",
+      "ok": true,
+      "detail": "typegpu"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "authored-C: requested camera is not clamped",
+      "ok": true,
+      "detail": "{\"zoom\":7.8,\"yaw\":-1.5707963267948966,\"center\":[540,260]}"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "authored-C: terrain is installed with its original cover and slope policy",
+      "ok": true,
+      "detail": "{\"cover\":\"yellow-grass\",\"slopes\":null}"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "authored-C: intended terrain and scenery layers are visible",
+      "ok": true,
+      "detail": "{\"ground\":true,\"vista\":true,\"water\":false,\"scenery\":true,\"crowd\":false}"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "authored-C: clean GPU validation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "snapshot landscape-character/authored-C",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "generated-forest-edge: production TypeGPU renderer",
+      "ok": true,
+      "detail": "typegpu"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "generated-forest-edge: requested camera is not clamped",
+      "ok": true,
+      "detail": "{\"zoom\":7.8,\"yaw\":-1.5707963267948966,\"center\":[344,8]}"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "generated-forest-edge: terrain is installed with its original cover and slope policy",
+      "ok": true,
+      "detail": "{\"cover\":\"green-grass\",\"slopes\":{\"cliffDilateCells\":6,\"cliffMin\":0.3199999928474426,\"flatMax\":0.03500000014901161,\"highlandCapMinM\":35,\"rollingMax\":0.11500000208616257,\"slowMin\":0.13500000536441803}}"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "generated-forest-edge: intended terrain and scenery layers are visible",
+      "ok": true,
+      "detail": "{\"ground\":true,\"vista\":true,\"water\":false,\"scenery\":false,\"crowd\":false}"
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "generated-forest-edge: clean GPU validation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "scenario": "battle-landscape-character",
+      "name": "snapshot landscape-character/generated-forest-edge",
+      "ok": true,
+      "detail": "0 px differ (0.0000%)"
+    },
+    {
+      "scenario": "runner",
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "battle-genmap-curated: shore-and-crags vista frame contains terrain and sky",
+    "battle-genmap-curated: snapshot battle-genmap-curated/shore-and-crags",
+    "battle-genmap-curated: highland-vale vista frame contains terrain and sky",
+    "battle-genmap-curated: snapshot battle-genmap-curated/highland-vale",
+    "battle-genmap-curated: wooded-pass vista frame contains terrain and sky",
+    "battle-genmap-curated: snapshot battle-genmap-curated/wooded-pass"
+  ],
+  "pageErrors": []
+}

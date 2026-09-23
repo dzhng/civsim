@@ -1,5 +1,6 @@
 const CASES = [
   { name: "authored-A", map: "A", x: 380, y: -180, cover: "green-grass" },
+  { name: "authored-B", map: "B", x: -400, y: -220, cover: "green-grass" },
   { name: "authored-C", map: "C", x: 540, y: 260, cover: "yellow-grass" },
   { name: "generated-forest-edge", map: "gen", seed: 8, x: 344, y: 8, cover: "green-grass" },
 ];

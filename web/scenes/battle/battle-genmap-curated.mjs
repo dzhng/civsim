@@ -1,6 +1,7 @@
 import { battleRendererReady } from "../worlds.mjs";
 import { fileURLToPath } from "node:url";
 import { PNG } from "pngjs";
+import { createServer } from "vite";
 import { VIEWPORT, VISTA_CAMERA } from "./battle-map-style.mjs";
 
 const CATALOG_PATH = fileURLToPath(
@@ -27,34 +28,40 @@ export async function run(ctx) {
     return;
   }
 
-  for (const id of ["shore-and-crags", "highland-vale", "wooded-pass"]) {
-    await gate(ctx, id);
+  // Load the real neutral catalog in Node; a production build has no /@fs route.
+  const source = await createServer({
+    configFile: false,
+    optimizeDeps: { noDiscovery: true, include: [] },
+    server: { middlewareMode: true, watch: null },
+    appType: "custom",
+  });
+  try {
+    const catalog = await source.ssrLoadModule(CATALOG_PATH);
+    for (const id of ["shore-and-crags", "highland-vale", "wooded-pass"]) {
+      await gate(ctx, id, catalog);
+    }
+  } finally {
+    await source.close();
   }
 }
 
-async function gate(ctx, id) {
+async function gate(ctx, id, catalog) {
   const page = await ctx.newPage({
     viewport: VIEWPORT,
     errorPrefix: `battle-genmap-curated-${id}`,
   });
   try {
-    const catalog = await catalogEntry(page, ctx.target, id);
-    await boot(page, ctx.target, catalog.seed);
-    const wiring = await page.evaluate(
-      async ({ catalogPath, id }) => {
-        const mod = await import(`/@fs${catalogPath}`);
-        const def = mod.CURATED_GENERATED_BATTLE_MAP_SEEDS.find((entry) => entry.id === id);
-        const entry = mod.CURATED_GENERATED_BATTLE_MAP_CATALOG.find((item) => item.id === id);
-        const manifest = window.__game.generatedManifest();
-        const rebuilt = mod.generatedBattleMapEntry(manifest, {
-          id: def?.id,
-          label: def?.label,
-          description: def?.description,
-        });
-        return { def, entry, manifest, rebuilt };
-      },
-      { catalogPath: CATALOG_PATH, id },
-    );
+    const def = catalog.CURATED_GENERATED_BATTLE_MAP_SEEDS.find((entry) => entry.id === id);
+    if (!def) throw new Error(`missing curated generated map entry ${id}`);
+    await boot(page, ctx.target, def.seed);
+    const manifest = await page.evaluate(() => window.__game.generatedManifest());
+    const entry = catalog.CURATED_GENERATED_BATTLE_MAP_CATALOG.find((item) => item.id === id);
+    const rebuilt = catalog.generatedBattleMapEntry(manifest, {
+      id: def.id,
+      label: def.label,
+      description: def.description,
+    });
+    const wiring = { def, entry, manifest, rebuilt };
     ctx.check(
       `${id} curated catalog entry names the loaded generated seed`,
       wiring.def?.label === wiring.entry?.label &&
@@ -91,14 +98,20 @@ async function gate(ctx, id) {
       JSON.stringify(terrain.certificates),
     );
 
-    await poseVista(page);
+    const pose = await poseVista(page);
+    ctx.check(`${id} presents the requested vista camera`, pose.matches, JSON.stringify(pose));
     const stats = await page.evaluate(() => window.__game.stats().renderStats);
     ctx.check(
+      `${id} uses the production TypeGPU renderer`,
+      stats?.substrate === "typegpu",
+      stats?.substrate,
+    );
+    ctx.check(
       `${id} renders under the generated-map golden-hour default`,
-      stats?.native?.environment === "golden" &&
+      stats?.environment === "golden" &&
         stats?.terrain?.vista?.bands?.some((band) => band.name === "farFog"),
       JSON.stringify({
-        environment: stats?.native?.environment,
+        environment: stats?.environment,
         vista: stats?.terrain?.vista,
       }),
     );
@@ -116,29 +129,15 @@ async function gate(ctx, id) {
   }
 }
 
-async function catalogEntry(page, target, id) {
-  await page.goto(target);
-  await page.waitForFunction(() => document.readyState === "complete", undefined, {
-    timeout: 20000,
-  });
-  const entry = await page.evaluate(
-    async ({ catalogPath, id }) => {
-      const mod = await import(`/@fs${catalogPath}`);
-      return mod.CURATED_GENERATED_BATTLE_MAP_SEEDS.find((candidate) => candidate.id === id);
-    },
-    { catalogPath: CATALOG_PATH, id },
-  );
-  if (!entry) throw new Error(`missing curated generated map entry ${id}`);
-  return entry;
-}
-
 async function boot(page, target, seed) {
   await page.goto(`${target}/?map=gen&seed=${seed}&ai=off`);
   await battleRendererReady(page, 180000);
   await page.waitForFunction(
     () => {
       const terrain = window.__game?.stats?.().renderStats?.terrain;
-      return terrain?.installed === true && terrain.vistaBands === 2;
+      return (
+        terrain?.installed === true && !terrain.replacing && terrain.vista?.bands?.length === 2
+      );
     },
     undefined,
     { timeout: 180000 },
@@ -148,17 +147,71 @@ async function boot(page, target, seed) {
 }
 
 async function poseVista(page) {
-  await page.evaluate(
-    ({ x, y, zoom, yaw, pitch }) => window.__game.setCamera(x, y, zoom, yaw, pitch),
+  const previousFrame = await page.evaluate(
+    () => window.__game.stats().renderStats.presentedFrameId,
+  );
+  const requested = await page.evaluate(
+    ({ x, y, zoom, yaw }) => {
+      const api = window.__game;
+      api.setCamera(x, y, zoom, yaw);
+      const rig = window.__cam.params();
+      // Keep the top ray above the horizon with the production lens.
+      const skyMargin = 0.12;
+      const pitch = rig.fovY / 2 - skyMargin;
+      api.setCamera(x, y, zoom, yaw, pitch);
+      return { x, y, zoom, yaw, pitch, fovY: rig.fovY, distance: rig.distance, skyMargin };
+    },
     {
       x: VISTA_CAMERA.cx,
       y: VISTA_CAMERA.cy,
       zoom: VISTA_CAMERA.zoom,
       yaw: VISTA_CAMERA.camYaw,
-      pitch: 0.305,
     },
   );
-  await page.waitForTimeout(250);
+  // A camera mutation does not synchronously publish a completed GPU frame.
+  // Wait for the exact submitted pose rather than photographing the old overview.
+  const matches = await page
+    .waitForFunction(
+      ({ requested, previousFrame }) => {
+        const stats = window.__game.stats().renderStats;
+        const camera = stats.camera;
+        const pose = camera?.camera3d;
+        return (
+          stats.presentedFrameId !== previousFrame &&
+          pose &&
+          Math.abs(camera.zoom - requested.zoom) < 1e-6 &&
+          Math.abs(pose.target[0] - requested.x) < 1e-6 &&
+          Math.abs(pose.target[1] - requested.y) < 1e-6 &&
+          Math.abs(pose.yaw - requested.yaw) < 1e-6 &&
+          Math.abs(pose.pitch - requested.pitch) < 1e-6 &&
+          Math.abs(pose.fovY - requested.fovY) < 1e-6 &&
+          Math.abs(pose.distance - requested.distance) < 1e-6
+        );
+      },
+      { requested, previousFrame },
+      { timeout: 180000 },
+    )
+    .then(
+      () => true,
+      () => false,
+    );
+  return page.evaluate(
+    ({ requested, previousFrame, matches }) => ({
+      requested,
+      previousFrame,
+      matches,
+      mutable: {
+        zoom: window.__cam.zoom,
+        pitch: window.__cam.pitch,
+        yaw: window.__cam.yaw,
+        center: window.__cam.viewCenter(),
+        params: window.__cam.params(),
+      },
+      submitted: window.__game.stats().renderStats.camera,
+      presentedFrame: window.__game.stats().renderStats.presentedFrameId,
+    }),
+    { requested, previousFrame, matches },
+  );
 }
 
 async function canvasShot(page) {

@@ -31,7 +31,7 @@ in TypeScript.
   crowd visibility and soldier assets stay outside those backend adapters so
   matching landscape character does not require one rendering backend.
   Remaining legacy passes and final visual acceptance are tracked in the
-  [shared landscape migration](specs/map-landscape-quality/README.md). The conversion rationale and
+  [shared landscape migration](specs/done/map-landscape-quality/README.md). The conversion rationale and
   the in-flight ladder live in
   [specs/done/3d-perspective-renderer/README.md](specs/done/3d-perspective-renderer/README.md).
 - `web` — Vite + TypeScript shell (routes, input, HUD, wasm glue); the

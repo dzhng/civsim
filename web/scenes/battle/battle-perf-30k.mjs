@@ -13,13 +13,6 @@ import { PNG } from "pngjs";
 // 33 ms floor while the camera crosses multiple 8m grass sampling boundaries.
 // PERFDIG-F2C6 adds the wheel path: dispatch real wheel events during the
 // sample so the input handler must keep applying zoom while grass catches up.
-// Every photoreal change runs this gate.
-// VERIFY_BATTLE_ROUTE=raw runs the same gate, unchanged, against the selected
-// raw world served through the lab's Menu substitution. Every floor, threshold,
-// population and window below is identical on both routes; only which owner
-// publishes a diagnostic differs, and the columns the raw world does not
-// measure (its CPU tier/triangle/thinning mirror) report absent rather than
-// zero. They were never floors.
 export const meta = {
   name: "battle-perf-30k",
   kind: "flow",
@@ -39,7 +32,7 @@ const SOLDIER_FLOOR = 30000;
 const SPAWN_TARGET = 30500;
 const SCENERY_FLOOR = 500;
 // Static whole-map grass: the field is sampled once at the sampler's 1M ceiling
-// (STATIC_GRASS_MAX_RECORDS in battleWorld.ts) and uniformly across the map.
+// (STATIC_GRASS_MAX_RECORDS in the shared residency owner) and uniformly across the map.
 const STATIC_GRASS_RECORD_CAP = 1_000_000;
 const CLOSE_GRASS_RECORD_FLOOR = 40000;
 const PAN_DISTANCE_M = 200;
@@ -61,25 +54,10 @@ const WARMUP_FRAMES = 60;
 const SAMPLE_FRAMES = 150;
 const REPORT_DIR = new URL("../../reports/rendering/scenario-runs/", import.meta.url);
 
-// Harness-only route selection. Production still constructs the source
-// renderer; the selected raw world is reached by pointing VERIFY_URL at the
-// lab's Menu substitution, and this names which diagnostics owners the run is
-// reading so the scene never has to guess (or quietly fall back) when a shape
-// is missing. Both branches retire at the M9 cutover, when there is one route.
-// Validate route selection once at run entry, before reading any diagnostics.
-const ROUTE = process.env.VERIFY_BATTLE_ROUTE ?? "source";
-const ROUTE_SUBSTRATE = { source: "threejs-webgpu-tsl", raw: "raw-webgpu" };
-// `performance.gpuTimeMs` is a different measurement on each route, and the
-// renderer names which one it published. The source value is an asynchronous
-// render-pass-only sum belonging to no identified frame; the raw value is one
-// presented frame's complete observed submission span.
-const ROUTE_GPU_METRIC = {
-  source: "source-render-pass-timestamp-sum",
-  raw: "correlated-complete-submission-span",
-};
+const SUBSTRATE = "typegpu";
+const GPU_METRIC = "correlated-complete-submission-span";
 
 export async function run(ctx) {
-  assertKnownRoute(ROUTE);
   if (process.env.VERIFY_GPU !== "1") {
     ctx.check(
       "requires WebGPU browser flags",
@@ -156,9 +134,7 @@ export async function run(ctx) {
   });
   // The one in-page GPU reader, used by every sampling phase below. It reads
   // only what the production stats seam already publishes — no query, no wait,
-  // no extra draw — and reduces nothing: which readings count as samples is
-  // decided off-page by `gpuSamples`. Harness-only, and it retires with the
-  // route fork at M9.
+  // no extra draw. Completed submissions are deduplicated by `gpuSamples`.
   await page.evaluate(() => {
     window.__perfGpuReading = () => {
       const perf = window.__game.stats().renderStats.performance;
@@ -166,8 +142,7 @@ export async function run(ctx) {
       return {
         ms: perf.gpuTimeMs ?? null,
         metric: perf.gpuTimeMetric ?? null,
-        // Identity of the completed frame the value measures, where the route
-        // publishes one. The source's uncorrelated pass sum has none.
+        // Identity of the completed submission measured by this timestamp.
         frameId: frame?.renderedFrameId ?? null,
         submissionId: frame?.submissionId ?? null,
       };
@@ -256,7 +231,7 @@ export async function run(ctx) {
       stop: stop.name,
       zoom: stop.zoom,
       requestedDistance: stop.distance,
-      route: ROUTE,
+      route: SUBSTRATE,
       substrate: stats.substrate,
       camera: stats.camera,
       focus: {
@@ -297,38 +272,35 @@ export async function run(ctx) {
   }
 
   const pan = await sampleCameraPan(page, hardware);
-  const zoomSweep = await sampleCameraZoomSweep(page, hardware);
+  const zoomSweep = await sampleCameraZoomSweep(page);
   const wheelBurst = await sampleWheelBurst(page, hardware);
   const closeZoomFill = await sampleCloseZoomFill(page, hardware);
 
   const [mid, vista] = table;
-  console.log(`battle-perf-30k route: ${ROUTE}`);
+  console.log(`battle-perf-30k route: ${SUBSTRATE}`);
   console.log(`battle-perf-30k frame-time table:\n${JSON.stringify(table, null, 2)}`);
   console.log(`battle-perf-30k pan table:\n${JSON.stringify(pan, null, 2)}`);
   console.log(`battle-perf-30k wheel-burst table:\n${JSON.stringify(wheelBurst, null, 2)}`);
   console.log(`battle-perf-30k close-zoom-fill table:\n${JSON.stringify(closeZoomFill, null, 2)}`);
 
-  // --- The diagnostics belong to the route under test ----------------------
-  // Every floor below reads the selected route's own owners. A world that is
-  // not the one this run selected, or a GPU value that is not the measurement
-  // that route names, fails here rather than being read as if it were.
+  // Refuse measurements from another substrate or timing definition.
   const gpuMetrics = [...table, pan].map((row) => ({
     phase: row.stop ?? "pan",
     samples: row.gpuSamples,
     metric: row.gpuTimeMetric,
   }));
   ctx.check(
-    `diagnostics come from the ${ROUTE} route's own owners and named GPU metric`,
-    table.every((row) => row.substrate === ROUTE_SUBSTRATE[ROUTE]) &&
+    `diagnostics come from the ${SUBSTRATE} route's own owners and named GPU metric`,
+    table.every((row) => row.substrate === SUBSTRATE) &&
       gpuMetrics.every(
         ({ samples, metric }) =>
-          (samples === 0 && metric === null) || (samples > 0 && metric === ROUTE_GPU_METRIC[ROUTE]),
+          (samples === 0 && metric === null) || (samples > 0 && metric === GPU_METRIC),
       ),
     JSON.stringify({
-      route: ROUTE,
-      expectedSubstrate: ROUTE_SUBSTRATE[ROUTE],
+      route: SUBSTRATE,
+      expectedSubstrate: SUBSTRATE,
       substrates: table.map((row) => row.substrate),
-      expectedMetric: ROUTE_GPU_METRIC[ROUTE],
+      expectedMetric: GPU_METRIC,
       gpuMetrics,
     }),
   );
@@ -586,32 +558,39 @@ async function sampleCloseZoomFill(page, hardware) {
   return out;
 }
 
-/** Polls the route's own residency owner through the one reader, so the two
- * routes' differing stats shapes are understood in exactly one place.
- *
- * Same readiness contract as before: resident records and no pending rebuild,
- * or throw after the same 30 s. Only the poll moved off the page — this reads
- * the stats seam the owner already publishes, exactly as the previous in-page
- * predicate did, and it names the last reading when it gives up. */
+/** Residency can finish while a frame is in flight; require a later completed
+ * presentation to consume its final publication before measuring the workload. */
 async function waitForGrassReady(page) {
   const deadline = Date.now() + 30000;
-  for (;;) {
-    const grass = grassReading(
-      await page.evaluate(() => window.__game?.stats?.().renderStats?.terrain?.grass ?? null),
-    );
-    if (grass && grass.recordCount > 0 && grass.rebuild?.pending !== true) return;
-    if (Date.now() > deadline)
-      throw new Error(
-        `grass never became resident on the ${ROUTE} route: ${JSON.stringify(grass)}`,
-      );
+  let completed = null;
+  let last = null;
+  while (Date.now() < deadline) {
+    const state = await page.evaluate(() => {
+      const stats = window.__game?.stats?.().renderStats;
+      return { frameId: stats?.presentedFrameId, grass: stats?.terrain?.grass };
+    });
+    const grass = grassReading(state.grass);
+    last = { frameId: state.frameId, grass };
+    const generation = grass?.rebuild?.requestedGeneration;
+    if (
+      grass?.recordCount > 0 &&
+      grass.rebuild?.pending === false &&
+      Number.isFinite(generation) &&
+      state.frameId > 0
+    ) {
+      if (completed?.generation === generation && state.frameId > completed.frameId) return;
+      completed ??= { generation, frameId: state.frameId };
+      if (completed.generation !== generation) completed = { generation, frameId: state.frameId };
+    } else completed = null;
     await page.waitForTimeout(50);
   }
+  throw new Error(`grass never reached a completed TypeGPU publication: ${JSON.stringify(last)}`);
 }
 
 // Continuous zoom sweep: the churn the pan phase can't see. A zoom-coupled
 // grass rebuild key once rebuilt every frame while zooming (David's "still
 // slow" failure mode), so this phase pins the interaction.
-async function sampleCameraZoomSweep(page, hardware) {
+async function sampleCameraZoomSweep(page) {
   await page.evaluate(async () => {
     const cam = window.__cam;
     cam.zoom = 3.0;
@@ -707,18 +686,18 @@ async function sampleCameraPan(page, hardware) {
         last = next;
         gpu.push(window.__perfGpuReading());
       }
+      const endpointFrame = window.__game.stats().renderStats.presentedFrameId;
       cam.setViewCenter(startX + distance, y);
       cam.clampView?.();
       await raf();
       const endTarget = [...cam.params().target];
-      const submitted = window.__game.stats().renderStats.camera.camera3d.target;
       return {
         gpu,
         seed,
         raf: frameMs,
         startTarget,
         endTarget,
-        submitted,
+        endpointFrame,
         elapsedMs: performance.now() - started,
         actualDistanceM: Math.hypot(endTarget[0] - startTarget[0], endTarget[1] - startTarget[1]),
       };
@@ -730,18 +709,36 @@ async function sampleCameraPan(page, hardware) {
     },
   );
   await waitForGrassReady(page);
+  // End-point publication is outside the sampled timing window. A browser rAF
+  // can precede the asynchronous GPU presentation that consumes its camera.
+  const endpoint = await page.waitForFunction(
+    ({ target, frameId }) => {
+      const stats = window.__game.stats().renderStats;
+      const submitted = stats.camera?.camera3d?.target;
+      return (
+        stats.presentedFrameId > frameId &&
+        submitted &&
+        target.every((value, axis) => Math.abs(value - submitted[axis]) < 0.01) &&
+        submitted
+      );
+    },
+    { target: sampled.endTarget, frameId: sampled.endpointFrame },
+    { timeout: 30000 },
+  );
+  const submitted = await endpoint.jsonValue();
+  await endpoint.dispose();
   const after = grassReading(
     await page.evaluate(() => window.__game.stats().renderStats.terrain?.grass ?? null),
   );
   const gpu = gpuSamples(sampled.gpu, sampled.seed);
   return {
-    route: ROUTE,
+    route: SUBSTRATE,
     distanceM: PAN_DISTANCE_M,
     actualDistanceM: sampled.actualDistanceM,
     elapsedMs: sampled.elapsedMs,
     startTarget: sampled.startTarget,
     endTarget: sampled.endTarget,
-    submitted: sampled.submitted,
+    submitted,
     durationMs: PAN_DURATION_MS,
     rafMedianMs: round(median(sampled.raf)),
     rafP95Ms: round(percentile(sampled.raf, 0.95)),
@@ -852,55 +849,12 @@ async function sampleWheelBurst(page, hardware) {
   };
 }
 
-// --- Harness-owned readers ------------------------------------------------
-// The readers below belong to this gate alone. The three exported ones are
-// exported only so the CPU tests can pin them; nothing in production, and no
-// other scene, imports them. They exist because the two routes publish the same
-// real measurements under different owners, and they retire with the route fork
-// at the M9 cutover.
-
-/** The routes this gate knows how to read. A mistyped selection is a run aimed
- * at nothing, not a request for the default: rejecting it is what stops a
- * `VERIFY_BATTLE_ROUTE=rwa` run from reporting the incumbent source renderer's
- * numbers under the raw world's name. */
-export function assertKnownRoute(route) {
-  if (Object.hasOwn(ROUTE_SUBSTRATE, route)) return route;
-  throw new Error(
-    `VERIFY_BATTLE_ROUTE must be "source" or "raw" (unset means source), not ${JSON.stringify(route)}`,
-  );
-}
-
-/** The route's grass diagnostics, normalised to the columns this gate reads.
- *
- * Both routes measure the same real content, under different owners: the source
- * renderer flattens the residency owner into its blade-field CPU mirror, while
- * the selected raw world keeps that owner under `residency`, publishes the
- * record counts its GPU layers actually hold, and publishes the visibility its
- * route/draw obey — it owns no CPU tier, triangle or thinning mirror at all, so
- * those columns are absent rather than zero, and none of them is floored.
- * A shape the selected route does not actually publish reads as null here and
- * fails this gate's floors; it is never answered from the other route.
- * One owner for both branches, retired at the M9 cutover.
- */
-export function grassReading(grass, route = ROUTE) {
+/** Read the production residency and submitted GPU layer counts. */
+export function grassReading(grass) {
   if (!grass || typeof grass !== "object") return null;
-  if (route === "source")
-    return {
-      enabled: grass.enabled === true,
-      recordCount: finiteCount(grass.recordCount),
-      submittedTriangles: finiteCount(grass.submittedTriangles),
-      tierRecords: tierColumn(grass.tiers, "records"),
-      tierDroppedByThinning: tierColumn(grass.tiers, "droppedByThinning"),
-      thinnedRecords: finiteCount(grass.thinnedRecords),
-      detail: grass.detail ?? null,
-      baseSample: grass.baseSample ?? null,
-      focusSample: grass.focusSample ?? null,
-      rebuild: grass.rebuild ?? null,
-    };
   const { residency, visibility, layers } = grass;
   if (!residency || !visibility || !Array.isArray(layers) || layers.length !== 2) return null;
-  // The focus layer's records reach the ground only while it is visible, which
-  // is the same window the source merges its ring counts in. Visibility comes
+  // The focus layer's records reach the ground only while it is visible. Visibility comes
   // from the prepared state, never from records a disabled layer still holds.
   const ringVisible = visibility.ring === true;
   const base = finiteCount(layers[0]?.recordCount);
@@ -919,17 +873,8 @@ export function grassReading(grass, route = ROUTE) {
   };
 }
 
-/** Reduces per-frame GPU readings to the samples the route can honestly claim.
- *
- * The source value is an asynchronous render-pass timestamp sum belonging to no
- * identified frame, so every read of it is the reading it has always been. The
- * raw value is one completed frame's own submission span, which stays on the
- * stats seam until a newer frame completes: reading it again is the same
- * measurement, not a second one, so it counts once per distinct frame identity.
- * The reading cached before the window opened belongs to a pre-window frame and
- * is seeded out. A missing measurement is dropped, never counted as zero.
- */
-export function gpuSamples(readings, seed, route = ROUTE) {
+/** Count each completed submission once, excluding the pre-window reading. */
+export function gpuSamples(readings, seed) {
   const ms = [];
   const metrics = new Set();
   const seen = new Set();
@@ -937,18 +882,14 @@ export function gpuSamples(readings, seed, route = ROUTE) {
     Number.isFinite(reading?.frameId) && Number.isFinite(reading?.submissionId)
       ? `${reading.frameId}:${reading.submissionId}`
       : null;
-  if (route !== "source") {
-    const seeded = identity(seed);
-    if (seeded !== null) seen.add(seeded);
-  }
+  const seeded = identity(seed);
+  if (seeded !== null) seen.add(seeded);
   for (const reading of readings) {
     const value = reading?.ms;
     if (typeof value !== "number" || !Number.isFinite(value) || value < 0) continue;
-    if (route !== "source") {
-      const key = identity(reading);
-      if (key === null || seen.has(key)) continue;
-      seen.add(key);
-    }
+    const key = identity(reading);
+    if (key === null || seen.has(key)) continue;
+    seen.add(key);
     ms.push(value);
     if (reading.metric) metrics.add(reading.metric);
   }
@@ -959,15 +900,6 @@ export function gpuSamples(readings, seed, route = ROUTE) {
 
 function finiteCount(value) {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
-}
-
-function tierColumn(tiers, key) {
-  if (!tiers) return null;
-  return {
-    near: tiers.near?.[key] ?? 0,
-    mid: tiers.mid?.[key] ?? 0,
-    far: tiers.far?.[key] ?? 0,
-  };
 }
 
 function median(values) {

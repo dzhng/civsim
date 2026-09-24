@@ -1,5 +1,0 @@
-No concrete defects found in the current `fullKit` clip-union framing.
-
-Verified existing pose owners, loaded rig/animation/mesh shapes, Vite source URL resolution, authored times, capture phases, and stable per-clip camera bounds. CPU inspection covered 144 role-bound clips and 1,794 poses; all bounds were finite and nonzero.
-
-Figure cards excluded as requested. No files changed or browser opened; visual output was not verified.

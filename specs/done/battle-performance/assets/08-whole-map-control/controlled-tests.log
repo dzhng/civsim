@@ -1,9 +1,0 @@
-
- RUN  v4.1.9 /Users/david/dev/game-battle-performance-spec/apps/battle-perf-lab/src/shadow-control
-
-
- Test Files  1 passed (1)
-      Tests  6 passed (6)
-   Start at  03:31:55
-   Duration  200ms (transform 90ms, setup 0ms, import 109ms, tests 5ms, environment 0ms)
-

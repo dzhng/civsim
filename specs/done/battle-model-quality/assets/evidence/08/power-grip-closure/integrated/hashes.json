@@ -1,7 +1,0 @@
-{
-  "packages/soldier-assets/bake/blender-human-anatomy.py": "9befd832204514358296271431a7fca13c7ba1145539bd0a64fca8c81de21031",
-  "packages/soldier-assets/assets/source/human-anatomy/human-anatomy.blend": "6775e9840d6c2b2e59e8454db22c815a336503464e12efe1eebd6e20aea2099c",
-  "packages/soldier-assets/assets/source/human-anatomy/human-anatomy.glb": "7547ccbd948e385b9044525ddbb4b8b1d5df750890156246e9dbd6dd3e92d795",
-  "packages/soldier-assets/assets/source/heavy-kit/heavy-kit.blend": "51cc33e8b4b7b02b6644b71e71aea2c35adfc0ee5fba2438894d5e1255bb5429",
-  "packages/soldier-assets/assets/source/heavy-kit/heavy-kit.glb": "3c53bc08ba7d4e9f4066e89c23d0d383a03afb9dd945bf2c2375423b4f9431b7"
-}

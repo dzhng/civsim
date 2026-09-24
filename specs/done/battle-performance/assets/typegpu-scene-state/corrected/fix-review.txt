@@ -1,1 +1,0 @@
-No actionable regressions were found. The change preserves the distinction between uploaded and prepared cameras while carrying admitted poses across crowd replacement. All 22 lifecycle tests passed.

@@ -1,1 +1,0 @@
-No actionable issues found in the two-file diff. Shared campaign/battle tint handling and full-water preservation remain intact; the added TSL expressions appear valid and reasonably scoped. Review was static only: no GPU execution or file edits.

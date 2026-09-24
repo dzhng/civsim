@@ -1,1 +1,0 @@
-{"pid": 54344, "state": "resumed after validation diagnostic", "command": "claude -p --model opus --effort high --tools Read,Grep,Glob --permission-mode dontAsk --output-format text"}

@@ -1,7 +1,0 @@
-No confirmed functional defects found in the current source.
-
-- Earlier issues are addressed: small skirmisher shield, archer hood, nocked arrow, and rejection of unsupported weapon families.
-- Release visibility is authored: arrow disappears at release; javelin disappears and regrows during final recovery. `sword-effort` shows the sword while hiding the javelin or crew rammer.
-- **Inspection coverage gap:** [blender-ranged-foot.mjs:13](/Users/david/dev/game-battle-model-quality/web/scenes/models/blender-ranged-foot.mjs:13) samples neither `sword-effort` nor late recovery. Its recovery sample is phase `.35`, before javelin restoration begins at `20/24 ≈ .833`. The sheet therefore cannot verify sidearm exclusivity or projectile restoration.
-
-**Verdict: source review clean, with that coverage gap.** Manual-candidate status and `presentation: null` are appropriate here. No edits, Blender, browser, or GPU execution; exported behavior remains unverified.

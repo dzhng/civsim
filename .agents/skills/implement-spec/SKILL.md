@@ -47,15 +47,15 @@ depends on prior work.
    Never weaken an existing default gate or repin a failing contract without
    proving the old contract is wrong.
 5. **Review the change list and clean up after every pass, before committing.**
-   Read `git status`/`git diff --stat` line by line and account for every path:
-   one-off probes, shot scripts, scratch `.mjs`/`.tmp` files, `nohup.out`,
-   ad-hoc screenshot dirs, and SPIKE/debug notes never enter a commit — scratch
-   belongs in the job dir (`$CLAUDE_JOB_DIR/tmp`) or, for agents without that
-   env (codex, other harnesses), the repo's gitignored `/throwaway/` folder;
-   review evidence belongs in the spec's `assets/`; anything else gets deleted.
-   A file you can't name the durable purpose of does not ship. Delegated agents
-   leak these; the integrating reviewer re-checks the merged tree with the same
-   eye.
+   Inspect every added path and its byte/line cost. Raw reports, logs, agent
+   transcripts, traces, patches, probe scripts, candidate renders and comparison
+   dumps stay in gitignored `throwaway/`, even when called "evidence" or "final".
+   Commit only source, maintained tests/fixtures, canonical snapshot baselines,
+   original reference inputs and concise conclusions. A spec assets folder is
+   not an exception. Keep a generated artifact only when a maintained consumer
+   requires it or the user explicitly requests that deliverable. Before commit,
+   remove intermediate artifacts and their stale links; check delegated output
+   by the same rule. Never copy an entire run directory into the spec.
 
    Sizing the pass — measuring what it cost and reworking it when the line count
    is out of proportion to the behaviour it delivers — belongs to the shape pass
@@ -89,7 +89,7 @@ depends on prior work.
 
    A checkpoint cleans both plan and code before more feature work:
    - Shorten the README handoff to one current pickup, one priority order, and
-     one compact evidence ledger; move play-by-play into slice files or assets.
+     one compact outcome summary; discard play-by-play rather than relocating it.
    - Correct completed/rejected/next markers; delete stale TODOs, stale
      acceptance claims, duplicated status sections, and obsolete prompts.
    - Re-rank remaining work so the next red/high-risk contract is explicit, and
@@ -170,8 +170,8 @@ depends on prior work.
   pointers, not copied inventories.
 - For long specs, keep the spec itself reviewable as an invariant. Do not let
   the README become a transcript of every attempt; keep one current handoff, one
-  TODO/graph, and one compact evidence ledger, with details in slice files or
-  assets.
+  TODO/graph, and one compact outcome summary; raw evidence stays in ignored
+  scratch.
 - **Human checkpoints never block.** At a slice's review or sign-off gate, open
   the relevant shots with [preview-shots](../preview-shots/SKILL.md), state the
   decision and the options, and give the user ~5 minutes to weigh in — keep

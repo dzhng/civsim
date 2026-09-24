@@ -1,9 +1,0 @@
-
- RUN  v4.1.9 /Users/david/dev/game-battle-typegpu-scene-state/apps/battle-perf-lab/src/live
-
-
- Test Files  4 passed (4)
-      Tests  57 passed (57)
-   Start at  18:41:01
-   Duration  287ms (transform 392ms, setup 0ms, import 503ms, tests 40ms, environment 0ms)
-

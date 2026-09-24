@@ -1,9 +1,0 @@
-{
-  "hypothesis": "Broad prominence modulation along dominant folded contours will break repetitive ridge walls into varied shoulders.",
-  "candidate": "Multiply only ridge60 contribution by 0.4 + 1.2 * campaignNoise(wx / 43 + 37.1, wy / 43 - 19.7).",
-  "controls": "Same source, coast, footprint, material, light, viewport1280x800, DPR1, frozen reference, SwiftShader, baseline route/zoom. Ground-centered camera target follows height as in baseline.",
-  "verdict": "Rejected; original is less wrong. Main left Alpine horseshoe grows taller and steeper; the same smooth enclosing wall and rounded ribs persist. Fixture silhouette rises but remains a smooth steep wall. This cannot change folded-contour topology.",
-  "confidence": "high",
-  "verification": "20 focused CPU guards pass; typecheck passes. Both changed images captured with snapCheck; no GPU validation/page errors. No baselines blessed. Negative verdict requires no acceptance review.",
-  "retainedCode": false
-}

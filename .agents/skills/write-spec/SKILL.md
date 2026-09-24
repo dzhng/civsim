@@ -193,20 +193,13 @@ features live in:
   instructions for the next pass.
 - `specs/<feature>/slices/<NN>-<name>.md` — one independently verifiable
   slice per file.
-- `specs/<feature>/visualizations/*.html` — roadmap diagrams, prototypes,
-  harness mockups, generated reports, contact sheets, or other
-  human-reviewable artifacts.
-- `specs/<feature>/assets/` — reference images, fixtures, captures, and
-  other inputs needed to judge the work.
+- `specs/<feature>/visualizations/*.html` — maintained explanatory diagrams.
+- `specs/<feature>/assets/` — original reference inputs and required fixtures.
 
-For visual work, keep feature-owned visual evidence in the spec folder:
-inspiration images, reference screenshots, archived baselines, comparison
-contact sheets, generated candidate captures, and critique artifacts. If those
-files start outside the spec folder, copy them into the spec folder when they
-become part of the feature's review context. Product snapshot folders may still
-hold the active regression baselines their harnesses own, but do not rely on
-those mutable outputs or external paths as the only record of what the feature
-was judged against.
+Generated review output belongs in gitignored `throwaway/`, not the spec.
+Apply the artifact retention rule in [implement-spec](../implement-spec/SKILL.md).
+Keep canonical screenshot baselines with their maintained harness; record review
+conclusions and limitations concisely without copying raw runs into the repo.
 
 ## Slice File Contract
 

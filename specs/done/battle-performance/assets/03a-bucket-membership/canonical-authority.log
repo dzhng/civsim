@@ -1,9 +1,0 @@
-
- RUN  v4.1.9 /Users/david/dev/game-battle-performance-spec/apps/battle-perf-lab
-
-
- Test Files  1 passed (1)
-      Tests  1 passed (1)
-   Start at  09:53:15
-   Duration  154.20s (transform 70ms, setup 0ms, import 87ms, tests 154.05s, environment 0ms)
-

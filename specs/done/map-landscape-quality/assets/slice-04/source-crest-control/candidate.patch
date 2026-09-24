@@ -1,6 +1,0 @@
---- a/web/src/campaign/terrain.ts
-+++ b/web/src/campaign/terrain.ts
-@@ -157,2 +157 @@
--        const crest = 1 - Math.abs(vnoise2(gx / 3.5 + 3.3, gy / 3.5 + 9.1) * 2 - 1);
--        this.height[i] = 5 + Math.min(ridgeD[i], 6) * 3.9 * (0.35 + 0.95 * crest);
-+        this.height[i] = 5 + Math.min(ridgeD[i], 6) * 3.9;

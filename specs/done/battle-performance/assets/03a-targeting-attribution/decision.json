@@ -1,5 +1,0 @@
-{
-  "chosenExperiment": "defer-friend-bearing-until-retained-and-consumed",
-  "notAdoptedYet": true,
-  "reason": "Measured discarded angles, preserving input vectors and all selection rules; smaller exact-semantics surface than grid rewrite."
-}

@@ -1,9 +1,0 @@
-
- RUN  v4.1.9 /Users/david/dev/game-battle-native-draw-observation/apps/battle-perf-lab/src/live
-
-
- Test Files  4 passed (4)
-      Tests  61 passed (61)
-   Start at  20:14:41
-   Duration  295ms (transform 386ms, setup 0ms, import 512ms, tests 45ms, environment 0ms)
-

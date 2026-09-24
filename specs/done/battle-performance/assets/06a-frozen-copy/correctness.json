@@ -1,9 +1,0 @@
-{
-  "complete": true,
-  "events": 32,
-  "playbackComparisons": 1493760,
-  "poseComparisons": 48192,
-  "sharingAndFrozenStateExact": true,
-  "traceSha256": "b1755d4c5ef1b9af4e3e39a96996a52fe460fbaade02f48d0d34bcbbf25eb986",
-  "scope": "Exact full timeline histories/playbacks and frozen sharing after each actual observation; old evaluator sampled every31st soldier at3 boundaries. CPU semantics only, not GPU motion acceptance"
-}

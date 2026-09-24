@@ -1,1 +1,0 @@
-No actionable defects were found. Type checking, unit tests, linting, and the production build passed; the bake suite reached an environment-related socket permission failure after its initial checks passed.

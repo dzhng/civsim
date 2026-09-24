@@ -1,1 +1,0 @@
-Independent codex review: No actionable regressions were identified. All 18 facade tests passed when explicitly included; real-GPU behavior and performance were not verified by that reviewer. Root separately ran all 21 live tests and both live TypeScript configurations.

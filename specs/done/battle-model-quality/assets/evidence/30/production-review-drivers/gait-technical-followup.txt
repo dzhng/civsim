@@ -1,3 +1,0 @@
-Resolved. Both `.test.ts` files import Vitest’s `test` and match the standard `tests/**/*.test.ts` include. The documented JS-boundary `@ts-expect-error` imports introduce no parallel declarations.
-
-No remaining concrete issue with the prior finding. No files modified or GPU checks run; integration gate remains pending.

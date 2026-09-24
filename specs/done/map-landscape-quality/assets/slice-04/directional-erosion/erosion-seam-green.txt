@@ -1,8 +1,0 @@
-
- RUN  v4.1.9 /Users/david/dev/game-landscape-material-regions/web
-
-
- Test Files  2 passed (2)
-      Tests  7 passed (7)
-   Start at  12:51:30
-   Duration  646ms (transform 64ms, setup 109ms, import 52ms, tests 357ms, environment 318ms)

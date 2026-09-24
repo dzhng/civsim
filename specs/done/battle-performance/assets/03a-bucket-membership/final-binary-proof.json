@@ -1,5 +1,0 @@
-{
-  "measuredEqualsFinal": true,
-  "sha256": "e9f4f080ef07501f43c9c8460205b0b36d38db20b328999ae50020fffe6e3030",
-  "reason": "Final source derives the bit mask from its fixed array length; emitted optimized WASM is byte-identical."
-}

@@ -1,9 +1,0 @@
-{
-  "samples": 109,
-  "lowerLegRestHeightCutoffMeters": 0.5,
-  "sampledButtToLowerLegSurfaceMinimumMeters": 0.017752476036548615,
-  "triangleSamplingBoundMeters": 0.016113383354239202,
-  "conservativeClearanceLowerBoundMeters": 0.001639092682309412,
-  "closestFrame": 22.75,
-  "method": "Every butt triangle sampled with ten subdivisions; nearest skinned shin/foot surface below rest z0.5. Subtract maximum cell edge as conservative bound."
-}

@@ -17,7 +17,7 @@ bounded placement owners. Visual abundance is a retained limitation.
 | Lifetime | Native headful ten-cycle verification passes; software startup timeout retained as historical evidence |
 | Raw owner retirement | Committed retirement; repaired native raw lab suite and software model/water repeats pass |
 | Latest water / shared crown pins | Both water images and updated crown fixture repeat exactly |
-| Campaign regional coverage | Aegean, dry south and wet north captured after the coastal clipping fix; repeat status belongs to the regional evidence report |
+| Campaign regional coverage | Aegean, dry south and wet north captured after the coastal clipping fix; no exact regional repeat was recorded |
 | Battle regional coverage | Authored A/B/C and forest boundary repeat exactly. Three generated vistas accepted with flat-lane and weak distant-relief limitations; their final repeat passes with zero changed pixels |
 | Native engineering measurements | Current 30k passes all 19 checks; native full-game timing measured. Paired release acceptance remains unverified without comparable baseline |
 | Paired hardware baseline | No valid comparable archive; clean main build was unavailable because its dependency set lacked unplugin-typegpu. Paired acceptance is unproven |
@@ -29,9 +29,9 @@ flank-view expansion was dropped after its grass-publication wait failed; it
 supplies no acceptance evidence and creates no further coverage obligation.
 The retained three generated vistas preserve the existing gameplay/catalog
 checks, with flat lanes and weak distant mountain character documented rather
-than hidden by a new art pass. The final three-vista repeat is recorded in the battle evidence report.
+than hidden by a new art pass. All three vistas repeated with zero changed pixels.
 
-The tiny coarse/detail boundary pinholes remain documented in the regional
+The tiny coarse/detail boundary pinholes were observed in the regional
 probe, alongside sparse ground detail and simplified mountain/shore forms.
 These limitations are retained under the instruction to stop isolated polish.
 The original reference-quality floor and paired release-performance acceptance

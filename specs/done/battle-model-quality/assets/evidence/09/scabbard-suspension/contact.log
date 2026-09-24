@@ -1,6 +1,0 @@
-00:00.366  blend            | Read blend: "/Users/david/dev/game-battle-model-quality/packages/soldier-assets/assets/source/heavy-kit/heavy-kit.blend"
-00:00.444  reports          | WARNING Library file, loading empty scene
-Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
-{"samples": 448, "body_intersections": [], "max_influences": 4, "max_weight_sum_error": 5.21540641784668e-08}
-
-Blender quit

@@ -1,1 +1,0 @@
-Fresh rock_transverse_eyes: slightly less wrong near, sharper short marks but scattered scratches. Far becomes smoother/uniform; Alps/Italy improvement very subtle and mostly smoother tone. Neither matches reference coherent readable strata. Highconfidence near/far difference, medium regional preference. Do not claim material visual improvement.

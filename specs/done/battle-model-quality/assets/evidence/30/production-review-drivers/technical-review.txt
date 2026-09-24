@@ -1,5 +1,0 @@
-- **P2 — Optional melee roles abort both drivers.** [soldier-sheets.mjs:35](/Users/david/dev/game-mounted-family-delivery/web/shots/models/scripts/soldier-sheets.mjs:35) requires `melee`; [soldier-animation.mjs:32](/Users/david/dev/game-mounted-family-delivery/web/shots/models/scripts/soldier-animation.mjs:32) only makes `release` optional. The loaded manifest contract explicitly permits `melee: null`. Such an appearance throws and prevents subsequent captures. Handle absent melee bindings as inapplicable.
-
-- **P2 — Valid static clips are rejected.** [_soldier-capture.mjs:29](/Users/david/dev/game-mounted-family-delivery/web/shots/models/scripts/_soldier-capture.mjs:29) requires positive duration for every role. The animation and presentation contracts permit zero-duration, single-sample `ready`/`atEase` clips, and the workbench supports them. Cards and sheets therefore fail on valid static poses. Restrict positive-duration requirements to motion roles.
-
-All four CPU tests passed. No files modified or GPU work performed; visual acceptance remains pending.

@@ -1,1 +1,0 @@
-No actionable defects were identified in the diff. Both shadow-control test suites passed (11 tests total), and the new shadow-control TypeScript configuration passed typechecking. GPU visual parity was not verified.

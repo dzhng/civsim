@@ -1,3 +1,0 @@
-Fresh review rejected the first material correction: the shallow halo remained too soft, regional surf was absent, fixture foam became small square flecks, and rivers and the lake remained too uniform. Depth separation improved but did not meet the reference material floor. All four frozen frames were reviewed. The candidate was not re-blessed.
-
-The next correction uses multiscale noise instead of single lattice noise for scattering and foam; widens the broken surf response so it survives kilometre-scale source distance and regional framing; and adds small bounded depth-color variation. Geometry, palette, terrain and environment stay frozen. This is a response correction, not new bathymetry.

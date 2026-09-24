@@ -1,5 +1,8 @@
 # Simulation cost and deterministic native execution
 
+Historical run artifacts have been removed. References to experiments below
+record past findings; they are not links to retained reports or captures.
+
 This work reduces repeated allocation and redundant geometry work while
 preserving the simulation's original state and visible battle timeline.
 David accepts a native 30k fighting tick of 35 ms and explicitly limits
@@ -63,7 +66,7 @@ no worker lifecycle, asynchronous command seam or snapshot transport ships.
 ## Verification and visual provenance
 
 The final integrated workspace suite passes 363 tests with zero failures
-and the same 12 ignored tests. The full [scaled sweep](assets/final-measurements.md) preserves original
+and the same 12 ignored tests. The full scaled sweep preserves original
 hashes at every size; absolute tick costs fall at all measured sizes.
 The strict final gate measured 35.017 ms in developed combat and exited 1:
 0.017 ms above its 35 ms threshold. This boundary result is reported alongside
@@ -71,30 +74,30 @@ the qualified 34.896 ms result David accepted; it does not justify further
 optimization under his explicit simplicity constraint. The actual standing
 command subsequently passes at 34.279 ms developed and 20.212 ms opening,
 with no code or threshold change between runs; both results are preserved
-in the [measurement record](assets/final-measurements.md). Existing serial tests,
+in the measurement record. Existing serial tests,
 1/2/8-thread identity oracles, independent review and the rebuilt-wasm
 comparison are recorded in the evidence assets. No simulation assertion,
 unit statistic or visual baseline was changed.
 
-The [original heavy-infantry timeline](assets/heavy-both-original.gif),
+The original heavy-infantry timeline,
 captured from the production heavy-both fixture on pre-task commit
-`2bef8193`, is the visual reference; see [provenance](assets/visual-baseline.md)
-and [comparison](assets/visual-comparison.md). The rebuilt
+`2bef8193`, is the visual reference; see provenance
+and comparison. The rebuilt
 final timeline and saved full-resolution frames match it byte for byte.
 The same older reference comparisons fail; those failures were preserved,
 not re-blessed. A force-trace smoke fixture also lacks CorridorClamp on the
-[original pre-task commit](assets/force-trace-baseline.txt); its assertion
+original pre-task commit; its assertion
 remains unchanged.
 
 
 ## Review and evidence
 
 The [final choices ledger](choices.md) records retained decisions in plain
-language. [Combined checks](assets/combined-verification.md),
-[weapon-repel identity](assets/tick05a-repel-identity.json),
-[qualified retained comparison](assets/tick05a-repel-revised-timing.json),
-[worker verdict](assets/worker-verdict.md) and
-[acceptance changes](assets/acceptance-changes.md) distinguish measured
+language. Combined checks,
+weapon-repel identity,
+qualified retained comparison,
+worker verdict and
+acceptance changes distinguish measured
 outcomes from the requirements they establish. Independent whole-feature
 code review found no actionable correctness or complexity defects.
 

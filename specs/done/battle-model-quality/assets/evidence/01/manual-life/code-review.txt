@@ -1,6 +1,0 @@
-The existing controls screenshot assertion is invalidated without a baseline update. No other actionable correctness defects were found in the four tracked changes; review was read-only and used no GPU.
-
-Review comment:
-
-- [P2] Refresh the controls snapshot for the new checkbox — /Users/david/dev/game-battle-model-quality/apps/renderer-lab/src/routes/battleModels.ts:49-49
-  The new visible checkbox changes the controls panel, but its tracked baseline remains unchanged. `battle-model-workbench.mjs:380` captures this panel with `threshold: 0` and `maxDiffRatio: 0`, so the existing controls snapshot check will fail. Update the controls baseline alongside this UI change.

@@ -1,5 +1,8 @@
 # debt-ledger — one owner per concept, repo-wide (closed 2026-09-03)
 
+Historical run artifacts have been removed. References to experiments below
+record past findings; they are not links to retained reports or captures.
+
 ## What shipped and why
 
 A read-only audit at `08d8c5fe` (2026-09-02) found the codebase clean at the
@@ -11,7 +14,7 @@ lab exhibit. Thirty-four slices, run in four parallel lanes over one day with
 Codex implementing and Claude orchestrating, moved every audited concept to one
 home and deleted the stale path in the same pass. The findings that drove it
 are in [audit.md](audit.md) (with the corrections recon made to them) and the
-readable ledger in [visualizations/audit-ledger.html](visualizations/audit-ledger.html);
+readable ledger in visualizations/audit-ledger.html;
 every decision the run made where the plan was silent is in
 [choices.md](choices.md), which is the review surface for the run.
 

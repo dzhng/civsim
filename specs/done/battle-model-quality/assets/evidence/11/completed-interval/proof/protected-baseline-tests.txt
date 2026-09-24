@@ -1,9 +1,0 @@
-$ vitest run tests/actionTimeline.test.ts tests/actionTimelineMounted.test.ts
-
- RUN  v4.1.9 /Users/david/dev/game-completed-interval-probe/web
-
-
- Test Files  2 passed (2)
-      Tests  46 passed (46)
-   Start at  03:26:24
-   Duration  165ms (transform 75ms, setup 91ms, import 72ms, tests 36ms, environment 0ms)

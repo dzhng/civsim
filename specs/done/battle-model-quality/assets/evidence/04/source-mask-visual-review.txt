@@ -1,4 +1,0 @@
-- Geometry, pose, and framing appear unchanged across all eight panels.
-- Changes are concentrated at the feet/ground-contact endpoints: the second sheet introduces saturated blue-violet coloring on the front-view feet and the leftmost tips in side views.
-- Other body and prop materials retain the same gray, beige, and muted green palette.
-- No new silhouette breaks, detached geometry, clipping, or background artifacts are visible.

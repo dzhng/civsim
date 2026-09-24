@@ -1,6 +1,0 @@
-{
-  "passed": false,
-  "error": "Error: Error while parsing WGSL: :36:63 error: expected '=' for assignment\nfn surface(world: vec2f, distance: f32) -> Surface {undefined return Surface(albedo,normal);}\n                                                              ^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"<unnamed> - Shader\"\"]).\n",
-  "stack": "Error: Error while parsing WGSL: :36:63 error: expected '=' for assignment\nfn surface(world: vec2f, distance: f32) -> Surface {undefined return Surface(albedo,normal);}\n                                                              ^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"<unnamed> - Shader\"\"]).\n\n    at http://localhost:5199/@fs/Users/david/dev/game-battle-pmrem-control/apps/battle-perf-lab/src/gpuAdmission.ts:14:20",
-  "pageErrors": []
-}

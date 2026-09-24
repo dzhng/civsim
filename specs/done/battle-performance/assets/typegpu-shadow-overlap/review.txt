@@ -1,6 +1,0 @@
-The mutation runner can report success for invalid GPU results, undermining its negative-control evidence. The 60 candidate unit tests and both TypeScript checks passed; hardware execution was not verified.
-
-Review comment:
-
-- [P2] Require valid numerical readbacks for mutation success — /Users/david/dev/game-battle-typegpu-shadow-overlap/apps/battle-perf-lab/candidates/typegpu/verify-shadow.mjs:51-51
-  With either mutation enabled, any `passed: false` report is accepted, including failures caused by GPU validation errors or nonfinite samples rather than the injected defect. Those failures are collected in the report and need not produce a Playwright page error. This can incorrectly certify that the mutation was detected. Require validation-free, finite readbacks and an actual numerical mismatch before accepting an expected failure.

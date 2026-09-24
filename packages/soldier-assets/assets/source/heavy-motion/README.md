@@ -22,5 +22,5 @@ frozen comparison silently takes newer gait keys while retaining old geometry.
 The study's ready pose is deliberately planted and static. Its walk calibration
 belongs to the saved comparison, not to current production cadence or acceptance.
 Ground checks do not establish natural joint shape, weapon contact
-or actual-speed visual quality; the [motion evidence](../../../../../specs/done/battle-model-quality/assets/evidence/11/heavy-walk/review.md)
+or actual-speed visual quality; the motion evidence
 owns those limits.

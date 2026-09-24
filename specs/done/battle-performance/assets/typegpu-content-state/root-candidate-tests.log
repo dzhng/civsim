@@ -1,9 +1,0 @@
-
- RUN  v4.1.9 /Users/david/dev/game-battle-typegpu-content-state/apps/battle-perf-lab/candidates/typegpu
-
-
- Test Files  11 passed (11)
-      Tests  67 passed (67)
-   Start at  19:19:39
-   Duration  608ms (transform 3.40s, setup 0ms, import 4.64s, tests 89ms, environment 1ms)
-

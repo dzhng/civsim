@@ -1,5 +1,8 @@
 # Reference provenance
 
+Historical run artifacts have been removed. References to experiments below
+record past findings; they are not links to retained reports or captures.
+
 ## The user's visual target
 
 The user-supplied [Rome II phalanx-versus-heavy screenshot](assets/reference-rome2-phalanx-vs-heavy.png)
@@ -21,11 +24,11 @@ The [official Steam gallery](https://store.steampowered.com/app/214950/Total_War
 was checked through its app screenshot listing on 2026-09-07. Two original
 1920×1080 promotional images are retained as supplementary references:
 
-- [Infantry melee](assets/references/steam/infantry-melee.jpg), gallery image 0,
+- Infantry melee, gallery image 0,
   key `b4ea26bb6fbe4625119fdb1fa48fda313b700b2d`: shoulder reinforcement,
   belted mail, hanging lower armor and raised hand/grip form. Nearby overlapping
   scales are a different surface, not the mail target.
-- [Linen layers and shield grip](assets/references/steam/linen-shield-grip.jpg),
+- Linen layers and shield grip,
   gallery image 1, key `ee35fcc92bddeacb5c0468f1a71c6054639a6fdc`: shoulder
   panels, skirt overlap, shield straps and spear grip from the back.
 

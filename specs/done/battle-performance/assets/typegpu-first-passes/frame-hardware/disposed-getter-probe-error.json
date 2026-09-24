@@ -1,8 +1,0 @@
-{
-  "report": {
-    "passed": false,
-    "error": "Error: TypeGPU frame disposed"
-  },
-  "errors": [],
-  "warnings": []
-}

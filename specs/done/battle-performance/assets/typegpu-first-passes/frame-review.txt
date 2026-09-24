@@ -1,1 +1,0 @@
-No actionable regressions were found. The shared policy preserves existing depth behavior, and the new diagnostics reflect texture allocation and disposal. All seven lifecycle tests and the TypeGPU candidate typecheck passed.

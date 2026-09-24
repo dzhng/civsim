@@ -1,5 +1,8 @@
 # Authored-model rendering budget follow-up
 
+Historical run artifacts have been removed. References to experiments below
+record past findings; they are not links to retained reports or captures.
+
 On 2026-09-08 David accepted completion of battle-model-quality with a
 documented performance follow-up, then asked that this spec own it. The original
 33 ms frame-time threshold remains unchanged and unmet; accepting the model
@@ -18,8 +21,8 @@ simulation framerates. GPU queue elapsed time includes submission gaps and must
 not be described as active GPU pass time or added to CPU time as independent cost.
 
 The model delivery retains the raw
-[heavy](../battle-model-quality/assets/evidence/15/actual-mesh-lod/usable-budget-heavy.json) and
-[medium](../battle-model-quality/assets/evidence/15/actual-mesh-lod/usable-budget-medium.json)
+heavy and
+medium
 reports. Treat those as a starting observation, not a clean-machine
 baseline or proof of the remaining bottleneck.
 

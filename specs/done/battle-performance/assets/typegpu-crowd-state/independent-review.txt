@@ -1,1 +1,0 @@
-The extraction preserves the raw audience’s diagnostic behavior and exposes the same implementation through TypeGPU without changing admission semantics. All five new TypeGPU tests passed; the raw-audience test run was blocked by filesystem permissions.

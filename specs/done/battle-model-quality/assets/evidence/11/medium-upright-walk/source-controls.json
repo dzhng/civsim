@@ -1,9 +1,0 @@
-{
-  "sourceMeshesAndNonWalkKeysExact": true,
-  "quarterFrameSamples": 109,
-  "lowerBodyMatrixMaxDelta": 0,
-  "palmToShaftLineMaxMeters": 3.508108069596754e-07,
-  "pikeButtMinimumHeightMeters": 0.11194968968629837,
-  "shieldOutwardNormalMinimumX": 0.9987528920173645,
-  "inheritedSoleMinimumHeightMeters": -0.002271356526762247
-}

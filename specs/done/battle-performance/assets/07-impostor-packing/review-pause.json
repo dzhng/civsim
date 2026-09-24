@@ -1,1 +1,0 @@
-{"pid": 40428, "state": "resumed after ABBA", "command": "claude -p --model opus --effort high --tools Read,Grep,Glob,Bash --permission-mode dontAsk --output-format text"}

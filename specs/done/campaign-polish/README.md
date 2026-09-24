@@ -1,5 +1,8 @@
 # Campaign Polish (closed)
 
+Historical run artifacts have been removed. References to experiments below
+record past findings; they are not links to retained reports or captures.
+
 ## What shipped
 
 The WebGPU campaign map of Italy reads as a living, legible strategy map rather
@@ -173,7 +176,7 @@ to fix) and the result (what it looks like now).
 
 **The requirement — user feedback** (`assets/user-feedback/`, four real
 in-game screenshots the user supplied; see
-[`assets/user-feedback/README.md`](assets/user-feedback/README.md) for the
+`assets/user-feedback/README.md` for the
 per-image defect list):
 
 - `01-rome-ostia-label-road.png` — coastal Ostia/Portus risked losing its label

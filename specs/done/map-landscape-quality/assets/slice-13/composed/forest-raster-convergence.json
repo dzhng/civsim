@@ -1,8 +1,0 @@
-{
-  "coarseResolutionM": 0.5,
-  "fineResolutionM": 0.25,
-  "coarseForestUnionM2": 20931.5,
-  "fineForestUnionM2": 20929.3125,
-  "coarseWesternCoverageFraction": 0.023493108336349378,
-  "fineWesternCoverageFraction": 0.023476614338279647
-}

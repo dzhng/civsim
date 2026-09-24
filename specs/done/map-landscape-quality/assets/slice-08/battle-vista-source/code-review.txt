@@ -1,3 +1,0 @@
-Independent Codex read-only review, 2026-09-15
-
-No actionable findings in the read-only cross-layer review. Physical height and water/passability expressions remain unchanged, production consumers consistently use the renamed channel, and saturation follows GPU interpolation. No tests or GPU validation were run; visual acceptance remains pending.

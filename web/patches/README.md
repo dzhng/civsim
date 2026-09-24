@@ -12,6 +12,3 @@ source and the non-minified WebGPU bundles, including the application's exported
 `three/webgpu` entry. Unused minified direct-import variants are not patched.
 Remove it when an upstream version releases these same listener roots and passes
 the CPU ownership regression plus campaign/battle collection and memory cycles.
-
-The [retirement evidence](../../specs/done/map-landscape-quality/assets/slice-15-retention/README.md)
-records the retained heap paths and the production collection/memory control.

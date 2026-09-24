@@ -1,5 +1,0 @@
-# Tactical view-fit shadow candidate
-
-Hardware Chrome, actual map-A frozen tick30, 1440×900 CSS at DPR2, unchanged assets/lighting/grass. Candidate `bc2052af` uses the corrected conservative view intersection. At this framing its 1024 map spans 238.42 world units (0.23283 per texel), with normal bias0.04889. The former whole-map fit spans2964.44 units (2.89496 per texel).
-
-[Shadows off](off-1.png) and [candidate single map](single-1.png) repeat exactly within their own runs, with no browser errors. [On/off pixel deltas](shadow-delta.json) show changed front/middle-rank pixels. Root sees directional ground shadows under the ranks; independent review also prefers the single-map image for grounding. It sees attached screen-right shadows and no obvious cutoff, severe acne or detached shapes, but flags conspicuous parallel bands where row shadows merge. Fine contact remains uncertain at this scale. No motion stability, full scene coverage, performance or net-shadow acceptance follows from these stills. The candidate remains isolated.

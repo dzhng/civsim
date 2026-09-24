@@ -1,5 +1,8 @@
 # Shared campaign and battle landscapes
 
+Historical run artifacts have been removed. References to experiments below
+record past findings; they are not links to retained reports or captures.
+
 The campaign and battle maps share terrain character: connected relief,
 slope-aware stone and grass, coherent vegetation, and consistent water and
 lighting. Strategic geography remains campaign-owned; battle sites preserve
@@ -72,14 +75,10 @@ regional probe identifies tiny coarse/detail raster pinholes. These are recorded
 limitations under the user's direction to stop isolated polishing, not a claim
 of perfect seam-free or reference-equivalent output.
 
-Current native engineering measurements are recorded, but a genuine comparable
-archived full-game baseline was unavailable. Paired release-performance
-acceptance therefore remains unverified. See the [final integration record](assets/closeout-status.md),
-[regional evidence](assets/slice-15/final-regions/README.md),
-[battle evidence](assets/slice-15/final-battle/README.md),
-[native workload evidence](assets/slice-15/30k-current/README.md) and
-[lifetime evidence](assets/slice-15/native-lifecycle/README.md) for their actual
-scope and results.
+Native engineering checks passed during implementation, but a comparable
+archived full-game baseline was unavailable. Paired release-performance acceptance
+remains unverified. The [final integration record](assets/closeout-status.md)
+summarizes the outcomes and limitations; raw run artifacts have been removed.
 
 ## Avoid repeating these dead ends
 

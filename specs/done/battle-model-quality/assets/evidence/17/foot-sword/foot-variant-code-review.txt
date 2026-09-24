@@ -1,3 +1,0 @@
-No concrete correctness or maintainability findings in the scoped changes.
-
-Source-only review; visual fit and appearance remain unverified. No files edited or Blender, GPU, browser, or asset regeneration run.

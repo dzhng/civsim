@@ -1,9 +1,0 @@
-{
-  "baseCommit": "1ae00b66546308ec76b20efec854aec41d9345d3",
-  "baseBlendSha256": "6ac9314560a7871fb8638c7efce652b8d8ea72091fa81b5c546be45d62b3dc0f",
-  "baseGlbSha256": "2aa531af1e895a9f870a3e8d1fac72a5d05090e979f6f14fe2c108591ae2cbef",
-  "deathDonorBlendSha256": "cbdeb8d6879c0607aaf173df4ba524a249ed427ed3e371651a2003a27e035300",
-  "composedBlendSha256": "5eb5e4d2093d198b070c3b61230e657bb699829b37cd1238d3b954affa9b4c05",
-  "composedGlbSha256": "b5d9123c0b84b0def4b59449d5ff8fdd31dc4fe0aa8d2569f5d43bc9b045c8b1",
-  "tangentPinning": false
-}

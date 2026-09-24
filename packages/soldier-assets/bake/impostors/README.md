@@ -25,8 +25,8 @@ before comparing a complete alternative backend.
 From the repository root, with an exclusive GPU slot:
 
 ```
-bun run --cwd web bake:impostors --classes 0,3,6 --out specs/done/battle-performance/assets/02-offline-atlas
-bun run --cwd web bake:impostors --classes 0,3,6 --out specs/done/battle-performance/assets/02-offline-atlas --check
+bun run --cwd web bake:impostors --classes 0,3,6 --out throwaway/impostor-atlas
+bun run --cwd web bake:impostors --classes 0,3,6 --out throwaway/impostor-atlas --check
 ```
 
 The tool starts and closes its own authoring server/browser. The ordinary asset
@@ -79,7 +79,7 @@ upload boundary copies only views that do not span their backing buffer; exact
 buffers remain allocation-free. Packed mip loading therefore adds transient
 per-mip preparation copies for TypeGPU, not a native render fallback.
 
-[Fixture evidence](../../../../specs/done/battle-performance/assets/02-offline-atlas/README.md)
+Fixture evidence
 records both successful persisted-input controls and a strict fresh-source
 mismatch. Integrity hashes are exact; repeat GPU baking is not assumed to be
 bit deterministic. The `--check` gate remains exact and preserves a fresh variant

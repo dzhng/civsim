@@ -1,7 +1,0 @@
-   Compiling sim v0.1.0 (/Users/david/dev/game-battle-performance-spec/crates/sim)
-    Finished `release` profile [optimized] target(s) in 1.99s
-     Running `target/release/profile_tick canonical`
-fingerprint 0 1610507740289060947
-fingerprint 1 8204592236405777275
-fingerprint 30 12550627999673158208
-fingerprint 300 8552912210862605242

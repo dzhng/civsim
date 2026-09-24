@@ -1,5 +1,8 @@
 # Battle performance and TypeGPU rendering
 
+Historical run artifacts have been removed. References to experiments below
+record past findings; they are not links to retained reports or captures.
+
 Battles use one TypeGPU renderer, with readable default tactical shadows and a
 five-minute benchmark available from the game menu. The benchmark advances a real
 battle to its recorded contact state, then measures live combat while the camera
@@ -42,10 +45,10 @@ or presented as total frame-rate gains. Shared immutable material images reduced
 the measured logical image payload by **95%**, with pixel-identical comparison
 frames. Logical requested bytes are not physical VRAM.
 
-See [the replay evidence](assets/06a-transition-trace/README.md),
-[the frozen-copy evidence](assets/06a-frozen-copy/README.md),
-[image ownership evidence](assets/typegpu-shared-images/README.md), and the
-[final acceptance record](assets/closeout/README.md) for measurements and scope.
+See the replay evidence,
+the frozen-copy evidence,
+image ownership evidence, and the
+final acceptance record for measurements and scope.
 The user's closing criterion was measurable improvement plus the complete battle
 cutover; the original absolute 60 FPS target was explicitly superseded. Remaining
 frame-time spikes are reported, not treated as solved.
@@ -80,19 +83,19 @@ Moving existing coarse meshes closer saved GPU time but weakened pikes and body
 readability; that shortcut was rejected. A later component-preserving intermediate
 mesh experiment was promising but remains unpublished under the user's closeout
 scope. Its live report must not be confused with the production catalog's result.
-[Research evidence](assets/07-roster-intermediate-research/README.md) preserves the
+Research evidence preserves the
 scope and limits. Additional camera-pose reuse and grass-transition experiments
 were not adopted without their remaining motion/performance evidence.
 
 Three-object inspection probes cannot validate the new owner. They were retired
 with explicit replacement and coverage records; portable policy, numerical,
 lifetime and gameplay checks were retained. Retirement is not a passing visual
-result. [The change ledger](assets/closeout/test-changes.md) records those moves.
+result. The change ledger records those moves.
 
 ## Visual provenance
 
 [The user's tactical screenshot](assets/user-tactical-reference.png) defined the
-required framing and shadow readability. [Final tactical controls](assets/closeout/README.md)
+required framing and shadow readability. Final tactical controls
 compare default shadows with shadows disabled at that framing, and retain an
 independent review. Historical component comparisons, rejected candidates and
 reference images remain under `assets/`; their reports describe their original

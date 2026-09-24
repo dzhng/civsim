@@ -1,8 +1,0 @@
-**Credible enough for fuller motion testing, with moderate confidence.** Reviewed both context images and all 20 front/rear poses.
-
-- **Step sequence:** Phases .8–.9 reopen the leading left leg; 0–.1 retain the broad stance; .2–.3 bring the body toward that side; .4 draws the trailing leg inward; .5–.7 complete the gather. Neither view shows feet crossing.
-- **Support and knees:** .2–.3 show useful asymmetry between the straighter trailing leg and bent receiving leg. The weakest poses are .5–.7: feet gather closely beneath a comparatively broad, upright body, with little obvious loaded settling. That narrow stance is confirmed; whether it feels precarious depends on timing and actual contact.
-- **Trunk and guard:** The rear view shows shoulder tilt and lateral trunk participation, particularly .7–.9. Head and shield remain directed toward the threat. The torso is restrained enough that “heavy, loaded movement” remains less convincing than the step sequence itself.
-- **Equipment:** Shield coverage remains coherent throughout; helmet, armor, and sword hand show no clear detachment. The shield’s supporting grip is obscured, so its mechanical attachment cannot be confirmed.
-
-No definite pose-level defect warrants blocking motion testing. The main unresolved issue is whether the narrow gather conveys a controlled transfer of weight. Fixed-root stills cannot establish foot sliding or world contact.

@@ -1,5 +1,0 @@
-(node:30978) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-actual-mesh-lod/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
-Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
-To eliminate this warning, add "type": "module" to /Users/david/dev/game-actual-mesh-lod/package.json.
-(Use `node --trace-warnings ...` to show where the warning was created)
-{"triangles":[155190,4140,1610],"clips":["bend","bend-pronation","death","guarded-backward-walk","guarded-left-walk","guarded-right-walk","hit","pike-carry","pike-ready","pike-thrust","pronation","ready","run","walk"],"invariant":"exact rig/actions/materials; finite UV/tangent/normal/skin; normalized four-weight export"}

@@ -1,8 +1,11 @@
 # Choices inherited by the final implementation
 
+Historical run artifacts have been removed. References to experiments below
+record past findings; they are not links to retained reports or captures.
+
 This ledger describes the maintained implementation, not the path taken to build
 it. Rejected candidates, deleted experiments, historical measurements and retired
-verification attempts belong to the [acceptance evidence](assets/closeout/README.md).
+verification attempts belong to the acceptance evidence.
 The user's decisions—TypeGPU, default shadows, the menu benchmark, no compatibility
 or migrations, and removal of experimental machinery—are requirements, not agent
 choices listed below.
@@ -231,7 +234,7 @@ make distinct appearances share more than their image data.
 **Reach:** new material features must preserve image ownership separately from
 appearance settings. **Verdict:** sound; memory savings retain independent visual
 identity and transactional reload. **Confidence:** high.
-[Evidence](assets/typegpu-shared-images/README.md).
+Evidence.
 
 ### 16. Optimize pose evaluation without mutable snapshot aliases
 
@@ -245,8 +248,8 @@ same even after the next frame is prepared.
 **Reach:** future optimizations must preserve values and immutability, not merely
 similar screenshots. **Verdict:** sound; reduced arithmetic and allocation do not
 change the ownership contract. **Confidence:** high.
-[Evidence](assets/06a-transition-trace/README.md),
-[frozen-copy evidence](assets/06a-frozen-copy/README.md).
+Evidence,
+frozen-copy evidence.
 
 ### 17. Accelerate local simulation work without caching mutable combat outcomes
 

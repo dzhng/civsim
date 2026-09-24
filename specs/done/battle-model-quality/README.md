@@ -1,5 +1,8 @@
 # Authored battle models
 
+Historical run artifacts have been removed. References to experiments below
+record past findings; they are not links to retained reports or captures.
+
 Battle models give the existing roster readable bodies, equipment and motion
 without making animation a second simulation. The visual direction comes from
 the user-supplied [Rome II reference](assets/reference-rome2-phalanx-vs-heavy.png):
@@ -7,13 +10,13 @@ natural proportions, layered clothing and armor, distinct materials and grounded
 figures at gameplay distance—not an exact AAA fidelity promise.
 
 The authored roster is the production default. The
-[integration evidence](assets/evidence/30/integration.md) records source
+integration evidence records source
 reproduction, consumer verification and the retained limits. The
-[ownership map](visualizations/roadmap.html) links the source, observation and
+ownership map links the source, observation and
 rendering boundaries; the [final choices](choices.md) explain the decisions.
-The [main integration check](assets/evidence/final/main-integration/README.md) records
+The main integration check records
 merge validation and retained browser limits.
-The [final review](assets/evidence/final/archive-review.md) records evidence
+The final review records evidence
 scope and archive integrity.
 
 ## Why these boundaries matter
@@ -28,13 +31,13 @@ an explicit approximation, not exact reconstruction of collisions. The
 [timeline](../../../packages/crowd-runtime/src/actionTimeline.ts) and
 [consumer tests](../../../web/tests/battleCrowd.test.ts) own these boundaries.
 
-The [injury observation contract](assets/evidence/05/injury-observations.md)
+The injury observation contract
 uses health loss, not contact/facing timers: several injuries can merge between
 observations, without identifying a particular successful strike. Body-attached
 cues share presented time; commands, detached projectiles and the environment
 retain their existing clocks. Ordinary pause holds the displayed fraction;
 explicit freeze selects the authoritative endpoint. The
-[live presentation record](assets/evidence/11/live-consumer/review.md) owns those
+live presentation record owns those
 limits and lifecycle decisions.
 
 **One asset identity reaches every consumer.** Battle, campaign, workbench,
@@ -68,11 +71,11 @@ product renderer. Camera-visible and
 shadow-visible bodies have independent representation needs; neither audience
 may disappear merely because the other is culled. See the
 [crowd LOD owner](../../../packages/photoreal-renderer/src/battle/crowdLod.ts) and
-[production review evidence](assets/evidence/30/production-review-drivers/artifact-review.md).
+production review evidence.
 Posed normals must reach native geometric roughness as well as custom lighting;
 otherwise numerically correct joint transforms can still shade differently from
 the same geometry posed before upload. The
-[isolated shader proof](assets/evidence/final/posed-geometric-normal.md) separates
+isolated shader proof separates
 that rendering requirement from floating-point matrix tolerances.
 
 ## Local source and visual provenance
@@ -84,7 +87,7 @@ runtime reductions do not replace those originals. No downloaded commercial mesh
 or external AI-generated soldier is part of this authoring approach. Artillery
 equipment stays a rigid root-attached part of the crew bundle, not a new prop
 renderer or coordinated machine simulation.
-The [saved-source reproduction](assets/evidence/final/saved-source-reproduction/README.md)
+The saved-source reproduction
 proves export, reduction, bake and loader admission from a clean extraction of
 the final saved assemblies, not merely from their previously exported GLBs.
 
@@ -106,7 +109,7 @@ the excluded HUD.
 - Reusing full-detail geometry at every distance hides cost behind tier labels.
   Actual offline reductions are required, but aggressive reduction that removes
   body surfaces is not a usable far representation. The
-  [LOD study](assets/evidence/15/actual-mesh-lod/delivery.md) preserves both outcomes.
+  LOD study preserves both outcomes.
 - Placeholder fallback, no-op role clips and a separate beautified review shader
   conceal missing delivery instead of proving it.
 - Pinning fresh-export tangents or relaxing screenshot tolerances to obtain green
@@ -115,7 +118,7 @@ the excluded HUD.
 - Treating a commanded walk as proof of walking cadence rejects legitimate
   observed run intervals. An interval crossing a gait change still advances by
   its preceding gait's stride; the new destination does not retroactively own
-  distance already travelled. The [live trace](assets/evidence/30/gait-cadence/review.md)
+  distance already travelled. The live trace
   records the distinction without changing the engine to satisfy the fixture.
 
 ## Deliberately retained limits

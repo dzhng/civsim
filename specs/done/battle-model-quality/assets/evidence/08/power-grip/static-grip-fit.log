@@ -1,6 +1,0 @@
-Sword grip_intersection_hand_bounds []
-Sword guard_intersection_hand_bounds []
-{"Sword grip": {"triangle_intersections": 0, "near_skin_vertices": 2975, "minimum_signed_vertex_distance": 0.00021301835840858985, "finger_contact_samples": [{"center": -0.028, "minimum_surface_gap": 0.0004585639981087297, "p10_surface_gap": 0.004275832325220108}, {"center": -0.009, "minimum_surface_gap": 0.0008007267024368048, "p10_surface_gap": 0.005764600355178118}, {"center": 0.011, "minimum_surface_gap": 0.0005646175122819841, "p10_surface_gap": 0.004782318137586117}, {"center": 0.03, "minimum_surface_gap": 0.0002130203356500715, "p10_surface_gap": 0.0025904285721480846}], "bad_samples": []}, "Sword guard": {"triangle_intersections": 0, "near_skin_vertices": 333, "minimum_signed_vertex_distance": 0.0004170678148511797}, "Shield handgrip": {"triangle_intersections": 0, "near_skin_vertices": 2994, "minimum_signed_vertex_distance": 0.00018634517527971184}}
-Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
-
-Blender quit

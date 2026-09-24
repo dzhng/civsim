@@ -1,1 +1,0 @@
-No actionable defects found in the two scoped files. The cap increase preserves deterministic identity, membership filtering, and slope exclusion; all eight terrainScenery tests pass. Visuals and performance were not verified.

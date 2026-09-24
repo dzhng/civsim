@@ -1,6 +1,0 @@
-- **Surface lighting:** Image B shows a cooler, more blue-gray tone on several soldier surfaces, most visibly on the torso, head, right-side rectangular pack/shield, and vertical limbs. Image A is warmer and more neutral gray. Bright cream-colored top/edge faces remain broadly consistent.
-- **Geometry/framing:** Geometry, pose, camera angle, crop, ground pattern, and UI framing appear identical.
-- **Defects:** No obvious new seams, deformation, missing geometry, texture corruption, or lighting artifacts. Existing disconnected/fragmented limb appearance is unchanged between images.
-- **Confidence:** High for framing and geometry consistency; medium-high for the surface-tone change. Visible evidence alone cannot distinguish a lighting change from a material/color change.
-
-**Verdict:** B preserves the scene and geometry while introducing a subtle, coherent cool-blue shift on the soldier’s shaded/main surfaces, with no clear new defect.

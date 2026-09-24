@@ -1,8 +1,0 @@
-The strongest visible differences are in the middle panel:
-
-- Narrow highlights are thicker, brighter, and more fragmented, especially across the helmet, shoulders, right arm, and raised weapon.
-- Outlines are softer and uneven, with small halos, speckles, and isolated blue pixels around the shoulders and weapon.
-- Silhouette stepping is rougher: the helmet crest, left shoulder, weapon edge, and leg contours have more irregular bumps and stair-steps.
-- Broad face colors are less uniform, with mottled or smeared patches on the torso and shoulder surfaces.
-
-The left and right panels are much closer to each other. The right appears cleanest and most uniform, with straighter highlight bands and crisper contours. The left has a few thin seam-like lines through the torso/arm area and a prominent dark ground shadow beneath it that is absent from the other two panels.

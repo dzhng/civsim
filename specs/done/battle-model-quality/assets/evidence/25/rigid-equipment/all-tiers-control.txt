@@ -1,9 +1,0 @@
-(node:83526) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-artillery-equipment/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
-Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
-To eliminate this warning, add "type": "module" to /Users/david/dev/game-artillery-equipment/package.json.
-(Use `node --trace-warnings ...` to show where the warning was created)
-{"bodyChannels":"exact","maximumTrackDelta":1.7881393432617188e-7}
-{"path":"packages/soldier-assets/assets/source/foot-roster/artillery-crew/artillery-crew.glb","rootVertices":576,"min":[-0.020000038668513298,-0.26000016927719116,0],"max":[1.1800001859664917,1.4999998807907104,1.1349999904632568],"clips":14,"samples":42}
-{"path":"packages/soldier-assets/assets/source/foot-roster/artillery-crew/lods/near.glb","rootVertices":576,"min":[-0.020000038668513298,-0.26000016927719116,0],"max":[1.1800001859664917,1.4999998807907104,1.1349999904632568],"clips":14,"samples":42}
-{"path":"packages/soldier-assets/assets/source/foot-roster/artillery-crew/lods/mid.glb","rootVertices":576,"min":[-0.020000038668513298,-0.26000016927719116,0],"max":[1.1800001859664917,1.4999998807907104,1.1349999904632568],"clips":14,"samples":42}
-{"path":"packages/soldier-assets/assets/source/foot-roster/artillery-crew/lods/far.glb","rootVertices":576,"min":[-0.020000038668513298,-0.26000016927719116,0],"max":[1.1800001859664917,1.4999998807907104,1.1349999904632568],"clips":14,"samples":42}

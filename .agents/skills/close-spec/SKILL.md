@@ -54,16 +54,15 @@ restates what a function does, cut it and point at the function instead.
    Cut: slice-by-slice build order, "next we will…", scaffolding instructions,
    per-slice verification checklists, and any prose that re-narrates code.
 
-5. **Collapse the slices, preserve the imagery.** The slices were the build
-   ladder; once shipped they're sediment. Fold anything durable (a divergence,
-   a dead end, an invariant a slice established) into the README, then delete
-   `slices/`. But **keep the baseline, comparison, and inspiration images** —
-   the references the work was measured against — and the `visualizations/` or
-   `assets/` that still help a reader judge the result. These are provenance,
-   not scaffolding: discard a build instruction, never the picture that
-   defined what the build was aiming at. Wire each one into the README's
-   visual-provenance trail so the story of where the requirement came from
-   survives the close.
+5. **Collapse the build ladder and purge intermediate artifacts.** Fold durable
+   rationale into the README and delete the slices. Apply the artifact rule in
+   [implement-spec](../implement-spec/SKILL.md): preserve original reference
+   inputs and maintained fixtures/baselines, not generated run directories.
+   Delete raw reports, transcripts, logs, candidate screenshots, comparisons,
+   traces and one-off scripts; retain concise outcomes and limitations. Rewrite
+   links and claims so the archive does not pretend deleted reports still exist.
+   Review retained artifact sizes before archiving; "provenance" is not a reason
+   to keep every experiment.
 
 6. **Fix references.** Update links that pointed at the old path. If `[[memory]]`
    notes or other skills referenced the spec, repoint them.

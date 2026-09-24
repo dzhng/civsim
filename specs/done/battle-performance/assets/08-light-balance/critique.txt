@@ -1,6 +1,0 @@
-Unprimed reviewer light_balance_eyes, A=control and B=candidate:
-B is modestly but clearly better for grounding and soldier readability.
-Stronger rightward shadows beside the middle blue formation and nearer ranks;
-clearer dark sides and separation on closest soldiers. Ground is more saturated
-yellow/olive and risks a mustard cast. Individual middle-distance shadows remain
-faint in both. Formation readability, banners, framing and UI effectively tied.

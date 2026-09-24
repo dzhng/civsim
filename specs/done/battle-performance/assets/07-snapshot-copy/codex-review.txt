@@ -1,1 +1,0 @@
-The explicit copies cover every field in the current contracts while preserving optional-field clearing, playback isolation, and endpoint aliasing. All four focused snapshot tests passed.

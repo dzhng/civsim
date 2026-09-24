@@ -1,9 +1,0 @@
-
- RUN  v4.1.9 /Users/david/dev/game-battle-checkpoint-observer/apps/battle-perf-lab
-
-
- Test Files  3 passed (3)
-      Tests  68 passed (68)
-   Start at  03:28:05
-   Duration  310ms (transform 187ms, setup 0ms, import 236ms, tests 299ms, environment 0ms)
-

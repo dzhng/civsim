@@ -1,8 +1,0 @@
-alps -4:8:2 104087179 133720778
-alps -4:7:2 105213904 133720778
-alps -5:8:2 106718675 133720778
-alps -3:8:2 108231695 133720778
-alps -4:9:2 110022215 133720778
-alps -5:7:2 110990120 133720778
-FAILED italy -4:3:2 Error: Terrain allocation exceeds total 128 MiB budget
-Internal error: directory mismatch for directory "/Users/david/dev/game-landscape-water/throwaway/adoption-tsconfig.json", fd 3. You don't need to do anything, but this indicates a bug.

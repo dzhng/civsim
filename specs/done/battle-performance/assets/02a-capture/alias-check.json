@@ -1,9 +1,0 @@
-{
-  "labBattleUsesCaptureRenderer": true,
-  "labRendererUsesCaptureWorld": true,
-  "factoryUsesRealWorld": true,
-  "factoryDoesNotImportItself": true,
-  "controlUsesRealWorld": true,
-  "normalRendererUsesRealWorld": true,
-  "normalBattleUsesOriginalRenderer": true
-}

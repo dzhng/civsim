@@ -1,5 +1,8 @@
 # Water — one animated water material across civsim's three surfaces
 
+Historical run artifacts have been removed. References to experiments below
+record past findings; they are not links to retained reports or captures.
+
 Civsim has three places water appears, and they used to be three unrelated shaders:
 the battle **open-sea horizon** past a sealed map edge, the battle **on-field water**
 (rivers, lakes, shallows, shore that soldiers fight beside), and the campaign
@@ -132,7 +135,7 @@ dusk mood.
   `references/battle-advance-coast.jpg` (Total War Saga: Troy) — the pale, calm Aegean
   sea with a turquoise shelf that the in-battle water was pulled toward, away from the
   darker reference.
-- [`visualizations/roadmap.html`](visualizations/roadmap.html) — the slice roadmap the
+- `visualizations/roadmap.html` — the slice roadmap the
   build followed.
 - Living result baselines are committed under `web/shots/` (battle:
   `water-coastal/`, `water-open-sea/`, `terrain-blockers/`; campaign:

@@ -1,7 +1,0 @@
-(node:29934) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/david/dev/game-mounted-family-delivery/packages/soldier-assets/src/localAnimation.ts is not specified and it doesn't parse as CommonJS.
-Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
-To eliminate this warning, add "type": "module" to /Users/david/dev/game-mounted-family-delivery/package.json.
-(Use `node --trace-warnings ...` to show where the warning was created)
-shock-cavalry production bake complete; roles, motion admission, tangents and bounds passed { center: [ 0, -0, 0 ], radius: 5.198248863220215 }
-shock-cavalry-sidearm production bake complete; roles, motion admission, tangents and bounds passed { center: [ 0, -0, 0 ], radius: 3.5362558364868164 }
-horse-archer production bake complete; roles, motion admission, tangents and bounds passed { center: [ 0, -0, 0 ], radius: 3.5362741947174072 }

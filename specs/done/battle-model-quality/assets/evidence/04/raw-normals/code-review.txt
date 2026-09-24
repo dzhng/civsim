@@ -1,3 +1,0 @@
-Independent Codex review, uncommitted raw 04c diff, 2026-09-06.
-
-No actionable issues found in the raw posed-normal shader, browser-test oracles, unmapped-path preservation, or resource lifecycle. Static type checking passed; browser tests were not run.

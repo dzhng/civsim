@@ -1,7 +1,0 @@
-Unprimed current_camera_eyes: B and C look less wrong than A.
-A's banners disproportionately large, covering ranks and crowding top/Menu.
-B/C expose soldiers and spacing while faction color/symbol stay visible; the
-right-middle banner is harder to pick out against pikes. Readouts/HUD unchanged.
-No material B/C difference or other material regression visible in the stills.
-A=control first frame; B=candidate first; C=candidate settled, DPR2 zoom7.884923.
-No motion or performance claim from stills.

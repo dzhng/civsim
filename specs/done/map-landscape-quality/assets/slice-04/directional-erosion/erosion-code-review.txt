@@ -1,6 +1,0 @@
-The source crest removal affects an existing rendering path that does not receive the replacement relief. Static inspection found no additional concrete defects in the analytic gradients, boundary reconstruction, or source immutability; no tests or GPU checks were run.
-
-Review comment:
-
-- [P2] Preserve crest detail for the existing campaign surface — /Users/david/dev/game-landscape-material-regions/web/src/campaign/terrain.ts:157-157
-  The existing web campaign still constructs `campaignSurface(field)`, whose mesh reads `field.height` directly; it never applies `campaignRelief`. Removing the source crest therefore removes its structured mountain detail without supplying the replacement erosion used by `buildCampaignLandscape`. Its baked lighting and height-derived rock/forest channels also change globally. Keep this removal scoped to the new landscape path, or migrate the existing surface consumer alongside it.

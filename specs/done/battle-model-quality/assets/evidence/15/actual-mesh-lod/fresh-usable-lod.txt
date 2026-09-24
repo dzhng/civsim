@@ -1,8 +1,0 @@
-**A is less wrong for both units**, with high confidence in the magnified comparisons.
-
-- **Armored sword/shield:** Across all three poses, tier 0 is broadly intact in both; B’s shield is more angular, which is simplification rather than missing equipment. At tiers 1–2, A also develops distorted armor panels, but B shows substantially larger triangular disruptions across the torso, shoulder and bent arm—clearest in the sword pose. Death poses retain recognizable bodies and equipment in both, with B more collapsed and angular. Heads and major limbs remain visibly attached; the images cannot establish whether the torso defects are holes or stretched surfaces.
-- **Pike:** Tier 0 is broadly complete in both across all poses. At tiers 1–2, A preserves fuller bodies and more continuous limb silhouettes; B becomes visibly skeletal/angular around the torso, arms and fallen body. B’s tier 2 shaft loses visible continuity toward the tip in every pose. That is a silhouette failure, although these images cannot distinguish missing geometry from a shaft becoming too thin to render continuously.
-
-**Production context:** B’s tier 0 is large enough to assess and looks broadly usable. Tiers 1–2 are too small in both context sheets to judge body completeness, connections or skinning reliably. Their tiny appearance conceals the diagnostic defects; it does not demonstrate that those defects are harmless.
-
-Confidence: **high** on the relative diagnostic judgment; **low** on distant production usability and the precise cause of apparent gaps.

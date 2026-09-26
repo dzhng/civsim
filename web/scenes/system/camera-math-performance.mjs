@@ -145,6 +145,7 @@ export async function run(ctx) {
               firstTraversal.startCamera,
             );
           }
+          await campaignPresentationReady(page, 180000);
           // Wrappers are restored before this window; no sampling profiler is attached.
           taskBefore = await cdp.send("Performance.getMetrics");
           warmed = await sample(page, durationMs, config.moving);

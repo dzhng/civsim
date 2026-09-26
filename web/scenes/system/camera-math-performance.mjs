@@ -19,6 +19,7 @@ const root =
   process.env.MATH_PERF_SOURCE_ROOT ?? fileURLToPath(new URL("../../../", import.meta.url));
 const output = new URL("throwaway/math-optimization/", pathToFileURL(`${root}/`));
 const durationMs = Number(process.env.MATH_PERF_MS ?? 5000);
+const selectedCase = process.env.MATH_PERF_CASE;
 const summary = (values) => {
   const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
   return {
@@ -29,7 +30,8 @@ const summary = (values) => {
 };
 
 export async function run(ctx) {
-  if (!(durationMs >= 5000)) throw new Error("MATH_PERF_MS must be at least 5000");
+  if (!Number.isFinite(durationMs) || durationMs < 5000)
+    throw new Error("MATH_PERF_MS must be finite and at least 5000");
   await mkdir(output, { recursive: true });
   const report = {
     recordedAt: new Date().toISOString(),
@@ -47,6 +49,7 @@ export async function run(ctx) {
     build: "development server",
     headful: process.env.VERIFY_HEADFUL === "1",
     durationMs,
+    selectedCase,
     verdict: "baseline only; isolated candidate comparison required",
     coverage: {
       cadence: "rAF intervals, not physical presentation",
@@ -72,6 +75,7 @@ export async function run(ctx) {
   };
   report.seed = 7;
   for (const dpr of [1, 2]) {
+    if (selectedCase && !selectedCase.includes(`-dpr${dpr}`)) continue;
     const page = await campaign(seededContext, "new", {
       viewport: { width: 1280, height: 800 },
       deviceScaleFactor: dpr,
@@ -103,7 +107,10 @@ export async function run(ctx) {
       identity.hardware =
         Boolean(identity.gpu) &&
         !/swiftshader|software|llvmpipe|unknown|initializing/i.test(identity.gpu);
-      ctx.check(`DPR ${dpr}: identifiable adapter`, Boolean(identity.gpu));
+      ctx.check(
+        `DPR ${dpr}: requested adapter identified`,
+        process.env.VERIFY_GPU_ADAPTER === "hardware" ? identity.hardware : Boolean(identity.gpu),
+      );
       await cdp.send("Performance.enable");
       const cases = [
         ...["whole", "regional", "close"].flatMap((view) =>
@@ -112,6 +119,8 @@ export async function run(ctx) {
         { view: "regional", moving: false, resized: true },
       ];
       for (const config of cases) {
+        const id = `${config.view}-${config.moving ? "moving" : "held"}-dpr${dpr}${config.resized ? "-resize" : ""}`;
+        if (selectedCase && selectedCase !== id) continue;
         if (config.resized) await page.setViewportSize({ width: 1100, height: 720 });
         const scale = { whole: 0.18, regional: 2, close: 7 }[config.view] * dpr;
         const firstPoseCpuMs = await page.evaluate((scale) => {
@@ -119,8 +128,12 @@ export async function run(ctx) {
           window.__campaign.cam(-100, 250, scale);
           return performance.now() - start;
         }, scale);
-        const firstTraversal = await sample(page, 1000);
+        const firstTraversal = await sample(page, config.moving ? durationMs : 1000, config.moving);
         await campaignPresentationReady(page, 180000);
+        await page.evaluate(
+          (c) => window.__campaign.cam(c.x, c.y, c.scale),
+          firstTraversal.startCamera,
+        );
         if (config.moving) await page.keyboard.down("d");
         let frames, warmed, taskBefore, taskAfter;
         try {
@@ -137,9 +150,8 @@ export async function run(ctx) {
           warmed = await sample(page, durationMs, config.moving);
           taskAfter = await cdp.send("Performance.getMetrics");
         } finally {
-          if (config.moving) await page.keyboard.up("d");
+          if (config.moving && !page.isClosed()) await page.keyboard.up("d");
         }
-        const id = `${config.view}-${config.moving ? "moving" : "held"}-dpr${dpr}${config.resized ? "-resize" : ""}`;
         const task = (result) => result.metrics.find((m) => m.name === "TaskDuration")?.value;
         const run = {
           id,
@@ -163,6 +175,11 @@ export async function run(ctx) {
             ]),
           ),
         };
+        ctx.check(
+          `${id}: complete finite CPU evidence`,
+          Number.isFinite(run.taskMsPerFrame) &&
+            Object.values(run.cpu).every((stage) => stage.samples === warmed.samples.length),
+        );
         ctx.check(
           `${id}: captures complete production frames`,
           frames.length === 6 &&
@@ -191,7 +208,7 @@ export async function run(ctx) {
         );
       }
       // Separate attribution pass: its intervals are deliberately excluded from timing summaries.
-      if (dpr === 1) {
+      if (dpr === 1 && !selectedCase) {
         await page.evaluate(() => window.__campaign.cam(-100, 250, 2));
         await campaignPresentationReady(page, 180000);
         await cdp.send("Profiler.enable");
@@ -228,10 +245,12 @@ export async function run(ctx) {
         ctx.check("allocation sampling captured", report.allocation.samples > 0);
       }
     } finally {
-      await cdp.detach();
-      await page.close();
+      // A watchdog already destroys this owned page; keep the original diagnostic error.
+      await cdp.detach().catch(() => {});
+      await page.close().catch(() => {});
     }
   }
+  if (!report.runs.length) throw new Error(`No camera cases matched ${selectedCase}`);
   report.hardware = report.runs.every((run) => run.identity.hardware)
     ? "identified adapter"
     : "inconclusive";
@@ -242,7 +261,9 @@ export async function run(ctx) {
 }
 
 async function sample(page, ms, moving = false) {
-  return page.evaluate(
+  return evaluateWithin(
+    page,
+    ms + 10000,
     async ({ ms, moving }) => {
       const samples = [];
       const memory = () =>
@@ -301,7 +322,7 @@ async function sample(page, ms, moving = false) {
 }
 
 async function capture(page) {
-  return page.evaluate(async () => {
+  const serialized = await evaluateWithin(page, 10000, async () => {
     const renderer = window.__campaign.rendererOwner(),
       world = renderer.world;
     const restore = [],
@@ -401,9 +422,27 @@ async function capture(page) {
         frames.push(frame);
         frame = fresh();
       }
-      return frames;
+      return JSON.stringify(frames);
     } finally {
       for (const undo of restore.reverse()) undo();
     }
   });
+  return JSON.parse(serialized);
+}
+
+async function evaluateWithin(page, timeoutMs, fn, args) {
+  let timer;
+  try {
+    return await Promise.race([
+      page.evaluate(fn, args),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          void page.close().catch(() => {});
+          reject(new Error(`Camera measurement exceeded ${timeoutMs}ms; owned page closed`));
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
 }

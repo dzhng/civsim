@@ -77,5 +77,7 @@ used to manufacture a speedup claim without evidence.
 
 ## Result
 
-Not started. Record adopted/rejected kernels, package identity, evidence, and
-the clean final ownership before updating the README handoff.
+Rejected by slice 1: the verified 0.1.0 kernels did not beat matched reusable
+existing math by the required 0.25 ms. No runtime imports, dependency, or lock
+changes are needed. Retain the installed skill and the prepared-camera work;
+finish cleanup and the whole-spec review after slice 2 ships.

@@ -88,5 +88,70 @@ can change the fixture mix before the comparison is frozen.
 
 ## Result
 
-Not run. Update this section with evidence paths, candidate ranking, and the
-next-slice verdict; do not convert source inspection into a measured speedup.
+Package compatibility verified against the published 0.1.0 artifact. Root
+matrix/vector imports and TypeScript/Vite resolution pass; `math/three` is
+absent. Published runtime algorithms match the pinned source (type annotations
+differ). Seeded upstream batches reproduce consumed outputs. Matrix aliasing,
+singular handling, and 1,000 dense matrix comparisons pass with explicit
+Float32 rounding at each matrix result; unrounded library results differ.
+Keep the local projection and vertical-camera fallback. A selective minified
+multiply/inverse/vector bundle measured 2,697 bytes in the isolated build.
+
+Evidence: `throwaway/math-optimization/package-spike/` contains artifact
+integrity, reproduction, precision, typing, bundle, and browser import results.
+This is compatibility evidence, not a performance verdict. The real campaign
+probe and three-way timing comparison are still in progress.
+
+The initial unchanged `battle-cpu-profile` control timed out at its readiness
+predicate after 90 seconds without page errors. Generated bindings lack
+`generated_vista_band_shore_distance_ptr`, which current battle startup calls.
+Rebuilt WASM from current source; the unchanged control then passed live and
+paused with no page errors. No gate was weakened.
+Campaign captures and exploratory timings from that artifact are preliminary,
+not admission evidence. Six focused test files (34 tests) pass on current source.
+
+The experimental library comparison also exposed a fairness issue: the
+prepared control still allocated two matrix outputs while the library reused
+outputs. The definitive comparison includes a matched reusable-output control;
+allocation reduction must not be misattributed to faster arithmetic.
+
+
+Independent Codex review found unbounded frame waits and a cold moving path
+mislabeled warmed. The probe now rejects non-finite durations, closes its owned
+page on measurement timeout, traverses the same bounded keyboard path before
+warm timing, and settles after resetting the camera. JSON-string fixture
+transport avoids expensive nested Playwright serialization. The corrected
+moving-DPR2 smoke and the full 14-case capture pass with no page errors on
+HeadlessChrome 153 / Apple M5 Pro / Metal. The report records source commit
+`8abd2153` and WASM SHA256
+`19e2cf0786cd764ef82d8c45d86c37506c65ce694c433c9a76f7b6e40c63c53e`.
+The 84 observed frames have 6,580 whole-map or 10,020 regional/close projections;
+6,416 come from the two per-frame stats calls. Each frame has two camera
+preparations and no anchors calls. Separate clamp/shadow rays are not folded
+into the projection timing workload. Final kernel and full-frame comparisons
+are next; captured workload counts alone do not authorize the cutover.
+
+
+### Admission verdict
+
+Accepted prepared existing math; rejected library adoption. On the fresh-WASM
+84-frame workload, five interleaved pairs per variant ran for at least five
+seconds each. All 14 cases clear 0.25 ms, 10%, and baseline-range noise gates,
+winning all five pairs. Paired median savings are 1.98–3.11 ms per observed
+projection workload. Library kernels are typically 0.005–0.015 ms slower than
+the matched reusable-output control and fail the absolute gate. The allocating
+prepared implementation is the intended slice-2 control; `prepared-reuse` is
+an extra fairness control for library attribution, not a production requirement.
+The numerical oracle reports 1,569,748 points and zero point, visibility, or ray
+residuals, including finite/infinite far, degenerate, and near-vertical cases.
+
+The temporary campaign-world substitution was also compared over five paired
+five-second windows at whole/regional/close views and DPR 1/2. All six pass the
+fixed p95 regression rule. One regional-DPR2 candidate window reached 50 ms
+against 33.335 ms baseline, but the increase did not recur in a second pair.
+No physical presentation, input latency, or release-FPS claim is made.
+
+Authoritative raw evidence: `kernel-results.json`, `kernel-verdict.json`,
+`frame-comparison.json`, and `frame-verdict.json` under ignored
+`throwaway/math-optimization/`. Independent package/kernel audit confirms the
+CPU-stage conclusion; final production-code gates still belong to slice 2.

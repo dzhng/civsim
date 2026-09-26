@@ -12,14 +12,19 @@ You are implementing a benchmark-gated optimization plan, not a general math
 rewrite. As of **2026-09-25**, the upstream skill is installed and the plan is
 being implemented; no production code, runtime dependency, or test behavior has changed.
 
-Continue [slice 1](slices/01-measure-and-reproduce.md). Package compatibility is
-verified in ignored `throwaway/math-optimization/package-spike/`; a real campaign
-workload probe is in progress. Hardware Chrome reported Apple Metal support.
-No performance admission decision has been made yet. Read the installed
-skill's [source caveat](../../.agents/skills/math/SOURCE.md), inspect the current
-camera consumers, then reproduce the reference and record a baseline. Do not
-skip the existing-math control. If a gate rejects a candidate, record that as
-a useful result rather than broadening the optimization to make adoption happen.
+Start [slice 2](slices/02-prepare-campaign-camera.md). Slice 1 is accepted:
+all 14 real-workload cases pass, prepared existing math saves 1.98–3.11 ms per
+observed projection batch across five pairs, and the six-view/DPR paired frame
+experiment shows no reproducible p95 regression under the fixed rule. One
+regional-DPR2 pair spiked; it did not repeat. Library kernels fail admission
+against equally reusable existing outputs and will not be installed.
+
+Keep the production cutover in the existing camera owner and campaign world.
+Run the shipped-code performance, geometry/lifetime, and visual gates before
+closing. The 34 original focused camera tests pass. Earlier stale-WASM and
+incomplete probe runs are preliminary; definitive evidence lives in ignored
+`throwaway/math-optimization/`. The root `AGENTS.md` was adapted from battlegame
+at the user's request.
 
 Warnings: `math/three` is described by the skill but absent from the pinned
 package export map; matrix precision differs between library tuples and our
@@ -29,12 +34,13 @@ unresolved screenshot checks in the linked performance report are not silently
 green. No backward compatibility or data migrations are required.
 
 - [x] Install upstream skill locally, preserve its bytes/license/provenance.
-- [ ] [1 — measure and reproduce](slices/01-measure-and-reproduce.md): report
+- [x] [1 — measure and reproduce](slices/01-measure-and-reproduce.md): report
   baseline, API compatibility, work-removal control, and provisional candidates.
 - [ ] [2 — prepare campaign camera](slices/02-prepare-campaign-camera.md): ship
   only if the existing-math candidate passes; verify placement and picking.
-- [ ] [3 — evaluate library kernels](slices/03-evaluate-library-kernels.md):
-  adopt passing kernels or explicitly reject; clean experiments and close out.
+- [x] [3 — evaluate library kernels](slices/03-evaluate-library-kernels.md):
+  rejected by the incremental CPU gate; no npm dependency. Clean experiments
+  and close out after slice 2.
 
 Update this prompt, the checklist, and the owning slice's result before ending
 each pass. Record commands, evidence locations, limitations, and exact next
@@ -143,7 +149,9 @@ Admission policy, fixed before candidate runs:
 - A library candidate must meet the same admission policy **against prepared
   existing math**, including conversion costs. If only work removal wins, keep
   the dependency-free implementation and attribute the gain correctly.
-- Software/headless results establish correctness/liveness only. Inconclusive
+- Software-rendered results establish correctness/liveness only. Headless
+  Chrome using a verified hardware adapter can establish relative CPU and rAF
+  results, but not physical presentation or input-to-display latency. Inconclusive
   hardware evidence is not a pass. Repeat once under controlled conditions,
   then defer if uncertainty remains. Do not weaken gates after seeing results.
 

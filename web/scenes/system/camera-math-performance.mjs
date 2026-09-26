@@ -45,6 +45,7 @@ export async function run(ctx) {
       .digest("hex"),
     machine: { platform: platform(), architecture: arch(), cpu: cpus()[0]?.model },
     build: "development server",
+    headful: process.env.VERIFY_HEADFUL === "1",
     durationMs,
     verdict: "baseline only; isolated candidate comparison required",
     coverage: {

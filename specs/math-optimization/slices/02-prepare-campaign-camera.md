@@ -50,6 +50,12 @@ its current interfaces. Battle camera, uniform-packer integration, shadow
 fitting, label layout, and terrain ray traversal are deferred integrations,
 not extra responsibilities of this slice.
 
+Use the existing `mat4.transformVec4` primitive for homogeneous transforms.
+Give it a required caller-owned output argument first and update its two camera
+callers and orthographic test together. Read input components before writing,
+since the prepared path uses one in-place scratch vector. This keeps one
+transform implementation and makes aliasing a real consumer contract.
+
 ## Frozen behavior
 
 Keep column-major matrices, XY ground/+Z up, WebGPU reverse-Z, infinite-far
@@ -98,5 +104,40 @@ feel, or stale-frame behavior rejects the change regardless of speed.
 
 ## Result
 
-Not started. Record the accepted performance/behavior evidence or rejection,
-then update the README handoff before ending the pass.
+Accepted; implementation is verified in the working tree. The accepted-pose/output-lifetime test
+was observed red before implementation. All 1,096 web tests pass with four
+workers; default unlimited concurrency intermittently times out the unrelated
+battle/campaign worker test. No timeout or assertion was relaxed. Typecheck,
+lint and the production web build pass. Existing constructor-bypassing test
+fixtures now initialize prepared state; their assertions are unchanged.
+
+The real composition scene passes new synchronous pre-draw pan/zoom/resize,
+picking, retained-result and two-world checks at DPR 1/2. Independent code
+reviews found only the fixture initialization issue, now fixed. Shipped primitive replays pass all 14 projection CPU gates (five pairs,
+2.55–4.25 ms saved per observed batch), with exact numerical agreement against
+frozen original functions. Actual world-method comparisons pass all six held
+view/DPR whole-frame gates with paired workload identities equal. The final
+14-case live capture passes; sampled bytes/frame fall from 22.3 MB to 13.2 MB
+and GC-attributed CPU samples fall from 69.5 ms to 60.6 ms over 181 frames.
+Sampling does not establish exact allocation totals or GC pause times.
+All remaining checks in the exercised campaign scenes pass.
+
+The frozen real-Roma frame and five current fixture captures are pixel-identical
+to their saved pre-change images, including full-frame/crop/edge comparisons.
+Five canonical snapshots already fail before the optimization: three map
+alignment (74–79%) and two raised-label (54%). They remain unchanged and are
+not re-blessed. All current before/after preservation comparisons pass; this
+is not a claim that the historical snapshot suite is globally green.
+
+Fresh visual critique found existing detached rear-army text over an occluding
+ridge, coastal cards whose anchors are difficult to trace, edge-clipped labels,
+and heavy shadows in the alignment fixture. These are also visible in the
+pixel-identical pre-change images; they are visual-maintenance concerns outside
+this behavior-preserving CPU change, not repaired or accepted as ideal here.
+Raw captures and comparison telemetry live in ignored throwaway/math-optimization.
+
+Preview checkpoint: the production before/after and composition captures were
+shown together for more than five minutes while independent verification ran.
+No user correction arrived. Proceed with preservation based on exact comparison,
+geometry/consumer checks and fresh critique; close only the Preview documents
+opened for this task. The owned documents have been closed.

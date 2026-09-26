@@ -415,6 +415,7 @@ export async function route(ctx: LabContext) {
   };
   Object.assign(window, {
     __campaignComposition: {
+      world: () => world,
       glyphs: (visible: boolean) => {
         glyphsVisible = visible;
         draw();

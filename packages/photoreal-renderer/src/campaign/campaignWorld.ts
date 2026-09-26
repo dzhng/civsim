@@ -68,7 +68,15 @@ import { STANDARD_SIZE_TIERS } from "../../../game-renderer/src/models/shared/st
 import type { MeshData } from "../../../game-renderer/src/models/shared/meshBuilder";
 import type { BattleFactionId } from "../../../game-renderer/src/battle/factionColors";
 import type { RenderedSurface } from "../../../game-renderer/src/terrain/surface";
-import { projectPoint, screenRay, type Camera3DParams } from "../../../renderer-core/src/camera3d";
+import {
+  createPreparedCamera,
+  prepareCamera,
+  projectPrepared,
+  rayPrepared,
+  type Camera3DParams,
+  type ProjectedPoint,
+  type MutableWorldRay,
+} from "../../../renderer-core/src/camera3d";
 
 export interface CampaignWorldObject {
   id: string;
@@ -135,6 +143,9 @@ export class PhotorealCampaignWorld {
   private readonly meshes: THREE.Mesh[] = [];
   private readonly raycaster = new THREE.Raycaster();
   private pose: Camera3DParams | null = null;
+  private readonly preparedCamera = createPreparedCamera();
+  private readonly projectedPoint: ProjectedPoint = { ndc: [0, 0, 0], clipW: 0 };
+  private readonly queryRay: MutableWorldRay = { origin: [0, 0, 0], dir: [0, 0, 0] };
   private width = 1;
   private height = 1;
   private selected: string | null = null;
@@ -197,6 +208,7 @@ export class PhotorealCampaignWorld {
 
   setFrameCamera(pose: Camera3DParams, width: number, height: number, dpr = 1) {
     this.pose = pose;
+    prepareCamera(this.preparedCamera, pose);
     this.width = width;
     this.height = height;
     this.world.resize(width, height, dpr);
@@ -660,7 +672,7 @@ export class PhotorealCampaignWorld {
 
   project(x: number, y: number, z: number) {
     if (!this.pose) return null;
-    const p = projectPoint(this.pose, [x, y, z]);
+    const p = projectPrepared(this.projectedPoint, this.preparedCamera, x, y, z);
     return {
       x: ((p.ndc[0] + 1) * this.width) / 2,
       y: ((1 - p.ndc[1]) * this.height) / 2,
@@ -669,7 +681,12 @@ export class PhotorealCampaignWorld {
   }
   pick(x: number, y: number) {
     if (!this.pose) return null;
-    const ray = screenRay(this.pose, (x / this.width) * 2 - 1, 1 - (y / this.height) * 2);
+    const ray = rayPrepared(
+      this.queryRay,
+      this.preparedCamera,
+      (x / this.width) * 2 - 1,
+      1 - (y / this.height) * 2,
+    );
     const surface = this.terrain.surface.raycastRendered(ray);
     this.raycaster.ray.origin.fromArray(ray.origin);
     this.raycaster.ray.direction.fromArray(ray.dir);
@@ -692,8 +709,9 @@ export class PhotorealCampaignWorld {
       const screen = this.project(input.x, input.y, z);
       let visible = mesh.visible && !!screen?.visible;
       if (visible && this.pose && screen) {
-        const ray = screenRay(
-          this.pose,
+        const ray = rayPrepared(
+          this.queryRay,
+          this.preparedCamera,
           (screen.x / this.width) * 2 - 1,
           1 - (screen.y / this.height) * 2,
         );

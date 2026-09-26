@@ -18,11 +18,13 @@ test("drawing preserves atmosphere policy and CSS label framing at its frame bou
   const THREE = await import("three/webgpu");
   const { PhotorealCampaignWorld } =
     await import("@packages/photoreal-renderer/src/campaign/campaignWorld");
-  const { chartCamera3d } = await import("@packages/renderer-core/src/camera3d");
+  const { chartCamera3d, createPreparedCamera } =
+    await import("@packages/renderer-core/src/camera3d");
   const aerialStrength = { value: 1 };
   const consumed: number[] = [];
   const labelZooms: number[] = [];
   const world = Object.assign(Object.create(PhotorealCampaignWorld.prototype), {
+    preparedCamera: createPreparedCamera(),
     world: {
       resize() {},
       sunLight: new THREE.DirectionalLight(),

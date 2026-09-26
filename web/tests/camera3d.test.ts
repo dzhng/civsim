@@ -2,6 +2,11 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
 import {
+  createPreparedCamera,
+  prepareCamera,
+  projectPrepared,
+  rayPrepared,
+  type MutableWorldRay,
   eyePosition,
   invViewProj,
   projectPoint,
@@ -121,4 +126,86 @@ test("camera3d: infinite far plane maps the horizon toward depth 0", () => {
 test("camera3d: matrices are deterministic for identical params", () => {
   assert.deepEqual(viewProjMatrix(CAM), viewProjMatrix(CAM));
   assert.deepEqual(projMatrix(CAM), projMatrix(CAM));
+});
+
+test("prepared camera keeps accepted poses and caller-owned projections independent", () => {
+  const params = { ...CAM, target: [...CAM.target] as [number, number, number] };
+  const a = createPreparedCamera();
+  const b = createPreparedCamera();
+  prepareCamera(a, params);
+  prepareCamera(b, { ...CAM, target: [500, 200, 0] });
+  const first = { ndc: [0, 0, 0] as [number, number, number], clipW: 0 };
+  const second = { ndc: [0, 0, 0] as [number, number, number], clipW: 0 };
+  projectPrepared(first, a, ...CAM.target);
+  assert.ok(Math.hypot(first.ndc[0], first.ndc[1]) < 1e-5);
+  const retained = structuredClone(first);
+  projectPrepared(second, b, 500, 200, 0);
+  assert.ok(Math.hypot(second.ndc[0], second.ndc[1]) < 1e-5);
+  assert.deepEqual(first, retained);
+  params.target[0] += 50;
+  projectPrepared(second, a, ...CAM.target);
+  assert.deepEqual(second, retained, "unaccepted mutable input must not change the prepared view");
+  prepareCamera(a, params);
+  projectPrepared(second, a, ...params.target);
+  assert.ok(Math.hypot(second.ndc[0], second.ndc[1]) < 1e-5);
+  assert.deepEqual(first, retained, "preparing a later pose must not mutate retained output");
+});
+
+test("prepared rays hit projected ground points across finite, infinite and vertical views", () => {
+  const prepared = createPreparedCamera();
+  const projected = { ndc: [0, 0, 0] as [number, number, number], clipW: 0 };
+  const ray: MutableWorldRay = { origin: [0, 0, 0], dir: [0, 0, 0] };
+  for (const params of [CAM, { ...CAM, far: undefined }, { ...CAM, pitch: Math.PI / 2 }]) {
+    prepareCamera(prepared, params);
+    for (const point of [
+      [12, -30, 0],
+      [32, -10, 0],
+      [-8, -50, 0],
+    ] as const) {
+      projectPrepared(projected, prepared, point[0], point[1], point[2]);
+      rayPrepared(ray, prepared, projected.ndc[0], projected.ndc[1]);
+      const distance = -ray.origin[2] / ray.dir[2];
+      assert.ok(distance > 0);
+      assert.ok(
+        Math.hypot(
+          ray.origin[0] + ray.dir[0] * distance - point[0],
+          ray.origin[1] + ray.dir[1] * distance - point[1],
+        ) < 1e-2,
+      );
+      assert.ok(Math.abs(Math.hypot(...ray.dir) - 1) < 1e-12);
+    }
+  }
+  const retained = structuredClone(ray);
+  prepareCamera(prepared, { ...CAM, target: [500, 500, 50] });
+  assert.deepEqual(ray, retained, "ray origins must not borrow the prepared eye storage");
+});
+
+test("prepared camera preserves zero-w, singular inverse fallback and behind-eye behavior", () => {
+  const camera = createPreparedCamera();
+  const out = { ndc: [9, 9, 9] as [number, number, number], clipW: 9 };
+  prepareCamera(camera, { ...CAM, target: [0, 0, 0], distance: 0 });
+  projectPrepared(out, camera, 1, 2, 3);
+  assert.deepEqual(out, { ndc: [0, 0, 0], clipW: 0 });
+  const ray: MutableWorldRay = { origin: [9, 9, 9], dir: [9, 9, 9] };
+  rayPrepared(ray, camera, 0, 0);
+  assert.deepEqual(ray, { origin: [0, 0, 0], dir: [0, 0, 1] });
+  prepareCamera(camera, CAM);
+  const eye = eyePosition(CAM);
+  projectPrepared(
+    out,
+    camera,
+    2 * eye[0] - CAM.target[0],
+    2 * eye[1] - CAM.target[1],
+    2 * eye[2] - CAM.target[2],
+  );
+  assert.ok(out.clipW < 0);
+});
+
+test("prepared centre ray remains parallel to horizontal ground at zero pitch", () => {
+  const camera = createPreparedCamera();
+  prepareCamera(camera, { ...CAM, pitch: 0, target: [0, 0, 0], yaw: 0 });
+  const ray: MutableWorldRay = { origin: [0, 0, 0], dir: [0, 0, 0] };
+  rayPrepared(ray, camera, 0, 0);
+  assert.deepEqual(ray.origin, [220, 0, 0]);
+  assert.deepEqual(ray.dir, [-1, 0, 0]);
 });

@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { createPreparedCamera } from "@packages/renderer-core/src/camera3d";
 import * as THREE from "three/webgpu";
 import { CampaignRenderer } from "../src/campaign/renderer";
 import { PhotorealCampaignWorld } from "@packages/photoreal-renderer/src/campaign/campaignWorld";
@@ -18,6 +19,8 @@ test("a newly revealed city has presented body bounds before its first card layo
   const cities = new CampaignCityLayer(new THREE.Scene());
   const world = Object.assign(Object.create(PhotorealCampaignWorld.prototype), {
     cities,
+    preparedCamera: createPreparedCamera(),
+    projectedPoint: { ndc: [0, 0, 0], clipW: 0 },
     terrain: { surface },
     camera: new THREE.PerspectiveCamera(),
     world: { resize() {} },

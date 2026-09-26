@@ -18,6 +18,7 @@ import {
   transformVec4,
   type Mat4,
   type Vec3,
+  type Vec4,
 } from "./mat4";
 
 export type { Mat4, Vec3 } from "./mat4";
@@ -78,14 +79,70 @@ export function invViewProj(p: Camera3DParams): Mat4 {
   return invert(viewProjMatrix(p)) ?? identity();
 }
 
-// Project a world point to NDC. `clipW` is the homogeneous w (view-space depth,
-// positive in front) — useful for behind-camera rejection (clipW <= 0) and
-// perspective-correct screen size.
-export function projectPoint(p: Camera3DParams, world: Vec3): { ndc: Vec3; clipW: number } {
-  const clip = transformVec4(viewProjMatrix(p), [world[0], world[1], world[2], 1]);
+/** Caller-owned accepted pose and scratch, independent of mutable rig parameters. */
+export interface PreparedCamera {
+  view: Mat4;
+  projection: Mat4;
+  viewProjection: Mat4;
+  inverseViewProjection: Mat4;
+  eye: Vec3;
+  scratch: [...Vec4];
+}
+
+export function createPreparedCamera(): PreparedCamera {
+  return {
+    view: identity(),
+    projection: identity(),
+    viewProjection: identity(),
+    inverseViewProjection: identity(),
+    eye: [0, 0, 0],
+    scratch: [0, 0, 0, 1],
+  };
+}
+
+export function prepareCamera(out: PreparedCamera, p: Camera3DParams): PreparedCamera {
+  out.view = viewMatrix(p);
+  out.projection = projMatrix(p);
+  out.viewProjection = multiply(out.projection, out.view);
+  out.inverseViewProjection = invert(out.viewProjection) ?? identity();
+  out.eye = eyePosition(p);
+  return out;
+}
+
+export interface ProjectedPoint {
+  ndc: [...Vec3];
+  /** Homogeneous w: positive in front of the camera. */
+  clipW: number;
+}
+
+function projectClip(out: ProjectedPoint, clip: Vec4): ProjectedPoint {
   const w = clip[3];
   const inv = w !== 0 ? 1 / w : 0;
-  return { ndc: [clip[0] * inv, clip[1] * inv, clip[2] * inv], clipW: w };
+  out.ndc[0] = clip[0] * inv;
+  out.ndc[1] = clip[1] * inv;
+  out.ndc[2] = clip[2] * inv;
+  out.clipW = w;
+  return out;
+}
+
+export function projectPoint(p: Camera3DParams, world: Vec3): ProjectedPoint {
+  const clip = transformVec4([0, 0, 0, 0], viewProjMatrix(p), [world[0], world[1], world[2], 1]);
+  return projectClip({ ndc: [0, 0, 0], clipW: 0 }, clip);
+}
+
+export function projectPrepared(
+  out: ProjectedPoint,
+  camera: PreparedCamera,
+  x: number,
+  y: number,
+  z: number,
+): ProjectedPoint {
+  const v = camera.scratch;
+  v[0] = x;
+  v[1] = y;
+  v[2] = z;
+  v[3] = 1;
+  return projectClip(out, transformVec4(v, camera.viewProjection, v));
 }
 
 /** Pixels per world meter at a world point. */
@@ -160,35 +217,49 @@ export function projectedSpanPixels(
   return (span * projection.pixelsPerViewUnit) / (projection.perspective ? depth : 1);
 }
 
-// Unproject a full NDC point (x, y, z) to world, using a precomputed inverse
-// view-projection so callers casting many rays don't rebuild it.
-function worldFromNdc(inv: Mat4, ndcX: number, ndcY: number, ndcZ: number): Vec3 {
-  const v = transformVec4(inv, [ndcX, ndcY, ndcZ, 1]);
-  const iw = v[3] !== 0 ? 1 / v[3] : 0;
-  return [v[0] * iw, v[1] * iw, v[2] * iw];
-}
-
-// A world-space ray through an NDC pixel (ndcX, ndcY ∈ [-1, 1]). Origin is the
-// analytic eye; direction points through the near-plane unprojection of the
-// pixel. Anchoring at the eye (rather than differencing near/far NDC points)
-// keeps this well-defined for an infinite far plane, where the far-plane
-// unprojection is a point at infinity.
+// Rays originate at the analytic eye and use the reverse-Z near plane (depth 1).
+// Differencing near/far points would fail for the infinite far plane.
 export interface WorldRay {
   origin: Vec3;
   dir: Vec3;
 }
+export type MutableWorldRay = { [K in keyof WorldRay]: [...WorldRay[K]] };
 
-export function screenRay(p: Camera3DParams, ndcX: number, ndcY: number): WorldRay {
-  const eye = eyePosition(p);
-  const near = worldFromNdc(invViewProj(p), ndcX, ndcY, 1); // reverse-Z: near plane = depth 1
-  let dx = near[0] - eye[0],
-    dy = near[1] - eye[1],
-    dz = near[2] - eye[2];
+function rayFromClip(out: MutableWorldRay, eye: Vec3, clip: Vec4): MutableWorldRay {
+  const iw = clip[3] !== 0 ? 1 / clip[3] : 0;
+  let dx = clip[0] * iw - eye[0],
+    dy = clip[1] * iw - eye[1],
+    dz = clip[2] * iw - eye[2];
   const l = Math.hypot(dx, dy, dz) || 1;
   dx /= l;
   dy /= l;
   dz /= l;
-  return { origin: eye, dir: [dx, dy, dz] };
+  out.origin[0] = eye[0];
+  out.origin[1] = eye[1];
+  out.origin[2] = eye[2];
+  out.dir[0] = dx;
+  out.dir[1] = dy;
+  out.dir[2] = dz;
+  return out;
+}
+
+export function screenRay(p: Camera3DParams, ndcX: number, ndcY: number): WorldRay {
+  const clip = transformVec4([0, 0, 0, 0], invViewProj(p), [ndcX, ndcY, 1, 1]);
+  return rayFromClip({ origin: [0, 0, 0], dir: [0, 0, 0] }, eyePosition(p), clip);
+}
+
+export function rayPrepared(
+  out: MutableWorldRay,
+  camera: PreparedCamera,
+  ndcX: number,
+  ndcY: number,
+): MutableWorldRay {
+  const v = camera.scratch;
+  v[0] = ndcX;
+  v[1] = ndcY;
+  v[2] = 1;
+  v[3] = 1;
+  return rayFromClip(out, camera.eye, transformVec4(v, camera.inverseViewProjection, v));
 }
 
 // Intersect the pixel ray with the horizontal plane z = planeZ — the picking

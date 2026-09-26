@@ -4,11 +4,11 @@
 // on purpose: renderer-core stays portable (no gl-matrix / babylon pull-in).
 //
 // Storage: `m[col * 4 + row]`; element (row r, col c) = `m[c * 4 + r]`. A matrix
-// applied as a linear map is `transformVec4(m, v)`.
+// applied as a linear map is `transformVec4(out, m, v)`.
 
 export type Mat4 = Float32Array; // length 16, column-major
 export type Vec3 = readonly [number, number, number];
-type Vec4 = readonly [number, number, number, number];
+export type Vec4 = readonly [number, number, number, number];
 
 export function identity(): Mat4 {
   const m = new Float32Array(16);
@@ -29,10 +29,11 @@ export function multiply(a: Mat4, b: Mat4): Mat4 {
   return out;
 }
 
-export function transformVec4(m: Mat4, v: Vec4): [number, number, number, number] {
-  const out: [number, number, number, number] = [0, 0, 0, 0];
+/** Inputs may alias the output: read all components before writing any row. */
+export function transformVec4(out: [...Vec4], m: Mat4, v: Vec4): [...Vec4] {
+  const [x, y, z, w] = v;
   for (let r = 0; r < 4; r++) {
-    out[r] = m[r] * v[0] + m[4 + r] * v[1] + m[8 + r] * v[2] + m[12 + r] * v[3];
+    out[r] = m[r] * x + m[4 + r] * y + m[8 + r] * z + m[12 + r] * w;
   }
   return out;
 }

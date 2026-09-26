@@ -4,39 +4,33 @@ Use the installed [pmndrs math skill](../../.agents/skills/math/SKILL.md) to
 reduce repeated browser CPU work while preserving game behavior. Start with
 campaign camera projection, where the code visibly repeats matrix preparation.
 Adopt the npm library only if it improves the prepared existing-math baseline.
-No speedup has been measured for this plan yet.
+The admitted prototype removes repeated matrix work; shipped-code verification is in progress.
 
 ## Next Agent Prompt
 
-You are implementing a benchmark-gated optimization plan, not a general math
-rewrite. As of **2026-09-25**, the upstream skill is installed and the plan is
-being implemented; no production code, runtime dependency, or test behavior has changed.
+The prepared camera implementation is verified and ready for final archive.
+All three slices have accepted or evidence-backed rejected outcomes. Finish the
+whole-spec documentation audit and archive with close-spec; no implementation
+work remains. Keep the consolidated choices ledger and explicit limits.
 
-Start [slice 2](slices/02-prepare-campaign-camera.md). Slice 1 is accepted:
-all 14 real-workload cases pass, prepared existing math saves 1.98–3.11 ms per
-observed projection batch across five pairs, and the six-view/DPR paired frame
-experiment shows no reproducible p95 regression under the fixed rule. One
-regional-DPR2 pair spiked; it did not repeat. Library kernels fail admission
-against equally reusable existing outputs and will not be installed.
+The shipped primitive replay passes all 14 projection CPU gates over five
+pairs (2.55–4.25 ms saved per captured batch); the actual world-method comparison
+passes all six held-view/DPR whole-frame gates with identical workload settings.
+The final 14-case live probe passes. Allocation and GC-attributed samples are
+lower. Full web tests pass with four workers, as do typecheck, lint and build.
+Real pre-draw resize/picking/two-world browser checks pass. Independent reviews
+are clean after fixing constructor-bypassing test fixtures.
 
-Keep the production cutover in the existing camera owner and campaign world.
-Run the shipped-code performance, geometry/lifetime, and visual gates before
-closing. The 34 original focused camera tests pass. Earlier stale-WASM and
-incomplete probe runs are preliminary; definitive evidence lives in ignored
-`throwaway/math-optimization/`. The root `AGENTS.md` was adapted from battlegame
-at the user's request.
-
-Warnings: `math/three` is described by the skill but absent from the pinned
-package export map; matrix precision differs between library tuples and our
-Float32 matrices; real-hardware timing can be noisy. Hardware absence blocks a
-performance verdict, not source inspection or correctness work. Existing
-unresolved screenshot checks in the linked performance report are not silently
-green. No backward compatibility or data migrations are required.
+Six current before/after images are identical. Five historical canonical
+snapshot failures remain unchanged and disclosed; the remaining checks in the
+exercised scenes pass. The nonblocking Preview checkpoint is complete and owned
+images are closed. Preserve this evidence boundary. Raw evidence lives in
+ignored throwaway/math-optimization; no npm dependency is installed.
 
 - [x] Install upstream skill locally, preserve its bytes/license/provenance.
 - [x] [1 — measure and reproduce](slices/01-measure-and-reproduce.md): report
   baseline, API compatibility, work-removal control, and provisional candidates.
-- [ ] [2 — prepare campaign camera](slices/02-prepare-campaign-camera.md): ship
+- [x] [2 — prepare campaign camera](slices/02-prepare-campaign-camera.md): ship
   only if the existing-math candidate passes; verify placement and picking.
 - [x] [3 — evaluate library kernels](slices/03-evaluate-library-kernels.md):
   rejected by the incremental CPU gate; no npm dependency. Clean experiments

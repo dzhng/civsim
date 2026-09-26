@@ -6,8 +6,8 @@ import { singleShadowFit } from "@packages/game-renderer/src/battle/shadowPolicy
 
 test("orthographic shadow volume maps its physical near/far corners to reverse-Z clip bounds", () => {
   const m = orthographicReverseZ(-15, 25, 30, -10, 2, 1002);
-  const close = transformVec4(m, [-15, -10, -2, 1]);
-  const distant = transformVec4(m, [25, 30, -1002, 1]);
+  const close = transformVec4([0, 0, 0, 0], m, [-15, -10, -2, 1]);
+  const distant = transformVec4([0, 0, 0, 0], m, [25, 30, -1002, 1]);
   close.forEach((v, i) => expect(v).toBeCloseTo([-1, -1, 1, 1][i], 6));
   distant.forEach((v, i) => expect(v).toBeCloseTo([1, 1, 0, 1][i], 6));
 });

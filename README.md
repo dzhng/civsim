@@ -54,6 +54,10 @@ stored as a freestanding scalar — so it can't drift from what's on screen.
 The [authored battle model rationale](specs/done/battle-model-quality/README.md)
 records the local Blender authoring and production-rendered review boundaries.
 
+The [camera CPU reuse rationale](specs/done/math-optimization/README.md) explains
+accepted-camera ownership, measured gains, and why the installed math skill did
+not lead to a runtime library dependency.
+
 ## Navigation and loading
 
 Battle links describe a starting setup, not a saved moment in a running fight.

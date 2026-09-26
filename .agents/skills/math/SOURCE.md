@@ -13,4 +13,4 @@ does not export it. Treat the installed package's exports and source as the
 API authority. Do not introduce imports based only on the skill examples.
 
 For evaluation and adoption decisions, see the
-[optimization spec](../../../specs/math-optimization/README.md).
+[optimization spec](../../../specs/done/math-optimization/README.md).

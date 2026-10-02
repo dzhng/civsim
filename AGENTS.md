@@ -63,7 +63,7 @@ Before proposing or changing a mechanic, invoke [`tweak-mechanics`](.agents/skil
 
 Use what the repo already chose before writing your own. Find the existing owner of a concept before creating another.
 
-Before performance-sensitive vector, matrix, geometry, culling, noise, randomness or easing work in TypeScript, load [`math`](.agents/skills/math/SKILL.md). Check what the package actually exports, and read the [installed source caveat](.agents/skills/math/SOURCE.md). Don't create another math library beside the existing owners. Replacing a hot path needs a representative measurement, conversion costs included, and must preserve what its callers rely on: the projection convention, precision, deterministic random sequences and caller-owned lifetimes. A skill's advice is not a reason to change a contract or add an unmeasured dependency.
+Before performance-sensitive vector, matrix, geometry, culling, noise, randomness or easing work in TypeScript, load [`math`](.agents/skills/math/SKILL.md). Don't create another math library beside the existing owners. Replacing a hot path needs a representative measurement, conversion costs included, and must preserve what its callers rely on: the projection convention, precision, deterministic random sequences and caller-owned lifetimes. A skill's advice is not a reason to change a contract or add an unmeasured dependency.
 
 Prefer one general rule to a special case, and a simple structure to an abstraction nobody needs yet. When something replaces an old mechanism, delete the old one. When a change exposes a duplicate or a stale owner, invoke [`refactor-clean`](.agents/skills/refactor-clean/SKILL.md).
 

@@ -495,7 +495,7 @@ uses an uninstrumented native build with `parallel` enabled and eight Rayon
 workers. Ordinary and wasm builds remain serial. The [measurement contract and evidence](specs/done/sim-perf/README.md)
 distinguish army size, actual combat participation, and machine variation.
 
-`bun run check` and `bun run verify` run once, when a plan's implementation is
+`bun run check` and `bun run verify` run once, when a spec's implementation is
 finished, not as the inner feedback loop ([AGENTS.md](AGENTS.md)). `verify` runs its browser subset against
 a running dev server; it does not build WebAssembly or run every scene.
 

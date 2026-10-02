@@ -458,9 +458,14 @@ cargo test -p campaign
 cargo test -p sim --test mechanics_melee
 cargo test -p sim --test balance_harness
 cargo test -p sim --test ranged_scenarios
+scripts/test-mechanics                            # the mechanics bucket
+
+# one web test file
+bun run --cwd web test -- tests/camera3d.test.ts
 
 # browser verification (needs the dev server running) — scenes are addressable
 node web/scene.mjs                   # all quick scenes
+node web/scene.mjs --list            # available scenes
 node web/scene.mjs battle-ai --full  # one scene by name
 node web/scene.mjs campaign-visual campaign-map-alignment campaign-lod  # campaign scenes
 # bun run verify / verify:campaign run the packaged battle / campaign subsets.
@@ -490,5 +495,34 @@ uses an uninstrumented native build with `parallel` enabled and eight Rayon
 workers. Ordinary and wasm builds remain serial. The [measurement contract and evidence](specs/done/sim-perf/README.md)
 distinguish army size, actual combat participation, and machine variation.
 
+`bun run check` and `bun run verify` are milestone gates, not the inner
+feedback loop ([AGENTS.md](AGENTS.md)). `verify` runs its browser subset against
+a running dev server; it does not build WebAssembly or run every scene.
+
 See `crates/sim/tests/README.md` for the sim test taxonomy and
 `.agents/skills/screenshot-regression/` for the snapshot workflow.
+
+## Worktrees
+
+A worktree is a full checkout, so keep it limited to its task and remove it
+after integration.
+
+```sh
+# share installed web dependencies with the main checkout when they match
+ln -s <main checkout>/web/node_modules web/node_modules
+
+# give the worktree its own Rust build directory under the main checkout
+export CARGO_TARGET_DIR=<main checkout>/target/wt/$(basename "$PWD")
+```
+
+Do not install through the symlink when changing dependencies: it mutates the
+main checkout's installation, so use a separate installation for that work.
+Sharing one target directory across differing workspace sources can reuse the
+wrong build, which is why each worktree gets its own.
+
+Browser verification needs current WebAssembly and generated assets. Build with
+`bun run build:wasm` when they are absent or stale; a frontend-only worktree may
+reuse artifacts only when their source revision matches. Remove the worktree's
+`target/wt/<name>` directory along with the worktree.
+
+Assets here are ordinary files: the repo declares no Git LFS tracking.

@@ -1,107 +1,82 @@
 # Working in this repo
 
-Read [README.md](README.md) first: what the game is, how the repo fits together,
-and how to run it. Active plans live in `specs/<feature>/README.md`; their
-"Next Agent Prompt" says what to do next. If a folder you're working in has a
-README, read it before continuing.
+Read [`README.md`](README.md) first: what the game is, how the repo fits together, and how to run and check it. Active plans live with their specs, and each one says what to do next. If a folder you're working in has a readme, read it before continuing. The readmes are written for you.
 
-## Communicating with the user
+These are the principles. Commands, flags and paths live with the code that owns them: the readmes, the manifests, and each tool's own usage text.
 
-The user is very technical but doesn't read the code day-to-day. Code and file
-references are useful; introduce what a variable, function, or module does on
-first mention rather than assuming familiarity.
+## Talking to the user
 
-Surface API seams and schemas. When work changes a contract between components,
-lead with the contract and its change: simulation commands, worker publication
-layout, GPU buffer layout, fixture data, or module boundaries.
+The user is very technical but doesn't read the code day to day. Pointing at code is fine; introduce a variable, function or module briefly the first time you mention it.
 
-## Worktrees: keep them cheap
+Lead with contracts. When work touches an interface between components (a simulation command, the layout the simulation worker publishes, a GPU buffer layout, fixture data, a module boundary), say what the contract looks like and how it changed before anything else.
 
-Checkouts, assets, dependencies, and build output consume substantial disk and
-memory. Keep worktrees limited to the task and remove them after integration.
+Answer routine questions from the evidence. Ask the user only when the answer changes a decision that matters and can't be settled any other way.
 
-1. Share `web/node_modules` from the main checkout when dependencies match:
+## Proving a change
 
-   ```bash
-   ln -s /Users/david/dev/game/web/node_modules web/node_modules
-   ```
+Optimize for iteration speed. The measure is the time to feedback you can trust, not the amount of process you ran.
 
-   Do not install through that symlink when changing dependencies: it mutates
-   the main checkout's installation. Use a separate installation for such work.
-2. Give each worktree its own Rust build directory under the main checkout's
-   `target/`. Sharing one target directory across differing workspace sources
-   can reuse the wrong build. Use a unique worktree name:
+Run the narrowest check that answers your question: one test, then one file, then one crate or scene. That is the proof for everyday work, including a commit, a merge and a push.
 
-   ```bash
-   export CARGO_TARGET_DIR=/Users/david/dev/game/target/wt/$(basename "$PWD")
-   ```
+**The full gates are for milestones only.** Running every test and every browser scene is slow and saturates the machine, so it happens at a milestone the plan names in advance (a spec's stated checkpoint, a release) and once when a spec is closed. It is not a step before each commit, merge or push, and never a feedback loop. An agent working on one piece of a plan does not run it; whoever integrates the plan does, at the milestone.
 
-3. Browser verification needs current WebAssembly and generated assets. Build
-   with `bun run build:wasm` when absent or stale; a frontend-only worktree may
-   reuse artifacts only when their source revision matches.
-4. Remove the worktree and its own `target/wt/<name>` directory after integration.
+Between milestones, a change is checked by what it can move: its own tests, and the one or two scenes it touches. A failure found later at a milestone is fixed then; that is cheaper than gating every step.
 
-This repo does not currently declare Git LFS tracking. Do not assume checkout
-assets are LFS pointers or copy another project's LFS setup instructions here.
+Every expensive run must answer a question a cheaper one can't. The whole test suite, browser scenes, balance runs and the performance gates are the expensive runs here; do only the ones a change can move. Reuse a result that is still valid, and rerun only what a change could have invalidated. Docs and data that no code reads need no run at all.
 
-## Testing changes
+Write the test first. Before changing behaviour or fixing a bug, invoke [`write-tests`](.agents/skills/write-tests/SKILL.md) and follow its red/green workflow. Test what the game does and how it fails, not how the code is shaped.
 
-Before behavior changes or bug fixes, invoke
-[write-tests](.agents/skills/write-tests/SKILL.md) and follow its red/green
-workflow. Run the narrowest check that answers the question:
+The simulation is deterministic. A change that shouldn't alter outcomes (a refactor, an optimization) must leave the simulation's state fingerprint unchanged, or be a named decision.
 
-```bash
-cargo test -p sim --test mechanics_symmetry       # one simulation test file
-scripts/test-mechanics                          # mechanics bucket
-bun run --cwd web test -- tests/camera3d.test.ts  # one web test file
-bun run --cwd web scene campaign-map-alignment   # one browser scene
-bun run --cwd web scene --list                   # available scenes
-```
+A browser check is only as current as the simulation build it loads. Rebuild it when it is absent or stale.
 
-Use the package scripts and skill instructions as the source of truth for
-closeout gates. `bun run check` covers formatting, lint, TypeScript, and the Rust
-and web tests; it is a closeout gate, not the inner feedback loop.
-`bun run verify` runs the configured browser verification subset against a
-running dev server. It does not build WebAssembly or run every browser scene.
-Run the checks required by the affected behavior and spec before merging.
+Run timing probes one at a time on a quiet machine. Concurrent builds and browsers invalidate the comparison.
 
-Simulation optimizations must preserve deterministic outcomes unless a behavior
-change is explicitly intended. Use the existing performance runner and
-`crates/sim/src/bin/profile_tick.rs` for simulation profiling. Run timing probes
-one at a time on a quiet machine; concurrent builds and browsers invalidate
-comparisons.
+Never loosen a requirement to make a check pass. A narrow pass proves a narrow claim: say what you verified, what you assumed and what is unfinished.
 
-## Visual changes
+Don't wait on a long run. Start it in the background and keep working. Give it a visible sign of progress and a point where you stop, and never repeat a failure unchanged.
 
-Use [renderer](.agents/skills/renderer/SKILL.md) for renderer work and
-[aesthetics](.agents/skills/aesthetics/SKILL.md) for the visual target. Canonical
-snapshot baselines live under `web/shots/` and flow through `web/snapshot.mjs`.
-Transient evidence belongs in ignored `throwaway/`; snapshot failure images
-belong in the harness's ignored diff directory.
+## What the player sees
 
-For visual changes:
+Look at the picture. A passing check is not evidence that a battle looks real or that something reads well on screen.
 
-- Run [screenshot-critique](.agents/skills/screenshot-critique/SKILL.md) for an
-  unprimed second opinion before claiming visual acceptance.
-- Use [compare-screenshots](.agents/skills/compare-screenshots/SKILL.md) to judge
-  before/after captures and references.
-- Use [preview-shots](.agents/skills/preview-shots/SKILL.md) to show review shots
-  to the user.
+For any visual change:
+- get an unprimed second opinion with [`screenshot-critique`](.agents/skills/screenshot-critique/SKILL.md) before claiming it is accepted;
+- judge before against after, and our shots against references, with [`compare-screenshots`](.agents/skills/compare-screenshots/SKILL.md);
+- show the user with [`preview-shots`](.agents/skills/preview-shots/SKILL.md).
 
-## TypeScript math
+Before renderer work, load [`renderer`](.agents/skills/renderer/SKILL.md). The visual target is owned by [`aesthetics`](.agents/skills/aesthetics/SKILL.md).
 
-Load the [math skill](.agents/skills/math/SKILL.md) for performance-sensitive
-vector, matrix, geometry, culling, noise, randomness, and easing work. Prefer
-verified npm [math](https://github.com/pmndrs/math) primitives when they fit the
-contract; do not create another equivalent math library alongside existing
-owners. Check actual exports and the [installed source caveat](.agents/skills/math/SOURCE.md).
+Committed screenshot baselines are regression gates; change them only through [`screenshot-regression`](.agents/skills/screenshot-regression/SKILL.md). Transient evidence goes in the ignored scratch folder, never beside the baselines.
 
-Replacing existing hot paths requires representative measurements, including
-conversion costs. Preserve reverse-Z projection, precision, deterministic
-random sequences, and caller-owned lifetimes. Skill guidance is not a reason
-to change those contracts or add an unmeasured dependency.
+## Game rules
+
+Formulas read the physical world: men, mass and measured motion, never banners, commanded state or classifier counts. A term that reads bookkeeping produces an effect out of proportion to what is happening on the field.
+
+Units know only what they can see. A unit's behaviour reads of other units only what a soldier standing there could observe, and intent is inferred from motion or not at all. The AI commander obeys the same rule.
+
+Watching is the ground truth for realism. A change to how bodies move or lay out is not done until it has been seen and pinned as a reproducible snapshot. When a tiny change in input flips a battle, remove the cliff in the logic; never hide the symptom.
+
+Before proposing or changing a mechanic, invoke [`tweak-mechanics`](.agents/skills/tweak-mechanics/SKILL.md).
+
+## One owner per concept
+
+Use what the repo already chose before writing your own. Find the existing owner of a concept before creating another.
+
+Before performance-sensitive vector, matrix, geometry, culling, noise, randomness or easing work in TypeScript, load [`math`](.agents/skills/math/SKILL.md). Don't create another math library beside the existing owners. Replacing a hot path needs a representative measurement, conversion costs included, and must preserve what its callers rely on: the projection convention, precision, deterministic random sequences and caller-owned lifetimes. A skill's advice is not a reason to change a contract or add an unmeasured dependency.
+
+Prefer one general rule to a special case, and a simple structure to an abstraction nobody needs yet. When something replaces an old mechanism, delete the old one. When a change exposes a duplicate or a stale owner, invoke [`refactor-clean`](.agents/skills/refactor-clean/SKILL.md).
+
+## Parallel work stays cheap
+
+Every parallel checkout is a full copy, and assets, installed dependencies and build output multiply with each one.
+
+- Share installed dependencies with the main checkout when they match. Don't install through the shared copy; that changes the main checkout's installation.
+- Give each checkout its own build output. Checkouts whose sources differ overwrite each other's builds, and the symptom is an error from someone else's change.
+- Remove a checkout and its build output when its branch is merged.
 
 ## Skills
 
-Repo skills live in `.agents/skills/<name>/`. `.claude/skills` is a relative
-symlink to that directory, so both agents use the same files.
+Skills hold the procedures behind these principles. Load the one that covers your work before you start. Keep them current: when a pass learns a lesson (a gotcha, a pattern that paid off, a rejected approach), add it to the owning skill in the same commit, following [`write-skills`](.agents/skills/write-skills/SKILL.md).
+
+Before changing this file, invoke [`audit-agents`](.agents/skills/audit-agents/SKILL.md).

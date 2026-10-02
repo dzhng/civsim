@@ -10,6 +10,9 @@ refactor, retune, or config change that preserves it. Most bad tests fail the
 opposite way: red on harmless changes, green while the real path is broken.
 Every rule below serves that one goal.
 
+For deciding whether coverage adds independent proof, where it belongs, or
+which existing tests can go, use [audit-tests](../audit-tests/SKILL.md).
+
 ## The loop: bottom-up buckets, cargo first, browser last
 
 Go BOTTOM-UP, and NEVER reach for the whole suite while iterating — it is 10+

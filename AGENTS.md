@@ -20,8 +20,6 @@ Run the narrowest check that answers your question: one test, then one file, the
 
 **The full gates are for milestones only.** Running every test and every browser scene is slow and saturates the machine, so it happens at a milestone the plan names in advance (a spec's stated checkpoint, a release) and once when a spec is closed. It is not a step before each commit, merge or push, and never a feedback loop. An agent working on one piece of a plan does not run it; whoever integrates the plan does, at the milestone.
 
-A big change (a full spec, a major feature) ends by running the closeout gate its spec names, once, before the work is called done.
-
 Between milestones, a change is checked by what it can move: its own tests, and the one or two scenes it touches. A failure found later at a milestone is fixed then; that is cheaper than gating every step.
 
 Every expensive run must answer a question a cheaper one can't. The whole test suite, browser scenes, balance runs and the performance gates are the expensive runs here; do only the ones a change can move. Reuse a result that is still valid, and rerun only what a change could have invalidated. Docs and data that no code reads need no run at all.
@@ -65,7 +63,7 @@ Before proposing or changing a mechanic, invoke [`tweak-mechanics`](.agents/skil
 
 Use what the repo already chose before writing your own. Find the existing owner of a concept before creating another.
 
-Before performance-sensitive vector, matrix, geometry, culling, noise, randomness or easing work in TypeScript, load [`math`](.agents/skills/math/SKILL.md). Don't create another math library beside the existing owners. Replacing a hot path needs a representative measurement, conversion costs included, and must preserve what its callers rely on: the projection convention, precision, deterministic random sequences and caller-owned lifetimes. A skill's advice is not a reason to change a contract or add an unmeasured dependency.
+Before performance-sensitive vector, matrix, geometry, culling, noise, randomness or easing work in TypeScript, load [`math`](.agents/skills/math/SKILL.md). Check what the package actually exports, and read the [installed source caveat](.agents/skills/math/SOURCE.md). Don't create another math library beside the existing owners. Replacing a hot path needs a representative measurement, conversion costs included, and must preserve what its callers rely on: the projection convention, precision, deterministic random sequences and caller-owned lifetimes. A skill's advice is not a reason to change a contract or add an unmeasured dependency.
 
 Prefer one general rule to a special case, and a simple structure to an abstraction nobody needs yet. When something replaces an old mechanism, delete the old one. When a change exposes a duplicate or a stale owner, invoke [`refactor-clean`](.agents/skills/refactor-clean/SKILL.md).
 

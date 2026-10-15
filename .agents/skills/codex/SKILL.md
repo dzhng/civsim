@@ -7,7 +7,12 @@ description: Use the local Codex CLI as an independent second agent. Two branche
 
 Codex is an independent agent on PATH (`codex` — invoke as `command codex` if
 a shell alias shadows it), sharing this working tree and already authenticated. It is a second opinion, not ground truth: verify what it
-reports, own what it changes. It reads the same `.agents/skills` you do.
+reports, own what it changes. It reads the same skills your repo carries.
+
+Leave Codex's model at its CLI default unless the user asks for a specific
+one. The default follows the current Codex release; do not pin a dated model
+ID in this skill. If an explicit override is needed, verify it is current and
+pass the requested model with `-m <model>`.
 
 ## If `codex` is not installed
 
@@ -26,10 +31,9 @@ raising `--effort`.
 
 - **One task per run.** Split unrelated asks (review, then fix, then docs) into
   separate runs; a mixed prompt gets a mixed result.
-- **Name our skills instead of restating them.** Codex has the same
-  `.agents/skills` — say "follow write-tests for the harness", "obey
-  tweak-mechanics: never fix balance by changing physics", "match the
-  aesthetics north star." Don't re-explain what a skill already carries.
+- **Name skills instead of restating them.** Codex reads the same skills your
+  repo carries — say "follow write-docs for the doc", "obey refactor-clean: no
+  compatibility wrappers." Don't re-explain what a skill already carries.
 - **Blocks, added only where the task needs them:**
   - `<task>` — the concrete job, the repo/failure context, the expected end
     state. Nearly always present.
@@ -51,8 +55,9 @@ raising `--effort`.
 ## Review — proactive
 
 Run a Codex review whenever you have a substantive diff you'd want a second set
-of eyes on — sim physics, balance, refactors, renderer work — before declaring
-it done or committing. Skip it for trivial edits (typos, comments, doc-only).
+of eyes on — a refactor, a tricky algorithm, renderer work, a security-sensitive
+change — before declaring it done or committing. Skip it for trivial edits
+(typos, comments, doc-only).
 
 1. Fix the diff scope before launching: `--uncommitted` for working-tree
    changes, `--base <branch>` for a branch diff, `--commit <sha>` for a landed
@@ -72,7 +77,7 @@ it done or committing. Skip it for trivial edits (typos, comments, doc-only).
    prompt. For custom framing, specify the exact diff to inspect in the prompt;
    don't rely on default scope or traverse all refs/checkpoint history. Never
    state the answer you expect (unprimed, same discipline as
-   [screenshot-critique](../screenshot-critique/SKILL.md)).
+   [screenshot-critique](../../visual/screenshot-critique/SKILL.md)).
 2. Monitor progress in `events.jsonl` and failures in `stderr.log`. An active
    reviewer reading relevant code is not hung merely because five minutes
    elapsed. If it stalls or drifts outside the diff and its dependencies,
@@ -99,20 +104,17 @@ work without a fresh ask.
    with you until a fresh agent couldn't misread it.
 2. Start from a clean tree (or record the baseline commit) so Codex's diff is
    separable from yours.
-   Tell Codex to write scratch (probes, shot dumps, notes) to the repo's
-   gitignored `/throwaway/` folder — never the tree; its diff must contain only
-   the deliverable.
 3. Pick the sandbox by what the task must RUN:
    - Pure code + typecheck/unit: `codex exec --sandbox workspace-write "<task>"`.
      Network is off; add `-c sandbox_workspace_write.network_access=true` only
      when the task must fetch (e.g. new deps).
-   - **Browser verification, dev servers, or full test/scene runs: use
+   - **Browser verification, dev servers, or full test runs: use
      `codex exec --dangerously-bypass-approvals-and-sandbox "<task>"`.** The
-     sandbox blocks localhost binds (`listen EPERM` on vite/playwright) and the
-     app-server, so a sandboxed codex ships code it never saw run. Bypass trades
-     that blindness for zero OS control: only in a dedicated git worktree, only
-     with a prompt you authored end-to-end (never relaying third-party text),
-     and the diff review you owe afterwards is the control.
+     sandbox blocks localhost binds (`listen EPERM` on vite/playwright), so a
+     sandboxed codex ships code it never saw run. Bypass trades that blindness
+     for zero OS control: only in a dedicated git worktree, only with a prompt
+     you authored end-to-end (never relaying third-party text), and the diff
+     review you owe afterwards is the control.
    Use `-o <file>` to capture the final message and background long calls;
    suppress codex's stderr thinking-noise with `2>/dev/null` so it doesn't
    bloat your context (drop it only to debug a failing run), and add
@@ -168,5 +170,6 @@ changes. "Process running" is NOT "working."
   aliased workspace-write) — don't reach for it.
 - Reasoning effort and model are config/flag overrides — `-c
   model_reasoning_effort=high`, `-m <model>` (the old `--effort` flag is gone
-  in current Codex). Leave both at their defaults unless the user asks —
-  tighten the prompt first.
+  in current Codex). Leave both at their defaults unless the user asks;
+  tighten the prompt first and keep model IDs unversioned. If a version is
+  required, verify that it is current before using it.

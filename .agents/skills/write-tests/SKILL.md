@@ -117,6 +117,14 @@ seam. For the vitest / node-test web suites:
   the fix is never a skipIf/conditional (a skipped assertion hides the
   coupling and stops covering the path): feed fixed inputs or stub the lookup.
   Litmus: "would this break if a config value changed with no logic change?"
+- **A test sets the bounds it depends on.** Tuning data (unit stats,
+  ranges, prices, timings) is guaranteed to change: it is retuned all the
+  time, and a test that reads it, or hard-codes today's value, breaks on every
+  retune. So a boundary test (in range or out, seen or hidden, fits or
+  overflows) uses a fake whose numbers the test itself defines, and probes
+  either side of them. A test of anything else runs at the smallest setup that
+  shows the behaviour, far from any bound: it survives retuning and runs
+  faster.
   This is the same rule the fake REFERENCE units enforce on the Rust side.
 - **Harnesses must wire the system the way production does.** If a bug only
   reproduced against the real app, the harness skipped an input production

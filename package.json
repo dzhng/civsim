@@ -18,6 +18,15 @@
     "test:rust": "cargo test --workspace",
     "test:web": "bun run --cwd web test",
     "verify": "bun run --cwd web verify",
-    "check": "bun run fmt:check && bun run lint && bun run typecheck && bun run test"
+    "check": "bun run fmt:check && bun run lint && bun run typecheck && bun run test",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "linguist-languages": "9.5.0",
+    "husky": "9.1.7",
+    "lint-staged": "17.6.0"
+  },
+  "lint-staged": {
+    "*": "node scripts/check-file-size.mjs"
   }
 }

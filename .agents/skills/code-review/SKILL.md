@@ -95,7 +95,7 @@ The most valuable test suite is the one most decoupled from the implementation i
 - **A passing test should mean a real battle behaves correctly.** Common smells: hand-constructing internal state that the order pipeline would have built, stepping a subsystem in isolation when the bug only manifests with the other subsystems running.
 - **Harnesses must wire the system the way production wires it.** If a bug was only visible in the browser, the scenario harness skipped something the real loop sets — fix the harness so the next regression in the same shape is caught by `cargo test -p sim`, not by playing the game.
 - **Coupled tests are a refactor tax.** When renaming an internal function breaks dozens of tests without changing any battle-visible behavior, the suite is testing the wrong layer.
-- **Reserve unit tests for genuinely tricky pure logic** — formation slot math, wheeling geometry, pathfinding, morale state machines. Everything else earns more value as a scenario test.
+- **Default to scenario or end-to-end regression tests.** Use a unit test only for specific, complex business logic (formation slot math, wheeling geometry, pathfinding, morale state machines) when fast feedback will materially speed development.
 
 ## 14. Keep the sim deterministic
 

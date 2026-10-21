@@ -10,6 +10,8 @@ refactor, retune, or config change that preserves it. Most bad tests fail the
 opposite way: red on harmless changes, green while the real path is broken.
 Every rule below serves that one goal.
 
+Default to end-to-end or system-level tests for regression coverage; use a unit test only for specific, complex business logic when fast feedback will materially speed development.
+
 For deciding whether coverage adds independent proof, where it belongs, or
 which existing tests can go, use [audit-tests](../audit-tests/SKILL.md).
 

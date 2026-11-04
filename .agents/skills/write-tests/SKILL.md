@@ -76,6 +76,13 @@ cycle tells you what the next test should actually assert.
   type's shape (field exists, wrong argument rejected) can only fail if
   rustc/tsc failed first. Spend the budget on behavior: rules, arithmetic,
   branching, ordering, edge cases.
+- **Not presentation.** Class names, styles and copy are content, not logic.
+  Checking them as strings only repeats the source: the test breaks on every
+  design or wording edit and passes when the screen looks wrong. Check
+  appearance by looking at it: extend the shot baseline that already covers
+  that surface ([screenshot-regression](../screenshot-regression/SKILL.md)),
+  or add one. Add a behavioral test only if the change also alters behavior or
+  accessibility.
 - **Actual values, not collection sizes.** On dedup/normalize/idempotency
   paths (mostly web state), `length == 1` passes even when normalization is
   broken — also assert the stored value equals the expected canonical form.
@@ -357,6 +364,10 @@ PASSES — false confidence that the test discriminates. The tell: the "red"
 numbers equal the green numbers. Always sanity-check `git stash list` (or that
 the metric moved) before believing the red. A test you never saw fail is not a
 regression test, it's decoration.
+
+For a screenshot test, confirm the capture differs before and after at the
+state you changed. A screenshot taken in a different state than the one you
+changed proves nothing.
 
 ## When a test goes red after a sim change
 

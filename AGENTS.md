@@ -26,7 +26,7 @@ Every expensive run must answer a question a cheaper one can't. The whole test s
 
 Default to end-to-end or system-level tests for regression coverage; use a unit test only for specific, complex business logic when fast feedback will materially speed development.
 
-Write the test first. Before changing behaviour or fixing a bug, invoke [`write-tests`](.agents/skills/write-tests/SKILL.md) and follow its red/green workflow. Test what the game does and how it fails, not how the code is shaped.
+Write the test first. Before changing behaviour or fixing a bug, invoke [`write-tests`](.agents/skills/write-tests/SKILL.md) and follow its red/green workflow. Test what the game does and how it fails. Never test presentation as a string: a class name is no more logic than a marketing headline.
 
 The simulation is deterministic. A change that shouldn't alter outcomes (a refactor, an optimization) must leave the simulation's state fingerprint unchanged, or be a named decision.
 
